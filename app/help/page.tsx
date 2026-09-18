@@ -52,6 +52,33 @@ export default function HelpPage() {
           </p>
         </div>
       </section>
+      <section id="agency" className="rounded border p-4">
+        <h2 className="font-medium">4. Agency pack: project margins (E-245–E-249)</h2>
+        <div className="mt-1 space-y-1 text-gray-700">
+          <p>
+            <Link href="/answers/projects" className="underline">Project margins</Link> shows every
+            project&apos;s margin for the week, worst first. Red margins lose money.
+          </p>
+          <p>
+            Drill down in 3 clicks: project → revision → cost line → source file + row
+            (E-246). Every figure carries its rule IDs (R-ag-1..R-ag-4); the “How this
+            answer was built” box states each rule in plain English (E-247).
+          </p>
+          <p>
+            Ask: “which projects lost money last week?”, “worst project”, “rework cost”,
+            “approval delays”, “project Acme Site”, “brief”, “upload”, “help” (E-249).
+            Unknown questions fall back to the projects list, never a blank page.
+          </p>
+          <p>
+            Download CSV carries week + pack in the filename; share links are read-only,
+            project-groups only (no revision detail), and expire in 30 days (E-248).
+          </p>
+          <p>
+            Layout, empty states, loading skeletons, and mobile tables reuse the shared
+            standards (E-250): same primitives, same 44px targets, same overflow rules.
+          </p>
+        </div>
+      </section>
       </HelpSearch>
     </main>
   );

@@ -52,13 +52,30 @@ export default async function UploadPage() {
     correctionMade: correctionCount > 0,
   };
   const fleetSize = ((active.organization.settings ?? {}) as { fleetSize?: string }).fleetSize ?? "";
+  const teamSize = ((active.organization.settings ?? {}) as { teamSize?: string }).teamSize ?? "";
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-8">
       <h1 className="text-xl font-bold">Upload — {active.organization.name}</h1>
+      <section className="rounded border p-4 text-sm">
+        <h2 className="font-medium">Which business is this for?</h2>
+        <div className="mt-2 grid gap-2 md:grid-cols-2">
+          <Link href="/answers" className="rounded border p-3 hover:bg-gray-50">
+            <span className="font-medium">Fleet / carriers</span>
+            <span className="block text-gray-600">Lane margins from TMS, fuel + broker files.</span>
+          </Link>
+          <Link href="/answers/projects" className="rounded border p-3 hover:bg-gray-50">
+            <span className="font-medium">Video studio / agency</span>
+            <span className="block text-gray-600">Project margins from time, revision + invoice exports.</span>
+          </Link>
+        </div>
+      </section>
       <FleetSizePicker initial={fleetSize} />
+      <FleetSizePicker initial={teamSize} pack="agency" />
       <OnboardingChecklist state={checklist} />
+      <OnboardingChecklist state={checklist} pack="agency" />
       <DemoTour />
+      <DemoTour pack="agency" />
       <p className="text-sm text-gray-600">
         <Link href="/help" className="underline">How uploading works</Link>
       </p>
@@ -69,6 +86,8 @@ export default async function UploadPage() {
         <DemoSeedButton pack="reefer" label="Reefer sample" />
         <DemoSeedButton pack="flatbed" label="Flatbed sample" />
         <DemoSeedButton pack="dryvan" label="Dry-van sample" />
+        <DemoSeedButton pack="agency-video" label="Studio sample (video)" />
+        <DemoSeedButton pack="agency-design" label="Studio sample (design)" />
         <DemoResetButton slug={active.organization.slug} />
       </p>
       <GraduateButton />

@@ -1,13 +1,21 @@
 import Link from "next/link";
 import BriefFeedback from "@/components/BriefFeedback";
 import PrintButton from "@/components/PrintButton";
-import type { BriefContent } from "@/lib/packs/freight/brief/build";
+import type { BriefContent } from "@/lib/core/brief/content";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
 
-export default async function BriefPage({ params }: { params: Promise<{ week: string }> }) {
+export default async function BriefPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ week: string }>;
+  searchParams: Promise<{ pack?: string }>;
+}) {
   const { week } = await params;
+  const sp = await searchParams;
+  const pack = sp.pack === "agency" ? "agency" : "freight";
   const session = await auth();
   if (!session?.user?.id) {
     return (
@@ -31,7 +39,7 @@ export default async function BriefPage({ params }: { params: Promise<{ week: st
   }
 
   const brief = await db.brief.findUnique({
-    where: { organizationId_weekStart: { organizationId: active.organization.id, weekStart: week } },
+    where: { organizationId_weekStart_pack: { organizationId: active.organization.id, weekStart: week, pack } },
   });
   if (!brief) {
     return (
@@ -55,7 +63,9 @@ export default async function BriefPage({ params }: { params: Promise<{ week: st
           ← All briefs
         </Link>
       </p>
-      <h1 className="text-xl font-bold">Week of {c.weekStart}</h1>
+      <h1 className="text-xl font-bold">
+        Week of {c.weekStart} {pack === "agency" ? "(studio)" : "(fleet)"}
+      </h1>
       <p className="rounded border p-4">{c.paragraph}</p>
 
       <div className="grid grid-cols-3 gap-2 text-sm">
@@ -82,13 +92,13 @@ export default async function BriefPage({ params }: { params: Promise<{ week: st
           <h2 className="font-medium">New since last week</h2>
           <ul className="mt-1 list-disc pl-5">
             {(c.newSince?.lanes ?? []).map((l) => (
-              <li key={l}>Lane: {l}</li>
+              <li key={l}>{pack === "agency" ? "Project" : "Lane"}: {l}</li>
             ))}
             {(c.newSince?.trucks ?? []).map((t) => (
-              <li key={t}>Truck: {t}</li>
+              <li key={t}>{pack === "agency" ? "Team member" : "Truck"}: {t}</li>
             ))}
             {(c.newSince?.brokers ?? []).map((b) => (
-              <li key={b}>Broker: {b}</li>
+              <li key={b}>{pack === "agency" ? "Client" : "Broker"}: {b}</li>
             ))}
           </ul>
         </section>
@@ -133,7 +143,10 @@ export default async function BriefPage({ params }: { params: Promise<{ week: st
       <div className="print:hidden flex flex-wrap items-center gap-3">
         <BriefFeedback id={brief.id} week={c.weekStart} />
         <PrintButton />
-        <Link href={`/answers?week=${c.weekStart}`} className="text-sm underline">
+        <Link
+          href={pack === "agency" ? `/answers/projects?week=${c.weekStart}` : `/answers?week=${c.weekStart}`}
+          className="text-sm underline"
+        >
           Open the full answer
         </Link>
       </div>

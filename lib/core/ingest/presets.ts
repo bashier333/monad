@@ -119,17 +119,28 @@ export function applyPreset(
   headers: string[],
   preset: VendorPreset,
 ): Partial<Record<CanonicalField, number>> {
+  return applyHeaderPreset(headers, preset.headers as Record<string, string[]>) as Partial<
+    Record<CanonicalField, number>
+  >;
+}
+
+export function applyHeaderPreset(
+  headers: string[],
+  namesByField: Record<string, string[] | undefined>,
+): Record<string, number> {
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
   const keys = headers.map(norm);
-  const mapping: Partial<Record<CanonicalField, number>> = {};
-  for (const [field, names] of Object.entries(preset.headers)) {
+  const mapping: Record<string, number> = {};
+  for (const [field, names] of Object.entries(namesByField)) {
     for (const name of names ?? []) {
       const idx = keys.indexOf(norm(name));
       if (idx !== -1) {
-        mapping[field as CanonicalField] = idx;
+        mapping[field] = idx;
         break;
       }
     }
   }
   return mapping;
 }
+
+export const FREIGHT_PRESET_VENDORS = ["generic", "mcleod", "tmw", "prophesy", "ascend"];

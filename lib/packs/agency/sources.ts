@@ -1,6 +1,6 @@
 import { AGENCY_ALIASES, AGENCY_FIELDS, type AgencyField } from "@/lib/packs/agency/fields";
 
-export const AGENCY_SOURCE_TYPES = ["time", "revision", "invoice", "asset", "rate"] as const;
+export const AGENCY_SOURCE_TYPES = ["time", "revision", "approval", "invoice", "asset", "rate", "project", "feedback"] as const;
 export type AgencySourceType = (typeof AGENCY_SOURCE_TYPES)[number];
 
 export function isAgencySource(sourceType: string): boolean {

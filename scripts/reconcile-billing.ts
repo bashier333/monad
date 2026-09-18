@@ -28,6 +28,7 @@ async function main() {
   }
   const mrr = subs.filter((s) => s.tier !== "free" && s.status === "active").length;
   console.log(`done. active-paid orgs=${mrr} mismatches=${mismatches}`);
+  console.log("revenue split: single Team price today — per-pack split lands when pack prices diverge (see PACK_PRICES).");
   await db.$disconnect();
   if (mismatches > 0) process.exit(1);
 }

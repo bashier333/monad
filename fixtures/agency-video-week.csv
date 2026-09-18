@@ -1,0 +1,13 @@
+Project,Date,Person,Task,Hours,Rate
+Acme Site,2026-09-07,Alice,rough cut,8,100
+Acme Site,2026-09-08,Alice,R1 revisions,6,100
+Acme Site,2026-09-09,Bob,color pass,4,120
+Acme Site,2026-09-10,Alice,R2 revisions,5,100
+Acme Site,2026-09-11,Bob,final mix,3,120
+Beta Logo,2026-09-07,Cara,concepts,6,90
+Beta Logo,2026-09-08,Cara,R1 revisions,4,90
+Beta Logo,2026-09-10,Cara,final files,2,90
+Gamma Doc,2026-09-08,Dan,transcript,5,80
+Gamma Doc,2026-09-09,Dan,assembly,7,80
+Gamma Doc,2026-09-10,Erin,R1 review,3,95
+Gamma Doc,2026-09-11,Dan,R2 revisions,4,80

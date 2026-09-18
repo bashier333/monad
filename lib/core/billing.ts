@@ -66,6 +66,6 @@ export async function monthlyUploads(organizationId: string, now = new Date()): 
   }).then((r) => r._sum.qty ?? 0);
 }
 
-export async function recordUsage(organizationId: string, kind: string, qty = 1): Promise<void> {
-  await db.meterEvent.create({ data: { organizationId, kind, qty } });
+export async function recordUsage(organizationId: string, kind: string, qty = 1, pack = "freight"): Promise<void> {
+  await db.meterEvent.create({ data: { organizationId, kind, qty, pack } });
 }

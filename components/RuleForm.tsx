@@ -3,10 +3,15 @@
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-export default function RuleForm({ week }: { week: string }) {
+export default function RuleForm({ week, pack = "freight" }: { week: string; pack?: "freight" | "agency" }) {
   const sp = useSearchParams();
-  const [costKind, setCostKind] = useState("detention");
-  const [matchField, setMatchField] = useState("driver");
+  const costKinds = pack === "agency" ? ["labor", "rush", "asset"] : ["detention", "fee", "fuel"];
+  const matchFields =
+    pack === "agency"
+      ? ["client", "project", "round", "person", "date", "hours", "amount", "loadKey"]
+      : ["driver", "origin", "destination", "broker", "truck", "loadKey", "lane", "date", "revenue", "miles"];
+  const [costKind, setCostKind] = useState(costKinds[0]);
+  const [matchField, setMatchField] = useState(pack === "agency" ? "client" : "driver");
   const [matchValue, setMatchValue] = useState(sp.get("matchValue") ?? "");
   const [toLoad, setToLoad] = useState(sp.get("toLoad") ?? "EXCLUDE");
   const [reason, setReason] = useState(sp.get("reason") ?? "");
@@ -19,10 +24,14 @@ export default function RuleForm({ week }: { week: string }) {
     const res = await fetch("/api/rules/preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rule: { kind: "reattribute", costKind, matchField, matchValue, toLoad, reason }, week }),
+      body: JSON.stringify({ rule: { kind: "reattribute", costKind, matchField, matchValue, toLoad, reason }, week, pack }),
     });
-    const body = (await res.json()) as { affectedLoads?: number; adjustments?: number; totalMoved?: number; pctOfWeeklyCost?: number; laneDeltas?: Array<{ lane: string; delta: number }>; sample?: string[]; error?: string };
-    setPreview(res.ok ? `${body.affectedLoads} loads, $${body.totalMoved ?? 0} moved (${body.pctOfWeeklyCost ?? 0}% of weekly cost). ${(body.laneDeltas ?? []).map((d) => `${d.lane} ${d.delta >= 0 ? "+" : ""}${d.delta}`).join(" | ")}` : (body.error ?? "preview failed"));
+    const body = (await res.json()) as { affectedLoads?: number; adjustments?: number; totalMoved?: number; pctOfWeeklyCost?: number; laneDeltas?: Array<{ lane: string; delta: number }>; groupDeltas?: Array<{ group: string; delta: number }>; sample?: string[]; error?: string };
+    const deltas = (body.groupDeltas ?? body.laneDeltas ?? []).map((d) => {
+      const name = "group" in d ? (d as { group: string }).group : (d as { lane: string }).lane;
+      return `${name} ${d.delta >= 0 ? "+" : ""}${d.delta}`;
+    });
+    setPreview(res.ok ? `${body.affectedLoads} loads, $${body.totalMoved ?? 0} moved (${body.pctOfWeeklyCost ?? 0}% of weekly cost). ${deltas.join(" | ")}${(body.pctOfWeeklyCost ?? 0) > 25 ? " — WARNING: moves >25% of weekly cost" : ""}` : (body.error ?? "preview failed"));
   }
 
   async function save(e: React.FormEvent) {
@@ -31,7 +40,7 @@ export default function RuleForm({ week }: { week: string }) {
     const res = await fetch("/api/rules", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ costKind, matchField, matchValue, toLoad, reason, sourceCorrectionId: sourceCorrectionId || undefined }),
+      body: JSON.stringify({ costKind, matchField, matchValue, toLoad, reason, pack, sourceCorrectionId: sourceCorrectionId || undefined }),
     });
     if (res.ok) window.location.reload();
     else setMsg("save failed");
@@ -42,12 +51,12 @@ export default function RuleForm({ week }: { week: string }) {
       <h2 className="font-medium">New standing rule</h2>
       <div className="flex flex-wrap gap-2">
         <select value={costKind} onChange={(e) => setCostKind(e.target.value)} className="rounded border p-1">
-          {["detention", "fee", "fuel"].map((k) => (
+          {costKinds.map((k) => (
             <option key={k} value={k}>{k}</option>
           ))}
         </select>
         <select value={matchField} onChange={(e) => setMatchField(e.target.value)} className="rounded border p-1">
-          {["driver", "origin", "destination", "broker", "truck", "loadKey", "lane", "date", "revenue", "miles"].map((f) => (
+          {matchFields.map((f) => (
             <option key={f} value={f}>{f}</option>
           ))}
         </select>

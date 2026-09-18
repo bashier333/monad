@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function RecomputeButton({ week }: { week: string }) {
+export default function RecomputeButton({ week, pack = "freight" }: { week: string; pack?: "freight" | "agency" }) {
   const [result, setResult] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -11,7 +11,7 @@ export default function RecomputeButton({ week }: { week: string }) {
     const res = await fetch("/api/answers/recompute", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ week }),
+      body: JSON.stringify({ week, pack }),
     });
     setBusy(false);
     if (res.ok) {

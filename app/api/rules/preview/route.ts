@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  const body = (await req.json()) as { rule?: RuleInput; week?: string };
+  const body = (await req.json()) as { rule?: RuleInput; week?: string; pack?: string };
   if (!body.rule?.costKind || !body.rule?.matchField || !body.rule?.matchValue) {
     return NextResponse.json({ error: "rule with costKind, matchField, matchValue is required" }, { status: 400 });
   }
@@ -27,6 +27,10 @@ export async function POST(req: Request) {
     anchor = resolveWeek(body.week ?? null);
   } catch {
     return NextResponse.json({ error: "invalid week parameter" }, { status: 400 });
+  }
+
+  if (body.pack === "agency") {
+    return previewAgency(active.organization.id, active.organization.weekStartsOn, anchor, body.rule);
   }
 
   const inputs = await getInputs(active.organization.id);
@@ -45,8 +49,8 @@ export async function POST(req: Request) {
     revenue: l.revenue,
     miles: l.miles,
   }));
-  const corrections = expandRule({ id: "preview", ...body.rule }, matchable, FREIGHT_FIELD_KINDS);
-  const withRule = buildAnswer(inputs, corrections, start, end);
+  const rule = normalizePreviewRule(body.rule);
+  const corrections = expandRule({ id: "preview", ...rule }, matchable, FREIGHT_FIELD_KINDS);  const withRule = buildAnswer(inputs, corrections, start, end);
   const baseline = buildAnswer(inputs, [], start, end);
 
   const affectedLoads = [...new Set(corrections.map((c) => c.fromLoad))];
@@ -65,6 +69,53 @@ export async function POST(req: Request) {
     totalMoved,
     pctOfWeeklyCost: weeklyCost === 0 ? 0 : Math.round((totalMoved / weeklyCost) * 10000) / 100,
     laneDeltas: laneDeltas.slice(0, 10),
+    sample,
+    weekStart: start,
+    weekEnd: end,
+  });
+}
+
+function normalizePreviewRule(rule: RuleInput): RuleInput {
+  const toLoad = rule.toLoad === "EXCLUDE" || rule.toLoad === "" ? null : rule.toLoad;
+  return { ...rule, toLoad };
+}
+
+async function previewAgency(organizationId: string, weekStartsOn: number, anchor: string, rule: RuleInput) {  const { getAgencyInputs, buildAgencyAnswer } = await import("@/lib/packs/agency/service");
+  const { AGENCY_FIELD_KINDS } = await import("@/lib/packs/agency/rules");
+  const { weekBounds } = await import("@/lib/packs/agency/engine");
+  const inputs = await getAgencyInputs(organizationId);
+  const { start, end } = weekBounds(anchor, weekStartsOn);
+
+  const matchable = inputs.records.map((r) => ({
+    loadKey: r.recordKey,
+    project: r.project,
+    client: r.client,
+    date: r.date,
+    person: r.person,
+    round: "",
+    hours: r.hours,
+    amount: "",
+  }));
+  const corrections = expandRule({ id: "preview", ...normalizePreviewRule(rule) }, matchable, AGENCY_FIELD_KINDS);
+  const withRule = buildAgencyAnswer(inputs, corrections, start, end);
+  const baseline = buildAgencyAnswer(inputs, [], start, end);
+
+  const affectedLoads = [...new Set(corrections.map((c) => c.fromLoad))];
+  const baseByProject = new Map(baseline.projects.map((p) => [p.project, p.margin]));
+  const groupDeltas = withRule.projects
+    .map((p) => ({ group: p.project, delta: Math.round((p.margin - (baseByProject.get(p.project) ?? p.margin)) * 100) / 100 }))
+    .filter((d) => d.delta !== 0)
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+  const totalMoved = Math.round(groupDeltas.reduce((s, d) => s + Math.abs(d.delta), 0) * 100) / 100;
+  const weeklyCost = withRule.totals.cost;
+  const sample = withRule.adjustments.slice(0, 10).map((a) => a.description);
+
+  return NextResponse.json({
+    affectedLoads: affectedLoads.length,
+    adjustments: withRule.adjustments.length,
+    totalMoved,
+    pctOfWeeklyCost: weeklyCost === 0 ? 0 : Math.round((totalMoved / weeklyCost) * 10000) / 100,
+    groupDeltas: groupDeltas.slice(0, 10),
     sample,
     weekStart: start,
     weekEnd: end,

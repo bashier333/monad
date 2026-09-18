@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { getAgencyAnswer } from "@/lib/packs/agency/service";
 import { buildExportCSV } from "@/lib/packs/freight/csv";
+import { buildAgencyExportCSV } from "@/lib/packs/agency/csv";
 import { auth } from "@/lib/core/auth";
 import { getActiveOrg } from "@/lib/core/org";
 
@@ -17,9 +19,23 @@ export async function GET(req: Request) {
   } catch {
     return NextResponse.json({ error: "invalid week parameter (use YYYY-MM-DD)" }, { status: 400 });
   }
-  const laneFilter = url.searchParams.get("lane");
-  const answer = await getWeeklyAnswer(active.organization.id, active.organization.weekStartsOn, anchor);
-  const csv = buildExportCSV(answer.lanes, answer.loads, laneFilter);
+  const pack = url.searchParams.get("pack") === "agency" ? "agency" : "freight";
+  const filenamePack = pack === "agency" ? "agency" : "lane-margins";
+
+  let csv: string;
+  let weekStart: string;
+  if (pack === "agency") {
+    const projectFilter = url.searchParams.get("project");
+    const answer = await getAgencyAnswer(active.organization.id, active.organization.weekStartsOn, anchor);
+    const loads = answer.projects.flatMap((p) => p.loads);
+    csv = buildAgencyExportCSV(answer.projects, loads, projectFilter);
+    weekStart = answer.meta.weekStart;
+  } else {
+    const laneFilter = url.searchParams.get("lane");
+    const answer = await getWeeklyAnswer(active.organization.id, active.organization.weekStartsOn, anchor);
+    csv = buildExportCSV(answer.lanes, answer.loads, laneFilter);
+    weekStart = answer.meta.weekStart;
+  }
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
@@ -34,7 +50,7 @@ export async function GET(req: Request) {
   return new NextResponse(stream, {
     headers: {
       "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="lane-margins-${answer.meta.weekStart}.csv"`,
+      "Content-Disposition": `attachment; filename="${filenamePack}-${weekStart}.csv"`,
     },
   });
 }

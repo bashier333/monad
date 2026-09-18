@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const STEPS = [
+const FREIGHT_STEPS = [
   "1. This is a sample week — real carrier shape, fake numbers.",
   "2. Open Answers: every lane's margin, worst first.",
   "3. Click a lane, expand a load: every dollar links to its source row.",
@@ -10,14 +10,24 @@ const STEPS = [
   "5. Upload your own export when ready. The sample wipes clean.",
 ];
 
-export default function DemoTour() {
+const AGENCY_STEPS = [
+  "1. This is a sample week — real studio shape, fake numbers.",
+  "2. Open Project margins: every project's margin, worst first.",
+  "3. Click a project, expand a revision: every dollar links to its source row.",
+  "4. Flag anything you disagree with — corrections become rules.",
+  "5. Upload your own export when ready. The sample wipes clean.",
+];
+
+export default function DemoTour({ pack = "freight" }: { pack?: "freight" | "agency" }) {
+  const STEPS = pack === "agency" ? AGENCY_STEPS : FREIGHT_STEPS;
+  const storeKey = pack === "agency" ? "demo-tour-agency" : "demo-tour";
   const [dismissed, setDismissed] = useState(
-    () => typeof window !== "undefined" && window.localStorage.getItem("demo-tour") === "1",
+    () => typeof window !== "undefined" && window.localStorage.getItem(storeKey) === "1",
   );
   const [step, setStep] = useState(0);
   if (dismissed) return null;
   const done = () => {
-    window.localStorage.setItem("demo-tour", "1");
+    window.localStorage.setItem(storeKey, "1");
     setDismissed(true);
   };
   return (

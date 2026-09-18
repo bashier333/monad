@@ -14,34 +14,35 @@ enum Role {
 }
 
 model Organization {
-  id           String         @id @default(cuid())
-  name         String
-  slug         String         @unique
-  weekStartsOn Int            @default(1)
-  timezone     String         @default("America/Chicago")
-  settings     Json?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  memberships  Membership[]
-  files        DataFile[]
-  runs         ImportRun[]
-  mappings     ColumnMapping[]
-  placeAliases PlaceAlias[]
-  shares       AnswerShare[]
-  corrections  Correction[]
-  standingRules StandingRule[]
-  briefs       Brief[]
-  subscription Subscription?
-  meterEvents  MeterEvent[]
-  accessLogs   AccessLog[]
+  id             String          @id @default(cuid())
+  name           String
+  slug           String          @unique
+  weekStartsOn   Int             @default(1)
+  timezone       String          @default("America/Chicago")
+  settings       Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  memberships    Membership[]
+  files          DataFile[]
+  runs           ImportRun[]
+  mappings       ColumnMapping[]
+  placeAliases   PlaceAlias[]
+  shares         AnswerShare[]
+  corrections    Correction[]
+  standingRules  StandingRule[]
+  briefs         Brief[]
+  subscription   Subscription?
+  meterEvents    MeterEvent[]
+  accessLogs     AccessLog[]
   pilotChecklist PilotChecklist?
-  notifications Notification[]
+  notifications  Notification[]
 }
 
 model AnswerShare {
   id             String       @id @default(cuid())
   organizationId String
   weekStart      String
+  pack           String       @default("freight")
   token          String       @unique
   expiresAt      DateTime
   revoked        Boolean      @default(false)
@@ -73,19 +74,19 @@ model Correction {
 }
 
 model StandingRule {
-  id             String       @id @default(cuid())
-  organizationId String
-  kind           String       @default("reattribute")
-  costKind       String       @default("")
-  matchField     String       @default("")
-  matchValue     String       @default("")
-  toLoad         String?
-  reason         String       @default("")
-  authorId       String
-  active         Boolean      @default(true)
+  id                 String       @id @default(cuid())
+  organizationId     String
+  kind               String       @default("reattribute")
+  costKind           String       @default("")
+  matchField         String       @default("")
+  matchValue         String       @default("")
+  toLoad             String?
+  reason             String       @default("")
+  authorId           String
+  active             Boolean      @default(true)
   sourceCorrectionId String?
-  createdAt      DateTime     @default(now())
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt          DateTime     @default(now())
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, active])
 }
@@ -109,13 +110,14 @@ model Brief {
   id             String       @id @default(cuid())
   organizationId String
   weekStart      String
+  pack           String       @default("freight")
   content        Json
   emailedTo      Json?
   feedback       Json?
   createdAt      DateTime     @default(now())
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@unique([organizationId, weekStart])
+  @@unique([organizationId, weekStart, pack])
   @@index([organizationId])
 }
 
@@ -136,6 +138,7 @@ model MeterEvent {
   id             String       @id @default(cuid())
   organizationId String
   kind           String
+  pack           String       @default("freight")
   qty            Int          @default(1)
   createdAt      DateTime     @default(now())
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -270,17 +273,17 @@ model DataFile {
 }
 
 model ImportRun {
-  id                String       @id @default(cuid())
+  id                String           @id @default(cuid())
   organizationId    String
   fileId            String
   uploadedById      String
-  sourceType        String       @default("tms")
-  status            ImportStatus @default(PENDING)
-  progress          Int          @default(0)
-  totalRows         Int          @default(0)
-  okRows            Int          @default(0)
-  quarantinedRows   Int          @default(0)
-  skippedRows       Int          @default(0)
+  sourceType        String           @default("tms")
+  status            ImportStatus     @default(PENDING)
+  progress          Int              @default(0)
+  totalRows         Int              @default(0)
+  okRows            Int              @default(0)
+  quarantinedRows   Int              @default(0)
+  skippedRows       Int              @default(0)
   dateMin           DateTime?
   dateMax           DateTime?
   headers           Json?
@@ -291,10 +294,10 @@ model ImportRun {
   decisionNote      String?
   conflicts         Json?
   failureReason     String?
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  file              DataFile     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  file              DataFile         @relation(fields: [fileId], references: [id], onDelete: Cascade)
   staged            StagedRecord[]
   rowErrors         ImportRowError[]
 

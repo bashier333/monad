@@ -20,8 +20,20 @@ async function main() {
     const runB = await db.importRun.create({
       data: { organizationId: orgB.id, fileId: fileB.id, uploadedById: userA.id, sourceType: "tms", status: "COMPLETED" },
     });
+    const runAgencyB = await db.importRun.create({
+      data: { organizationId: orgB.id, fileId: fileB.id, uploadedById: userA.id, sourceType: "time", status: "COMPLETED" },
+    });
     await db.stagedRecord.create({
       data: { organizationId: orgB.id, runId: runB.id, rowNumber: 1, loadKey: "SECRET", data: {}, status: "ok" },
+    });
+    await db.stagedRecord.create({
+      data: { organizationId: orgB.id, runId: runAgencyB.id, rowNumber: 1, loadKey: "AGENCY-SECRET", data: {}, status: "ok" },
+    });
+    const shareB = await db.answerShare.create({
+      data: { organizationId: orgB.id, weekStart: "2026-09-07", pack: "agency", token: `secret-${Date.now()}`, expiresAt: new Date(Date.now() + 86400000) },
+    });
+    const briefB = await db.brief.create({
+      data: { organizationId: orgB.id, weekStart: "2026-09-07", pack: "agency", content: {} },
     });
 
     const seenByA = await db.stagedRecord.findMany({ where: { organizationId: orgA.id } });
@@ -38,7 +50,22 @@ async function main() {
       console.error("TENANCY SETUP FAILURE: probe row missing.");
       process.exit(1);
     }
-    console.log("tenancy-check: PASS — org-scoped queries isolate tenants.");
+    const packLeak = await db.stagedRecord.findMany({ where: { organizationId: orgA.id } });
+    if (packLeak.some((r) => r.loadKey === "AGENCY-SECRET")) {
+      console.error("TENANCY FAILURE: org A can read org B agency rows.");
+      process.exit(1);
+    }
+    const shareLeak = await db.answerShare.findMany({ where: { organizationId: orgA.id } });
+    if (shareLeak.some((s) => s.id === shareB.id)) {
+      console.error("TENANCY FAILURE: org A can read org B shares.");
+      process.exit(1);
+    }
+    const briefLeak = await db.brief.findMany({ where: { organizationId: orgA.id } });
+    if (briefLeak.some((b) => b.id === briefB.id)) {
+      console.error("TENANCY FAILURE: org A can read org B briefs.");
+      process.exit(1);
+    }
+    console.log("tenancy-check: PASS — org-scoped queries isolate tenants (freight + agency packs, shares, briefs).");
   } finally {
     await db.importRun.deleteMany({ where: { organizationId: { in: [orgA.id, orgB.id] } } });
     await db.dataFile.deleteMany({ where: { organizationId: { in: [orgA.id, orgB.id] } } });

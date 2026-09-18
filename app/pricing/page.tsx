@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TIERS } from "@/lib/core/pricing";
+import { PACK_PRICES, TIERS } from "@/lib/core/pricing";
 
 export default function PricingPage() {
   return (
@@ -37,6 +37,16 @@ export default function PricingPage() {
         Team checkout price is configured in Stripe and reviewed against this page monthly
         (see pricing-check runbook). Cancel anytime — data kept 90 days with one-click export.
       </p>
+      <div className="mx-auto max-w-2xl rounded border p-4 text-sm">
+        <h2 className="font-medium">Per-pack Team pricing (one source: PACK_PRICES)</h2>
+        <ul className="mt-1 list-disc pl-5 text-gray-700">
+          {PACK_PRICES.map((p) => (
+            <li key={p.pack}>
+              {p.pack}: {p.team} — {p.note}
+            </li>
+          ))}
+        </ul>
+      </div>
     </main>
   );
 }

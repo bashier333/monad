@@ -13,13 +13,14 @@ export async function POST(req: Request) {
   const active = await getActiveOrg(session.user.id);
   if (!active) return NextResponse.json({ error: "no organization" }, { status: 400 });
 
-  const body = (await req.json()) as { week?: string };
+  const body = (await req.json()) as { week?: string; pack?: string };
   let anchor: string;
   try {
     anchor = resolveWeek(body.week ?? null);
   } catch {
     return NextResponse.json({ error: "invalid week parameter (use YYYY-MM-DD)" }, { status: 400 });
   }
+  const pack = body.pack === "agency" ? "agency" : "freight";
 
   const expiresAt = new Date();
   expiresAt.setUTCDate(expiresAt.getUTCDate() + 30);
@@ -27,6 +28,7 @@ export async function POST(req: Request) {
     data: {
       organizationId: active.organization.id,
       weekStart: anchor,
+      pack,
       token: randomUUID(),
       expiresAt,
     },

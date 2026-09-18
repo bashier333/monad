@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { resolveWeek } from "@/lib/core/answers/service";
 import { buildVariant, type VariantBy } from "@/lib/packs/freight/brief/variants";
+import { buildAgencyVariant, type AgencyVariantBy } from "@/lib/packs/agency/brief/variants";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
 
 const VARIANTS: VariantBy[] = ["driver", "truck", "broker", "customer", "day", "month"];
+const AGENCY_VARIANTS: AgencyVariantBy[] = ["client", "producer", "day", "month"];
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -14,7 +16,8 @@ export async function GET(req: Request) {
   if (!active) return NextResponse.json({ error: "no organization" }, { status: 400 });
 
   const url = new URL(req.url);
-  const by = url.searchParams.get("by") as VariantBy;
+  const pack = url.searchParams.get("pack") === "agency" ? "agency" : "freight";
+  const by = url.searchParams.get("by") as VariantBy & AgencyVariantBy;
   const key = url.searchParams.get("key") ?? "";
   if (!VARIANTS.includes(by) || !key) {
     return NextResponse.json({ error: "by must be driver|truck|broker|customer|day|month with a key" }, { status: 400 });
@@ -29,6 +32,16 @@ export async function GET(req: Request) {
   const openCorrections = await db.correction.count({
     where: { organizationId: active.organization.id, status: "open" },
   });
-  const content = await buildVariant(active.organization.id, active.organization.weekStartsOn, anchor, by, key, openCorrections);
+  if (pack === "agency") {
+    if (!AGENCY_VARIANTS.includes(by as AgencyVariantBy) || !key) {
+      return NextResponse.json({ error: "by must be client|producer|day|month with a key" }, { status: 400 });
+    }
+    const content = await buildAgencyVariant(active.organization.id, active.organization.weekStartsOn, anchor, by as AgencyVariantBy, key, openCorrections);
+    return NextResponse.json({ content });
+  }
+  if (!VARIANTS.includes(by as VariantBy) || !key) {
+    return NextResponse.json({ error: "by must be driver|truck|broker|customer|day|month with a key" }, { status: 400 });
+  }
+  const content = await buildVariant(active.organization.id, active.organization.weekStartsOn, anchor, by as VariantBy, key, openCorrections);
   return NextResponse.json({ content });
 }

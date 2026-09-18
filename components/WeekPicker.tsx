@@ -3,24 +3,24 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-export default function WeekPicker({ current }: { current: string }) {
+export default function WeekPicker({ current, ns = "last-week" }: { current: string; ns?: string }) {
   const router = useRouter();
   const params = useSearchParams();
 
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem("last-week");
+      const stored = window.localStorage.getItem(ns);
       if (!params.get("week") && stored && stored !== current) {
         const next = new URLSearchParams(params.toString());
         next.set("week", stored);
         router.replace(`?${next.toString()}`);
         return;
       }
-      window.localStorage.setItem("last-week", current);
+      window.localStorage.setItem(ns, current);
     } catch {
       /* private mode */
     }
-  }, [current, params, router]);
+  }, [current, params, router, ns]);
 
   function shift(weeks: number) {
     const d = new Date(`${current}T00:00:00Z`);

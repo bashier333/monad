@@ -77,6 +77,7 @@ export default async function ImportPage({ params }: { params: Promise<{ id: str
         headers={(run.headers ?? []) as string[]}
         initialMapping={(run.mapping ?? {}) as Record<string, number>}
         confidence={(run.mappingConfidence ?? {}) as Record<string, number>}
+        sourceType={run.sourceType}
       />
 
       {conflicts.length > 0 && (
@@ -85,8 +86,8 @@ export default async function ImportPage({ params }: { params: Promise<{ id: str
           <div className="overflow-x-auto">
           <table className="mt-2 w-full min-w-[560px] text-sm">
             <thead>
-              <tr className="text-left text-gray-500">
-                <th className="py-1">Load</th>
+                <tr className="text-left text-gray-500">
+                  <th className="py-1">Record</th>
                 <th>Field</th>
                 <th>This file</th>
                 <th>Prior file</th>

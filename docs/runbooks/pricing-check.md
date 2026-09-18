@@ -8,6 +8,9 @@ The pricing page (`lib/pricing.ts` → `/pricing`) and Stripe must never disagre
 2. Compare against `/pricing` Team card and `lib/pricing.ts` TIERS.
 3. Compare checkout line items (`app/api/billing/checkout`) — same price ID family?
 4. Check `/settings` billing panel copy for stale numbers.
+5. **Per-pack (E-474):** compare `PACK_PRICES` (freight + agency Team lines on `/pricing`)
+   against the Stripe price metadata per pack. Same price today; any split must land
+   in code first, then Stripe.
 5. **Tax behavior: every price must have `tax_behavior` set (exclusive), or checkout with
    `automatic_tax` fails live.** Verify on the price object; set at creation.
 6. If anything drifted: fix code first, deploy, then change Stripe (never the reverse).

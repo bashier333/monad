@@ -21,9 +21,28 @@ const SHAPES = [
 const REVENUELESS = new Set(["owner-op.csv"]);
 
 describe("shape fixtures (W3)", () => {
-  it("all 28 fixture files exist", () => {
+  it("all 36 fixture files exist (20 freight + 16 agency X4)", () => {
     const files = readdirSync(path.join(process.cwd(), "fixtures")).filter((f) => f.endsWith(".csv"));
-    expect(files.length).toBe(28);
+    const expected = [
+      "agency-approvals.csv",
+      "agency-assets.csv",
+      "agency-design.csv",
+      "agency-dups.csv",
+      "agency-feedback.csv",
+      "agency-footers.csv",
+      "agency-future.csv",
+      "agency-invoices.csv",
+      "agency-messy.csv",
+      "agency-null-hours.csv",
+      "agency-projects.csv",
+      "agency-rates.csv",
+      "agency-revisions.csv",
+      "agency-time.csv",
+      "agency-unicode.csv",
+      "agency-video-week.csv",
+    ];
+    for (const f of expected) expect(files, f).toContain(f);
+    expect(files.length).toBeGreaterThanOrEqual(36);
   });
   for (const name of SHAPES) {
     it(`${name} parses, maps core fields, and validates`, () => {

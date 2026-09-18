@@ -1,36 +1,10 @@
 import type { WeeklyAnswer } from "@/lib/packs/freight/service";
 import { detectAnomalies, money, rankGroups } from "@/lib/core/brief/summary";
+import type { BriefAnomaly, BriefContent, NewSince } from "@/lib/core/brief/content";
+import { DEFAULT_ANOMALY_PTS } from "@/lib/core/brief/content";
 
-export interface BriefAnomaly {
-  lane: string;
-  swingPts: number;
-  direction: "up" | "down";
-  causes: string[];
-}
-
-export interface NewSince {
-  lanes: string[];
-  trucks: string[];
-  brokers: string[];
-}
-
-export interface BriefContent {
-  schemaVersion: 1;
-  weekStart: string;
-  weekEnd: string;
-  totals: { revenue: number; cost: number; margin: number; marginPct: number | null; loads: number };
-  prevTotals: { revenue: number; cost: number; margin: number; marginPct: number | null } | null;
-  winners: Array<{ lane: string; margin: number }>;
-  losers: Array<{ lane: string; margin: number }>;
-  anomalies: BriefAnomaly[];
-  openCorrections: number;
-  newSince: NewSince;
-  recentDecisions: Array<{ load: string; field: string; status: string; reason: string }>;
-  paragraph: string;
-  laneTotals: Record<string, { margin: number; marginPct: number | null }>;
-}
-
-export const DEFAULT_ANOMALY_PTS = 6;
+export type { BriefAnomaly, BriefContent, NewSince };
+export { DEFAULT_ANOMALY_PTS };
 
 export function buildBrief(
   current: WeeklyAnswer,

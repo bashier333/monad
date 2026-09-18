@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 
-export default function VariantForm({ week }: { week: string }) {
-  const [by, setBy] = useState("driver");
+export default function VariantForm({ week, pack = "freight" }: { week: string; pack?: "freight" | "agency" }) {
+  const options = pack === "agency" ? ["client", "producer", "day", "month"] : ["driver", "truck", "broker", "customer", "day", "month"];
+  const [by, setBy] = useState(options[0]);
   const [key, setKey] = useState("");
 
   return (
@@ -11,14 +12,14 @@ export default function VariantForm({ week }: { week: string }) {
       onSubmit={(e) => {
         e.preventDefault();
         if (key.trim()) {
-          window.location.href = `/briefs/variant?by=${by}&key=${encodeURIComponent(key.trim())}&week=${week}`;
+          window.location.href = `/briefs/variant?pack=${pack}&by=${by}&key=${encodeURIComponent(key.trim())}&week=${week}`;
         }
       }}
       className="flex flex-wrap items-end gap-2 rounded border p-3 text-sm"
     >
       <span className="font-medium">Slice the brief:</span>
       <select value={by} onChange={(e) => setBy(e.target.value)} className="rounded border p-1">
-        {["driver", "truck", "broker", "customer", "day", "month"].map((b) => (
+        {options.map((b) => (
           <option key={b} value={b}>{b}</option>
         ))}
       </select>

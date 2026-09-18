@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { bustAnswerCache } from "@/lib/core/answers/service";
 import { validateRuleInput } from "@/lib/packs/freight/rules-validate";
+import { validateAgencyRuleInput } from "@/lib/packs/agency/rules-validate";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
@@ -40,8 +41,10 @@ export async function POST(req: Request) {
     toLoad?: string | null;
     reason?: string;
     sourceCorrectionId?: string;
+    pack?: string;
   };
-  const parsed = validateRuleInput(body);
+  const parsed =
+    body.pack === "agency" ? validateAgencyRuleInput(body) : validateRuleInput(body);
   if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
   const { costKind, matchField, matchValue, toLoad, reason } = parsed.value;
   const blocked = await requireWritable(active.organization.id);

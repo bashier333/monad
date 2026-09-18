@@ -22,4 +22,28 @@ describe("TTL LRU cache (W9)", () => {
     expect(s.size).toBeLessThanOrEqual(200);
     expect(s.misses).toBeGreaterThanOrEqual(0);
   });
+
+  it("tracks hit rates per pack prefix (X9 E-432)", () => {
+    clearCache();
+    cacheSet("answer:freight:o1:2026-09-07:x", 1, 60_000, 0);
+    cacheSet("answer:agency:o1:2026-09-07:x", 2, 60_000, 0);
+    expect(cacheGet("answer:freight:o1:2026-09-07:x", 10)).toBe(1);
+    expect(cacheGet("answer:agency:o1:2026-09-07:x", 10)).toBe(2);
+    expect(cacheGet("answer:agency:o1:2026-09-07:missing", 10)).toBeNull();
+    const s = cacheStats();
+    expect(s.byPrefix["answer:freight"]).toMatchObject({ hits: 1, misses: 0 });
+    expect(s.byPrefix["answer:agency"]).toMatchObject({ hits: 1, misses: 1 });
+  });
+
+  it("busts both pack namespaces (agency stale-cache fix)", async () => {
+    clearCache();
+    const { bustAnswerCache } = await import("@/lib/core/answers/service");
+    cacheSet("answer:freight:o9:s:x", 1, 60_000, 0);
+    cacheSet("answer:agency:o9:s:x", 2, 60_000, 0);
+    cacheSet("answer:o9:s:x", 3, 60_000, 0);
+    bustAnswerCache("o9");
+    expect(cacheGet("answer:freight:o9:s:x", 10)).toBeNull();
+    expect(cacheGet("answer:agency:o9:s:x", 10)).toBeNull();
+    expect(cacheGet("answer:o9:s:x", 10)).toBeNull();
+  });
 });

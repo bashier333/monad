@@ -9,6 +9,17 @@ export interface TierDef {
   highlight?: boolean;
 }
 
+export interface PackPrice {
+  pack: string;
+  team: string;
+  note: string;
+}
+
+export const PACK_PRICES: PackPrice[] = [
+  { pack: "freight", team: "$499+/mo", note: "per terminal running on the answer" },
+  { pack: "agency", team: "$499+/mo", note: "per studio running on the answer" },
+];
+
 export const TIERS: TierDef[] = [
   {
     id: "analyst",

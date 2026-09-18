@@ -47,6 +47,14 @@ export default function UploadForm() {
           <option value="tms">TMS / dispatch export</option>
           <option value="fuel">Fuel CSV</option>
           <option value="broker">Broker statement</option>
+          <option value="time">Time tracking export (studio)</option>
+          <option value="revision">Revision log (studio)</option>
+          <option value="approval">Approval log (studio)</option>
+          <option value="invoice">Invoice export (studio)</option>
+          <option value="asset">Asset manifest (studio)</option>
+          <option value="rate">Rate card (studio)</option>
+          <option value="project">Project list (studio)</option>
+          <option value="feedback">Feedback thread export (studio)</option>
         </select>
       </label>
       <button

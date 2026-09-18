@@ -7,14 +7,28 @@ export interface ChecklistState {
   correctionMade: boolean;
 }
 
-const STEPS: Array<{ key: keyof ChecklistState; label: string; href: string }> = [
+const FREIGHT_STEPS: Array<{ key: keyof ChecklistState; label: string; href: string }> = [
   { key: "uploaded", label: "Upload an export", href: "/upload" },
   { key: "mappingConfirmed", label: "Confirm the column mapping", href: "/upload" },
   { key: "answerReady", label: "See your first lane-margin answer", href: "/answers" },
   { key: "correctionMade", label: "Flag or correct one figure", href: "/answers" },
 ];
 
-export default function OnboardingChecklist({ state }: { state: ChecklistState }) {
+const AGENCY_STEPS: Array<{ key: keyof ChecklistState; label: string; href: string }> = [
+  { key: "uploaded", label: "Upload an export", href: "/upload" },
+  { key: "mappingConfirmed", label: "Confirm the column mapping", href: "/upload" },
+  { key: "answerReady", label: "See your first project-margin answer", href: "/answers/projects" },
+  { key: "correctionMade", label: "Flag or correct one figure", href: "/answers/projects" },
+];
+
+export default function OnboardingChecklist({
+  state,
+  pack = "freight",
+}: {
+  state: ChecklistState;
+  pack?: "freight" | "agency";
+}) {
+  const STEPS = pack === "agency" ? AGENCY_STEPS : FREIGHT_STEPS;
   const done = STEPS.filter((s) => state[s.key]).length;
   if (done === STEPS.length) return null;
   return (

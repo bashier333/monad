@@ -28,6 +28,8 @@ export function bustAliasCache(organizationId: string): void {
 }
 
 export function bustAnswerCache(organizationId: string): void {
+  cacheBust(`answer:freight:${organizationId}:`);
+  cacheBust(`answer:agency:${organizationId}:`);
   cacheBust(`answer:${organizationId}:`);
 }
 

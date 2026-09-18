@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { BriefContent } from "@/lib/packs/freight/brief/build";
+import type { BriefContent } from "@/lib/core/brief/content";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
@@ -24,8 +24,12 @@ export async function GET() {
   });
   const rows = briefs.map((b) => {
     const c = b.content as unknown as BriefContent;
-    const votes = ((b.feedback ?? []) as Array<{ up?: boolean }>).filter((f) => f.up === false).length;
-    return { week: b.weekStart, anomalies: c.anomalies ?? [], thumbsDown: votes };
+    const feedback = (b.feedback ?? []) as Array<{ up?: boolean; note?: string }>;
+    const votes = feedback.filter((f) => f.up === false).length;
+    const notes = feedback.filter((f) => f.up === false && (f.note ?? "").trim() !== "").map((f) => f.note!.slice(0, 200));
+    return { week: b.weekStart, anomalies: c.anomalies ?? [], thumbsDown: votes, notes };
   });
-  return NextResponse.json({ rows });
+  const totalVotes = rows.reduce((s, r) => s + r.thumbsDown, 0);
+  const qualityScore = rows.length === 0 ? null : Math.max(0, 100 - totalVotes * 10);
+  return NextResponse.json({ rows, qualityScore, digest: { briefs: rows.length, thumbsDown: totalVotes } });
 }

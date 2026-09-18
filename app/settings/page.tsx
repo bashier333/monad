@@ -29,7 +29,13 @@ export default async function SettingsPage() {
     );
   }
   const isOwner = active.membership.role === "OWNER";
-  const settings = (active.organization.settings ?? {}) as { anomalyThresholdPts?: number; anomalyEmail?: boolean };
+  const settings = (active.organization.settings ?? {}) as {
+    anomalyThresholdPts?: number;
+    anomalyEmail?: boolean;
+    agencyWeekStartsOn?: number;
+    agencyAnomalyThresholdPts?: number;
+    agencyAnomalyEmail?: boolean;
+  };
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
@@ -44,6 +50,9 @@ export default async function SettingsPage() {
                 timezone: active.organization.timezone,
                 anomalyThresholdPts: settings.anomalyThresholdPts ?? 6,
                 anomalyEmail: settings.anomalyEmail === true,
+                agencyWeekStartsOn: settings.agencyWeekStartsOn ?? active.organization.weekStartsOn,
+                agencyAnomalyThresholdPts: settings.agencyAnomalyThresholdPts ?? 6,
+                agencyAnomalyEmail: settings.agencyAnomalyEmail === true,
               }}
             />
           </section>

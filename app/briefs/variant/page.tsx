@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { resolveWeek } from "@/lib/core/answers/service";
 import { buildVariant, type VariantBy } from "@/lib/packs/freight/brief/variants";
+import { buildAgencyVariant, type AgencyVariantBy } from "@/lib/packs/agency/brief/variants";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
 
+const FREIGHT_BYS: VariantBy[] = ["driver", "truck", "broker", "customer", "day", "month"];
+const AGENCY_BYS: AgencyVariantBy[] = ["client", "producer", "day", "month"];
+
 export default async function VariantPage({
   searchParams,
 }: {
-  searchParams: Promise<{ by?: string; key?: string; week?: string }>;
+  searchParams: Promise<{ by?: string; key?: string; week?: string; pack?: string }>;
 }) {
   const sp = await searchParams;
   const session = await auth();
@@ -30,8 +34,10 @@ export default async function VariantPage({
     );
   }
 
-  const by = (sp.by ?? "") as VariantBy;
+  const by = (sp.by ?? "") as VariantBy & AgencyVariantBy;
   const key = sp.key ?? "";
+  const pack = sp.pack === "agency" ? "agency" : "freight";
+  const allowed = pack === "agency" ? AGENCY_BYS : FREIGHT_BYS;
   let anchor: string;
   try {
     anchor = resolveWeek(sp.week ?? null);
@@ -42,7 +48,7 @@ export default async function VariantPage({
       </main>
     );
   }
-  if (!["driver", "truck", "broker", "customer", "day", "month"].includes(by) || !key) {
+  if (!allowed.includes(by) || !key) {
     return (
       <main className="mx-auto max-w-2xl p-8">
         <p>Pick a variant from <Link href="/briefs" className="underline">briefs</Link>.</p>
@@ -53,7 +59,10 @@ export default async function VariantPage({
   const openCorrections = await db.correction.count({
     where: { organizationId: active.organization.id, status: "open" },
   });
-  const c = await buildVariant(active.organization.id, active.organization.weekStartsOn, anchor, by, key, openCorrections);
+  const c =
+    pack === "agency"
+      ? await buildAgencyVariant(active.organization.id, active.organization.weekStartsOn, anchor, by as AgencyVariantBy, key, openCorrections)
+      : await buildVariant(active.organization.id, active.organization.weekStartsOn, anchor, by as VariantBy, key, openCorrections);
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-4 md:p-8">

@@ -1,20 +1,41 @@
 "use client";
 
 import { useState } from "react";
-import { CANONICAL_FIELDS, type CanonicalField } from "@/lib/core/ingest/columns";
-import { applyPreset, PRESETS } from "@/lib/core/ingest/presets";
+import { CANONICAL_FIELDS } from "@/lib/core/ingest/columns";
+import { applyHeaderPreset, applyPreset, FREIGHT_PRESET_VENDORS, PRESETS } from "@/lib/core/ingest/presets";
+import { AGENCY_FIELDS } from "@/lib/packs/agency/fields";
+import { AGENCY_PRESETS } from "@/lib/packs/agency/presets";
+import { isAgencySource } from "@/lib/packs/agency/sources";
 
 interface Props {
   runId: string;
   headers: string[];
   initialMapping: Record<string, number>;
   confidence: Record<string, number>;
+  sourceType: string;
 }
 
-export default function MappingReview({ runId, headers, initialMapping, confidence }: Props) {
+export default function MappingReview({ runId, headers, initialMapping, confidence, sourceType }: Props) {
   const [mapping, setMapping] = useState<Record<string, number | null>>({ ...initialMapping });
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const agency = isAgencySource(sourceType);
+  const fields: string[] = agency ? [...AGENCY_FIELDS] : [...CANONICAL_FIELDS];
+
+  function applyVendor(vendor: string) {
+    if (agency) {
+      const preset = AGENCY_PRESETS.find((p) => p.vendor === vendor);
+      if (preset) setMapping((m) => ({ ...m, ...applyHeaderPreset(headers, preset.headers) }));
+    } else {
+      const preset = PRESETS.find((p) => p.vendor === vendor);
+      if (preset) setMapping((m) => ({ ...m, ...applyPreset(headers, preset) }));
+    }
+    setSaved(false);
+  }
+
+  const vendorOptions = agency
+    ? AGENCY_PRESETS.map((p) => p.vendor)
+    : PRESETS.map((p) => p.vendor).filter((v) => FREIGHT_PRESET_VENDORS.includes(v));
 
   async function save() {
     setSaving(true);
@@ -35,17 +56,15 @@ export default function MappingReview({ runId, headers, initialMapping, confiden
         <select
           aria-label="Vendor preset"
           onChange={(e) => {
-            const preset = PRESETS.find((p) => p.vendor === e.target.value);
-            if (preset) setMapping((m) => ({ ...m, ...applyPreset(headers, preset) }));
-            setSaved(false);
+            if (e.target.value) applyVendor(e.target.value);
           }}
           className="rounded border p-1"
           defaultValue=""
         >
           <option value="">— none —</option>
-          {PRESETS.map((p) => (
-            <option key={p.vendor} value={p.vendor}>
-              {p.vendor}
+          {vendorOptions.map((v) => (
+            <option key={v} value={v}>
+              {v}
             </option>
           ))}
         </select>
@@ -59,7 +78,7 @@ export default function MappingReview({ runId, headers, initialMapping, confiden
           </tr>
         </thead>
         <tbody>
-          {CANONICAL_FIELDS.map((field: CanonicalField) => (
+          {fields.map((field: string) => (
             <tr key={field} className="border-t">
               <td className="py-1 font-mono">{field}</td>
               <td>

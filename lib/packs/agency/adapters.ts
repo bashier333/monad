@@ -1,10 +1,10 @@
 import { applyMapping, detectColumns } from "@/lib/core/ingest/columns";
 import { getAdapter, registerAdapter, type SourceAdapter } from "@/lib/core/ingest/adapters";
-import { AGENCY_ALIASES, AGENCY_FIELDS, agencyLoadKey, isAgencySource, type AgencyField } from "@/lib/packs/agency/sources";
+import { AGENCY_ALIASES, AGENCY_FIELDS, AGENCY_SOURCE_TYPES, agencyLoadKey, isAgencySource, type AgencyField } from "@/lib/packs/agency/sources";
 import { validateAgencyRow } from "@/lib/packs/agency/validate";
 
 export const agencyAdapter: SourceAdapter = {
-  sourceTypes: ["time", "revision", "invoice", "asset", "rate"],
+  sourceTypes: [...AGENCY_SOURCE_TYPES],
   detect: (headers) => {
     const s = detectColumns(headers, AGENCY_FIELDS, AGENCY_ALIASES);
     return { mapping: s.mapping as Record<string, number>, confidence: s.confidence as Record<string, number> };

@@ -34,7 +34,12 @@ export const AGENCY_ONTOLOGY: AgencyOntology = {
   sources: [
     { type: "time", required: ["project", "date", "hours"] },
     { type: "revision", required: ["project", "date"] },
+    { type: "approval", required: ["project", "sentDate"] },
     { type: "invoice", required: ["project", "amount"] },
+    { type: "asset", required: ["asset"] },
+    { type: "rate", required: ["rate"] },
+    { type: "project", required: ["project"] },
+    { type: "feedback", required: ["round"] },
   ],
   ruleIds: ["R-ag-1", "R-ag-2", "R-ag-3", "R-ag-4"],
   fieldKinds: { date: "date", hours: "number", amount: "number", revenue: "number" },

@@ -2,18 +2,22 @@
 
 import { useState } from "react";
 
-export default function GenerateBriefButton() {
+export default function GenerateBriefButton({ pack = "freight" }: { pack?: "freight" | "agency" }) {
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function run() {
     setBusy(true);
     setMsg("");
-    const res = await fetch("/api/briefs/generate", { method: "POST" });
+    const res = await fetch("/api/briefs/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pack }),
+    });
     setBusy(false);
     if (res.ok) {
       const body = (await res.json()) as { brief?: { weekStart: string } };
-      window.location.href = `/briefs/${body.brief?.weekStart ?? ""}`;
+      window.location.href = `/briefs/${body.brief?.weekStart ?? ""}?pack=${pack}`;
     } else {
       setMsg("generation failed");
     }

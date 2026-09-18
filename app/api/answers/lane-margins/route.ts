@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { packEnabled } from "@/lib/core/packs";
 import { auth } from "@/lib/core/auth";
 import { recordUsage } from "@/lib/core/billing";
 import { logger } from "@/lib/core/logger";
@@ -14,6 +15,9 @@ export async function GET(req: Request) {
   if (!active) return NextResponse.json({ error: "no organization" }, { status: 400 });
 
   const url = new URL(req.url);
+  if (!packEnabled(active.organization.settings, "freight")) {
+    return NextResponse.json({ error: "freight pack is disabled for this organization" }, { status: 403 });
+  }
   let anchor: string;
   try {
     anchor = resolveWeek(url.searchParams.get("week"));

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { getAgencyAnswer } from "@/lib/packs/agency/service";
+import { buildAgencyBrief } from "@/lib/packs/agency/brief/build";
 import { buildBrief, DEFAULT_ANOMALY_PTS, type BriefContent, type NewSince } from "@/lib/packs/freight/brief/build";
 import { sendEmail, unsubscribeUrl } from "@/lib/core/email";
 import { toISODate } from "@/lib/packs/freight/margin/engine";
@@ -27,12 +29,17 @@ export async function POST(req: Request) {
   const requestId = req.headers.get("x-request-id") ?? "none";
   const blocked = await requireWritable(active.organization.id);
   if (blocked) return blocked;
-  const body = (await req.json().catch(() => ({}))) as { week?: string };
+  const body = (await req.json().catch(() => ({}))) as { week?: string; pack?: string };
   let anchor: string;
   try {
     anchor = resolveWeek(body.week ?? null);
   } catch {
     return NextResponse.json({ error: "invalid week parameter" }, { status: 400 });
+  }
+  const pack = body.pack === "agency" ? "agency" : "freight";
+
+  if (pack === "agency") {
+    return generateAgencyBrief(req, active.organization.id, session.user.id, anchor, requestId, active.organization.weekStartsOn);
   }
 
   const current = await getWeeklyAnswer(active.organization.id, active.organization.weekStartsOn, anchor);
@@ -77,12 +84,13 @@ export async function POST(req: Request) {
 
   const brief = await db.brief.upsert({
     where: {
-      organizationId_weekStart: { organizationId: active.organization.id, weekStart: content.weekStart },
+      organizationId_weekStart_pack: { organizationId: active.organization.id, weekStart: content.weekStart, pack: "freight" },
     },
     update: { content: content as unknown as object },
     create: {
       organizationId: active.organization.id,
       weekStart: content.weekStart,
+      pack: "freight",
       content: content as unknown as object,
     },
   });
@@ -136,9 +144,123 @@ export async function GET() {
 
 export type { BriefContent };
 
-async function computeNewSince(organizationId: string, weekStart: string, prevWeekStart: string): Promise<NewSince> {
+async function generateAgencyBrief(
+  req: Request,
+  organizationId: string,
+  userId: string,
+  anchor: string,
+  requestId: string,
+  weekStartsOn: number,
+) {
+  const current = await getAgencyAnswer(organizationId, weekStartsOn, anchor);
+  const prevAnchor = new Date(`${current.meta.weekStart}T00:00:00Z`);
+  prevAnchor.setUTCDate(prevAnchor.getUTCDate() - 7);
+  const prev = await getAgencyAnswer(organizationId, weekStartsOn, prevAnchor.toISOString().slice(0, 10));
+  const openCorrections = await db.correction.count({ where: { organizationId, status: "open" } });
+  const org = await db.organization.findUnique({ where: { id: organizationId }, select: { settings: true } });
+  const settings = (org?.settings ?? {}) as {
+    agencyAnomalyThresholdPts?: number;
+    agencyAnomalyOverrides?: Record<string, number>;
+    agencyAnomalySuppressed?: string[];
+    agencyAnomalyEmail?: boolean;
+    anomalyEmail?: boolean;
+  };
+  const newSince = await computeAgencyNewSince(organizationId, current.meta.weekStart, prev.meta.weekStart);
+  const decided = await db.correction.findMany({
+    where: {
+      organizationId,
+      status: { in: ["applied", "rejected"] },
+      decidedAt: { gte: new Date(`${current.meta.weekStart}T00:00:00Z`) },
+    },
+    select: { targetKey: true, field: true, status: true, reason: true },
+    take: 100,
+  });
+  const content = buildAgencyBrief(
+    current,
+    prev,
+    openCorrections,
+    settings.agencyAnomalyThresholdPts ?? DEFAULT_ANOMALY_PTS,
+    newSince,
+    {
+      overrides: settings.agencyAnomalyOverrides,
+      suppressed: settings.agencyAnomalySuppressed,
+      recentDecisions: decided.map((d) => ({ load: d.targetKey, field: d.field, status: d.status, reason: d.reason })),
+    },
+  );
+
+  const brief = await db.brief.upsert({
+    where: {
+      organizationId_weekStart_pack: { organizationId, weekStart: content.weekStart, pack: "agency" },
+    },
+    update: { content: content as unknown as object },
+    create: { organizationId, weekStart: content.weekStart, pack: "agency", content: content as unknown as object },
+  });
+
+  const members = await db.membership.findMany({
+    where: { organizationId },
+    include: { user: { select: { id: true, email: true, emailOptOut: true } } },
+  });
+  const origin = new URL(req.url).origin;
+  const emailedTo: string[] = [];
+  for (const m of members) {
+    if (!m.user.email || m.user.emailOptOut) continue;
+    const unsub = unsubscribeUrl(origin, m.user.id);
+    const html = `<p>${content.paragraph}</p><p><a href="${origin}/briefs/${content.weekStart}?pack=agency">Read the full brief</a></p><p><a href="${unsub}">Unsubscribe</a></p>`;
+    const sent = await sendEmail(m.user.email, `Monday studio brief — week of ${content.weekStart}`, html, requestId, {
+      "List-Unsubscribe": `<${unsub}>`,
+    });
+    if (sent) emailedTo.push(m.user.email);
+  }
+  await db.brief.update({ where: { id: brief.id }, data: { emailedTo } });
+  await recordUsage(organizationId, "brief", 1, "agency");
+  await logAccess(organizationId, userId, "brief:generate", `agency:${content.weekStart}`);
+  logger.info("agency brief generated", { requestId, orgId: organizationId, week: content.weekStart, emailed: emailedTo.length });
+  if (content.anomalies.length > 0 && (settings.agencyAnomalyEmail ?? settings.anomalyEmail) === true) {
+    const alertHtml = `<p>${content.anomalies.length} projects moved more than expected:</p><ul>${content.anomalies.map((a) => `<li>${a.lane}: ${a.direction} ${Math.abs(a.swingPts)}pts (${a.causes.join(", ")})</li>`).join("")}</ul><p><a href="${origin}/briefs/${content.weekStart}?pack=agency">Read the full brief</a></p>`;
+    for (const m of members) {
+      if (!m.user.email || m.user.emailOptOut) continue;
+      await sendEmail(m.user.email, `Studio alert — ${content.anomalies.length} projects moved`, alertHtml, requestId, {
+        "List-Unsubscribe": `<${unsubscribeUrl(origin, m.user.id)}>`,
+      });
+    }
+  }
+
+  return NextResponse.json({ brief: { id: brief.id, weekStart: brief.weekStart, emailed: emailedTo.length }, content });
+}
+
+async function computeAgencyNewSince(
+  organizationId: string,
+  weekStart: string,
+  prevWeekStart: string,
+): Promise<{ projects: string[]; clients: string[]; team: string[] }> {
+  const { getAliases } = await import("@/lib/core/answers/service");
+  const { seedAgencyAliases } = await import("@/lib/packs/agency/places");
+  const { normalizeProject, normalizeClient } = await import("@/lib/packs/agency/places");
   const staged = await db.stagedRecord.findMany({
     where: { organizationId, status: "ok", run: { status: "COMPLETED" } },
+    select: { data: true },
+    take: 200_000,
+  });
+  const aliases = await getAliases(organizationId, seedAgencyAliases());
+  const cur = { projects: new Set<string>(), clients: new Set<string>(), team: new Set<string>() };
+  const prv = { projects: new Set<string>(), clients: new Set<string>(), team: new Set<string>() };
+  for (const s of staged) {
+    const d = s.data as Record<string, string>;
+    const day = d.date ? toISODate(d.date) : null;
+    if (!day) continue;
+    const bucket = day >= weekStart ? cur : day >= prevWeekStart ? prv : null;
+    if (!bucket) continue;
+    if (d.project) bucket.projects.add(normalizeProject(d.project, aliases));
+    if (d.client) bucket.clients.add(normalizeClient(d.client, aliases));
+    if (d.person) bucket.team.add(d.person.trim());
+  }
+  const diff = (a: Set<string>, b: Set<string>) => [...a].filter((x) => x && !b.has(x)).sort();
+  return { projects: diff(cur.projects, prv.projects), clients: diff(cur.clients, prv.clients), team: diff(cur.team, prv.team) };
+}
+
+async function computeNewSince(organizationId: string, weekStart: string, prevWeekStart: string): Promise<NewSince> {
+  const staged = await db.stagedRecord.findMany({
+    where: { organizationId, status: "ok", run: { status: "COMPLETED", sourceType: { in: ["tms", "fuel", "broker", "manual"] } } },
     select: { data: true },
     take: 200_000,
   });

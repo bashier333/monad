@@ -13,7 +13,16 @@ describe("agency ontology declaration (X3)", () => {
   });
 
   it("declares sources the ingest layer understands", () => {
-    expect(AGENCY_ONTOLOGY.sources.map((s) => s.type)).toEqual(["time", "revision", "invoice"]);
+    expect(AGENCY_ONTOLOGY.sources.map((s) => s.type)).toEqual([
+      "time",
+      "revision",
+      "approval",
+      "invoice",
+      "asset",
+      "rate",
+      "project",
+      "feedback",
+    ]);
     void PRESETS;
   });
 });

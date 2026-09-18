@@ -21,10 +21,11 @@ import { FREIGHT_FIELD_KINDS } from "@/lib/packs/freight/margin/rules";
 import { cacheGet, cacheSet } from "@/lib/core/cache";
 import { db } from "@/lib/core/db";
 import {
-  bustAnswerCache,
   getAliases,
   type AnswerMeta,
 } from "@/lib/core/answers/service";
+
+const FREIGHT_TYPES = ["tms", "fuel", "broker", "manual"];
 
 export interface WeeklyAnswer extends EngineResult {
   meta: AnswerMeta;
@@ -40,7 +41,11 @@ interface Inputs {
 
 export async function getInputs(organizationId: string): Promise<Inputs> {
   const staged = await db.stagedRecord.findMany({
-    where: { organizationId, status: "ok", run: { status: "COMPLETED" } },
+    where: {
+      organizationId,
+      status: "ok",
+      run: { status: "COMPLETED", sourceType: { in: FREIGHT_TYPES } },
+    },
     include: { run: { select: { id: true, sourceType: true, file: { select: { filename: true } } } } },
     take: 200_000,
   });
@@ -94,7 +99,11 @@ export async function getActiveCorrections(organizationId: string): Promise<Appl
 
   const aliases = await getAliases(organizationId, seedAliases());
   const staged = await db.stagedRecord.findMany({
-    where: { organizationId, status: "ok", run: { status: "COMPLETED" } },
+    where: {
+      organizationId,
+      status: "ok",
+      run: { status: "COMPLETED", sourceType: { in: FREIGHT_TYPES } },
+    },
     select: { loadKey: true, data: true },
     take: 200_000,
   });
@@ -158,7 +167,7 @@ export async function getWeeklyAnswer(
     getActiveCorrections(organizationId),
   ]);
   const asOf = inputs.dataAsOf?.toISOString() ?? "none";
-  const cacheKey = `answer:${organizationId}:${start}:${asOf}`;
+  const cacheKey = `answer:freight:${organizationId}:${start}:${asOf}`;
   const cached = cacheGet<WeeklyAnswer>(cacheKey);
   if (cached) return cached;
   const full = buildAnswer(inputs, corrections, start, end);

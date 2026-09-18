@@ -1,6 +1,8 @@
-// k6: 30-min soak at 2x pilot load (P-357). Run: k6 run -e BASE=... -e SESSION=... k6/soak.js
+// k6: 30-min soak at 2x pilot load (P-357, E-435). Run: k6 run -e BASE=... -e SESSION=... [-e PACK=agency] k6/soak.js
 import http from "k6/http";
 import { check } from "k6";
+
+const PATH = __ENV.PACK === "agency" ? "/api/answers/project-margins?week=2026-09-07" : "/api/answers/lane-margins?week=2026-09-07";
 
 export const options = {
   stages: [
@@ -12,7 +14,7 @@ export const options = {
 };
 
 export default function () {
-  const res = http.get(`${__ENV.BASE}/api/answers/lane-margins?week=2026-09-07`, {
+  const res = http.get(`${__ENV.BASE}${PATH}`, {
     headers: { Cookie: __ENV.SESSION },
   });
   check(res, { "200": (r) => r.status === 200 });

@@ -7,7 +7,11 @@ import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
 
-export default async function RulesPage() {
+export default async function RulesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pack?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.id) {
     return (
@@ -30,6 +34,8 @@ export default async function RulesPage() {
     );
   }
   const isOwner = active.membership.role === "OWNER";
+  const sp = await searchParams;
+  const pack = sp.pack === "agency" ? "agency" : "freight";
 
   const rules = await db.standingRule.findMany({
     where: { organizationId: active.organization.id },
@@ -47,9 +53,16 @@ export default async function RulesPage() {
       </p>
       {isOwner && (
         <Suspense>
-          <RuleForm week={new Date().toISOString().slice(0, 10)} />
+          <RuleForm week={new Date().toISOString().slice(0, 10)} pack={pack} />
         </Suspense>
       )}
+      <p className="text-sm">
+        {pack === "agency" ? (
+          <Link href="/rules" className="underline">Freight fields →</Link>
+        ) : (
+          <Link href="/rules?pack=agency" className="underline">Studio fields →</Link>
+        )}
+      </p>
       <div className="overflow-x-auto">
       <table className="w-full min-w-[560px] text-sm">
         <thead>

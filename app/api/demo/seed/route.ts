@@ -20,6 +20,14 @@ const PACKS: Record<string, Array<{ file: string; sourceType: string }>> = {
   reefer: [{ file: "demo-reefer.csv", sourceType: "tms" }],
   flatbed: [{ file: "demo-flatbed.csv", sourceType: "tms" }],
   dryvan: [{ file: "demo-dryvan.csv", sourceType: "tms" }],
+  "agency-video": [
+    { file: "agency-video-week.csv", sourceType: "time" },
+    { file: "agency-invoices.csv", sourceType: "invoice" },
+  ],
+  "agency-design": [
+    { file: "agency-design.csv", sourceType: "time" },
+    { file: "agency-invoices.csv", sourceType: "invoice" },
+  ],
 };
 
 export async function POST(req: Request) {

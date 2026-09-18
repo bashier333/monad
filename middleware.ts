@@ -5,6 +5,8 @@ const RULES: Array<{ prefix: string; limit: number; windowMs: number }> = [
   { prefix: "/api/auth", limit: 30, windowMs: 60_000 },
   { prefix: "/api/uploads", limit: 20, windowMs: 60_000 },
   { prefix: "/api/answers", limit: 120, windowMs: 60_000 },
+  { prefix: "/api/briefs/generate", limit: 10, windowMs: 60_000 },
+  { prefix: "/api/rules/preview", limit: 30, windowMs: 60_000 },
 ];
 
 export function middleware(req: Request) {
