@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getWeeklyAnswer, resolveWeek } from "@/lib/answers/service";
-import { auth } from "@/lib/auth";
-import { recordUsage } from "@/lib/billing";
-import { logger } from "@/lib/logger";
-import { getActiveOrg } from "@/lib/org";
-import { historyBlocked } from "@/lib/guards";
-import { stampFirstAnswer } from "@/lib/pilots";
+import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { auth } from "@/lib/core/auth";
+import { recordUsage } from "@/lib/core/billing";
+import { logger } from "@/lib/core/logger";
+import { getActiveOrg } from "@/lib/core/org";
+import { historyBlocked } from "@/lib/core/guards";
+import { stampFirstAnswer } from "@/lib/core/pilots";
 
 export async function GET(req: Request) {
   const session = await auth();

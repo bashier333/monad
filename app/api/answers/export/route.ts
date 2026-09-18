@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getWeeklyAnswer, resolveWeek } from "@/lib/answers/service";
-import { buildExportCSV } from "@/lib/answers/csv";
-import { auth } from "@/lib/auth";
-import { getActiveOrg } from "@/lib/org";
+import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { buildExportCSV } from "@/lib/packs/freight/csv";
+import { auth } from "@/lib/core/auth";
+import { getActiveOrg } from "@/lib/core/org";
 
 export async function GET(req: Request) {
   const session = await auth();

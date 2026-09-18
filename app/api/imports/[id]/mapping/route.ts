@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { sanitizeMapping } from "@/lib/imports/validate";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
-import { requireWritable } from "@/lib/guards";
+import { sanitizeMapping } from "@/lib/core/imports/validate";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
+import { requireWritable } from "@/lib/core/guards";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

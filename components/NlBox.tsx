@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { parseQuery } from "@/lib/answers/nl";
+import { parseQuery } from "@/lib/packs/freight/nl";
 
 export default function NlBox({ week }: { week: string }) {
   const router = useRouter();

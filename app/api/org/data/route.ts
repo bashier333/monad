@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { logAccess } from "@/lib/access";
-import { getActiveOrg } from "@/lib/org";
-import { deleteOrgData } from "@/lib/org-data";
-import { requireCan } from "@/lib/roles";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
+import { getActiveOrg } from "@/lib/core/org";
+import { deleteOrgData } from "@/lib/core/org-data";
+import { requireCan } from "@/lib/core/roles";
 
 export async function GET() {
   const session = await auth();

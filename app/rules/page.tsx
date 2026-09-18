@@ -3,9 +3,9 @@ import { Suspense } from "react";
 import AliasManager from "@/components/AliasManager";
 import RuleForm from "@/components/RuleForm";
 import RuleToggle from "@/components/RuleToggle";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
 
 export default async function RulesPage() {
   const session = await auth();

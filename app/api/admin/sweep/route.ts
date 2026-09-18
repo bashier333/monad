@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { sweepStaleRuns } from "@/lib/ingest/pipeline";
-import { auth } from "@/lib/auth";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
+import { sweepStaleRuns } from "@/lib/core/ingest/pipeline";
+import { auth } from "@/lib/core/auth";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
 
 export async function POST(req: Request) {
   const session = await auth();

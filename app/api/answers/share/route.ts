@@ -1,11 +1,11 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
-import { resolveWeek } from "@/lib/answers/service";
-import { cacheBust } from "@/lib/cache";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
+import { resolveWeek } from "@/lib/core/answers/service";
+import { cacheBust } from "@/lib/core/cache";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
 
 export async function POST(req: Request) {
   const session = await auth();

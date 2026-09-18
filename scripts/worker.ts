@@ -1,4 +1,4 @@
-import { startImportWorker } from "../lib/queue";
+import { startImportWorker } from "../lib/core/queue";
 
 async function main() {
   const worker = await startImportWorker();

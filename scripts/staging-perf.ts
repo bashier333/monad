@@ -3,9 +3,9 @@
 // it calls the same pure functions the routes call, on rows read from staging).
 // HTTP overhead excluded by design (documented); engine+DB path measured.
 import { PrismaClient } from "@prisma/client";
-import { buildExportCSV } from "../lib/answers/csv";
-import { computeLaneMargins, type FeeInput, type FuelInput, type LoadInput } from "../lib/margin/engine";
-import { seedAliases } from "../lib/margin/places";
+import { buildExportCSV } from "../lib/packs/freight/csv";
+import { computeLaneMargins, type FeeInput, type FuelInput, type LoadInput } from "../lib/packs/freight/margin/engine";
+import { seedAliases } from "../lib/packs/freight/margin/places";
 
 const db = new PrismaClient();
 const BUDGET_MS = 2000;

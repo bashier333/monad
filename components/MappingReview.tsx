@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CANONICAL_FIELDS, type CanonicalField } from "@/lib/ingest/columns";
-import { applyPreset, PRESETS } from "@/lib/ingest/presets";
+import { CANONICAL_FIELDS, type CanonicalField } from "@/lib/core/ingest/columns";
+import { applyPreset, PRESETS } from "@/lib/core/ingest/presets";
 
 interface Props {
   runId: string;

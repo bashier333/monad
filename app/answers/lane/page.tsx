@@ -3,11 +3,11 @@ import BulkFlag from "@/components/BulkFlag";
 import LoadsTable from "@/components/LoadsTable";
 import type { FigureHistory } from "@/components/LoadRow";
 import RecomputeButton from "@/components/RecomputeButton";
-import { getWeeklyAnswer, resolveWeek } from "@/lib/answers/service";
-import { laneKey } from "@/lib/margin/places";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
+import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { laneKey } from "@/lib/packs/freight/margin/places";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
 
 export default async function LanePage({
   searchParams,

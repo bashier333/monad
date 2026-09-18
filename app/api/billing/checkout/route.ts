@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getStripe, getSubscription } from "@/lib/billing";
-import { buildCheckoutParams } from "@/lib/billing-checkout";
-import { getEnv } from "@/lib/env";
-import { auth } from "@/lib/auth";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
+import { getStripe, getSubscription } from "@/lib/core/billing";
+import { buildCheckoutParams } from "@/lib/core/billing-checkout";
+import { getEnv } from "@/lib/core/env";
+import { auth } from "@/lib/core/auth";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     });
     customerId = customer.id;
     await getSubscription(active.organization.id).then(() => null);
-    const { db } = await import("@/lib/db");
+    const { db } = await import("@/lib/core/db");
     await db.subscription.update({
       where: { organizationId: active.organization.id },
       data: { stripeCustomerId: customerId },

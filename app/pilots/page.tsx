@@ -1,9 +1,9 @@
 import Link from "next/link";
 import MeetingConfirm from "@/components/MeetingConfirm";
 import PilotNotes from "@/components/PilotNotes";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
 
 function Criterion({ done, label, detail }: { done: boolean; label: string; detail: string }) {
   return (

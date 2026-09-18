@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { LoadMargin } from "@/lib/margin/engine";
+import type { LoadMargin } from "@/lib/packs/freight/margin/engine";
 import FlagDialog from "@/components/FlagDialog";
 
 export interface FigureHistory {

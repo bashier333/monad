@@ -1,9 +1,9 @@
 import Link from "next/link";
 import GenerateBriefButton from "@/components/GenerateBriefButton";
 import VariantForm from "@/components/VariantForm";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
 
 export default async function BriefsPage() {
   const session = await auth();

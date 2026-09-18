@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
-import { getWeeklyAnswer, resolveWeek } from "@/lib/answers/service";
-import { buildBrief, DEFAULT_ANOMALY_PTS, type BriefContent, type NewSince } from "@/lib/brief/build";
-import { sendEmail, unsubscribeUrl } from "@/lib/email";
-import { toISODate } from "@/lib/margin/engine";
-import { laneKey, seedAliases } from "@/lib/margin/places";
-import { auth } from "@/lib/auth";
-import { recordUsage } from "@/lib/billing";
-import { db } from "@/lib/db";
-import { logAccess } from "@/lib/access";
-import { logger } from "@/lib/logger";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
-import { requireWritable } from "@/lib/guards";
+import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { buildBrief, DEFAULT_ANOMALY_PTS, type BriefContent, type NewSince } from "@/lib/packs/freight/brief/build";
+import { sendEmail, unsubscribeUrl } from "@/lib/core/email";
+import { toISODate } from "@/lib/packs/freight/margin/engine";
+import { laneKey, seedAliases } from "@/lib/packs/freight/margin/places";
+import { auth } from "@/lib/core/auth";
+import { recordUsage } from "@/lib/core/billing";
+import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
+import { logger } from "@/lib/core/logger";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
+import { requireWritable } from "@/lib/core/guards";
 
 export async function POST(req: Request) {
   const session = await auth();

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { checkRate } from "@/lib/ratelimit";
+import { checkRate } from "@/lib/core/ratelimit";
 
 const RULES: Array<{ prefix: string; limit: number; windowMs: number }> = [
   { prefix: "/api/auth", limit: 30, windowMs: 60_000 },

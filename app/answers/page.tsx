@@ -2,9 +2,9 @@ import Link from "next/link";
 import NlBox from "@/components/NlBox";
 import ShareButton from "@/components/ShareButton";
 import WeekPicker from "@/components/WeekPicker";
-import { getWeeklyAnswer, resolveWeek } from "@/lib/answers/service";
-import { auth } from "@/lib/auth";
-import { getActiveOrg } from "@/lib/org";
+import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { auth } from "@/lib/core/auth";
+import { getActiveOrg } from "@/lib/core/org";
 
 const TOPIC_LABEL: Record<string, string> = {
   losers: "Losers first",

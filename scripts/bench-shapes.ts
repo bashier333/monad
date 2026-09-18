@@ -1,5 +1,5 @@
-import { computeLaneMargins, type LoadInput } from "../lib/margin/engine";
-import { seedAliases } from "../lib/margin/places";
+import { computeLaneMargins, type LoadInput } from "../lib/packs/freight/margin/engine";
+import { seedAliases } from "../lib/packs/freight/margin/places";
 
 const SHAPES = ["mcleod", "tmw", "prophesy", "ascend", "generic"] as const;
 const N = 50_000;

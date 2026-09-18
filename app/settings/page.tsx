@@ -3,8 +3,8 @@ import BillingPanel from "@/components/BillingPanel";
 import DangerZone from "@/components/DangerZone";
 import InviteForm from "@/components/InviteForm";
 import OrgSettingsForm from "@/components/OrgSettingsForm";
-import { auth } from "@/lib/auth";
-import { getActiveOrg } from "@/lib/org";
+import { auth } from "@/lib/core/auth";
+import { getActiveOrg } from "@/lib/core/org";
 
 export default async function SettingsPage() {
   const session = await auth();

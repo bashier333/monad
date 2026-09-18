@@ -2,14 +2,14 @@ import { createHash } from "crypto";
 import { readFile } from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { enqueueImport } from "@/lib/queue";
-import { logger } from "@/lib/logger";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
-import { requireWritable } from "@/lib/guards";
-import { saveBytes } from "@/lib/storage";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { enqueueImport } from "@/lib/core/queue";
+import { logger } from "@/lib/core/logger";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
+import { requireWritable } from "@/lib/core/guards";
+import { saveBytes } from "@/lib/core/storage";
 
 const PACKS: Record<string, Array<{ file: string; sourceType: string }>> = {
   default: [

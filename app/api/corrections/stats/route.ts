@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { summarizeCorrections } from "@/lib/billing-events";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
+import { summarizeCorrections } from "@/lib/core/billing-events";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
 
 export async function GET() {
   const session = await auth();

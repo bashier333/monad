@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getStripe, getSubscription } from "@/lib/billing";
-import { auth } from "@/lib/auth";
-import { getActiveOrg } from "@/lib/org";
+import { getStripe, getSubscription } from "@/lib/core/billing";
+import { auth } from "@/lib/core/auth";
+import { getActiveOrg } from "@/lib/core/org";
 
 export async function GET() {
   const session = await auth();

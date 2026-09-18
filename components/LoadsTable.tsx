@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import LoadRow, { type FigureHistory } from "@/components/LoadRow";
-import type { LoadMargin } from "@/lib/margin/engine";
+import type { LoadMargin } from "@/lib/packs/freight/margin/engine";
 
 const PAGE = 100;
 

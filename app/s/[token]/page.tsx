@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getWeeklyAnswer } from "@/lib/answers/service";
-import { db } from "@/lib/db";
+import { getWeeklyAnswer } from "@/lib/packs/freight/service";
+import { db } from "@/lib/core/db";
 
 export default async function SharePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

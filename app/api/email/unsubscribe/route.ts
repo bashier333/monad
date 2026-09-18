@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { verifyUnsubscribe } from "@/lib/email";
-import { db } from "@/lib/db";
+import { verifyUnsubscribe } from "@/lib/core/email";
+import { db } from "@/lib/core/db";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);

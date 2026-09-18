@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getWeeklyAnswer } from "@/lib/answers/service";
-import { cacheGet, cacheSet } from "@/lib/cache";
-import { db } from "@/lib/db";
+import { getWeeklyAnswer } from "@/lib/packs/freight/service";
+import { cacheGet, cacheSet } from "@/lib/core/cache";
+import { db } from "@/lib/core/db";
 
 interface CachedShare {
   orgId: string;

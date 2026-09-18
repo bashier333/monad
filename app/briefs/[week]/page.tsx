@@ -1,10 +1,10 @@
 import Link from "next/link";
 import BriefFeedback from "@/components/BriefFeedback";
 import PrintButton from "@/components/PrintButton";
-import type { BriefContent } from "@/lib/brief/build";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
+import type { BriefContent } from "@/lib/packs/freight/brief/build";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
 
 export default async function BriefPage({ params }: { params: Promise<{ week: string }> }) {
   const { week } = await params;

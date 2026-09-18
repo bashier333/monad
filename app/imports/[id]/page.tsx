@@ -2,9 +2,9 @@ import Link from "next/link";
 import ImportDecision from "@/components/ImportDecision";
 import ImportProgress from "@/components/ImportProgress";
 import MappingReview from "@/components/MappingReview";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
 
 export default async function ImportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

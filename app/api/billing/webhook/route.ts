@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { getStripe } from "@/lib/billing";
-import { planSubscriptionUpdate } from "@/lib/billing-events";
-import { getEnv } from "@/lib/env";
-import { db } from "@/lib/db";
-import { logger } from "@/lib/logger";
-import { stampConversion } from "@/lib/pilots";
+import { getStripe } from "@/lib/core/billing";
+import { planSubscriptionUpdate } from "@/lib/core/billing-events";
+import { getEnv } from "@/lib/core/env";
+import { db } from "@/lib/core/db";
+import { logger } from "@/lib/core/logger";
+import { stampConversion } from "@/lib/core/pilots";
 
 export async function POST(req: Request) {
   const stripe = getStripe();

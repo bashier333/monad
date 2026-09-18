@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { buildAnswer, getInputs, resolveWeek } from "@/lib/answers/service";
-import { expandRule, type RuleInput } from "@/lib/corrections/rules";
-import { normalizePlace, laneKey } from "@/lib/margin/places";
-import { auth } from "@/lib/auth";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
+import { buildAnswer, getInputs } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { expandRule, type RuleInput } from "@/lib/core/corrections/rules";
+import { normalizePlace, laneKey } from "@/lib/packs/freight/margin/places";
+import { FREIGHT_FIELD_KINDS } from "@/lib/packs/freight/margin/rules";
+import { auth } from "@/lib/core/auth";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
   }
 
   const inputs = await getInputs(active.organization.id);
-  const { weekBounds } = await import("@/lib/margin/engine");
+  const { weekBounds } = await import("@/lib/packs/freight/margin/engine");
   const { start, end } = weekBounds(anchor, active.organization.weekStartsOn);
 
   const matchable = inputs.loads.map((l) => ({
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     revenue: l.revenue,
     miles: l.miles,
   }));
-  const corrections = expandRule({ id: "preview", ...body.rule }, matchable);
+  const corrections = expandRule({ id: "preview", ...body.rule }, matchable, FREIGHT_FIELD_KINDS);
   const withRule = buildAnswer(inputs, corrections, start, end);
   const baseline = buildAnswer(inputs, [], start, end);
 

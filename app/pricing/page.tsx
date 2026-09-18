@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TIERS } from "@/lib/pricing";
+import { TIERS } from "@/lib/core/pricing";
 
 export default function PricingPage() {
   return (

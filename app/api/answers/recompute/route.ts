@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getWeeklyAnswer, resolveWeek } from "@/lib/answers/service";
-import { auth } from "@/lib/auth";
-import { recordUsage } from "@/lib/billing";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
-import { requireWritable } from "@/lib/guards";
+import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { auth } from "@/lib/core/auth";
+import { recordUsage } from "@/lib/core/billing";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
+import { requireWritable } from "@/lib/core/guards";
 
 export async function POST(req: Request) {
   const session = await auth();

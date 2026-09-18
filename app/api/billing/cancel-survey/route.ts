@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { logAccess } from "@/lib/access";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
+import { auth } from "@/lib/core/auth";
+import { logAccess } from "@/lib/core/access";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
 
 const REASONS = ["too-expensive", "missing-feature", "switched-tool", "paused-ops", "other"] as const;
 

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { cacheStats } from "@/lib/cache";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
+import { cacheStats } from "@/lib/core/cache";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
 
 export async function GET() {
   const session = await auth();

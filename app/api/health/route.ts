@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { getEnv } from "@/lib/env";
-import { logger } from "@/lib/logger";
+import { db } from "@/lib/core/db";
+import { getEnv } from "@/lib/core/env";
+import { logger } from "@/lib/core/logger";
 
 export async function GET(req: Request) {
   const requestId = req.headers.get("x-request-id") ?? "none";

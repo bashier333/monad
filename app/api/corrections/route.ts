@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { parseStatusFilter } from "@/lib/imports/validate";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
-import { stampFirstCorrection } from "@/lib/pilots";
-import { requireCan } from "@/lib/roles";
-import { requireWritable } from "@/lib/guards";
+import { parseStatusFilter } from "@/lib/core/imports/validate";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
+import { stampFirstCorrection } from "@/lib/core/pilots";
+import { requireCan } from "@/lib/core/roles";
+import { requireWritable } from "@/lib/core/guards";
 
 export async function POST(req: Request) {
   const session = await auth();

@@ -1,16 +1,18 @@
 import { createHash } from "crypto";
 import { NextResponse } from "next/server";
-import { scanBuffer } from "@/lib/ingest/scan";
-import { enqueueImport } from "@/lib/queue";
-import { auth } from "@/lib/auth";
-import { FREE_LIMITS, getSubscription, monthlyUploads, recordUsage, toSubState } from "@/lib/billing";
-import { db } from "@/lib/db";
-import { logAccess } from "@/lib/access";
-import { logger } from "@/lib/logger";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
-import { requireWritable } from "@/lib/guards";
-import { saveBytes } from "@/lib/storage";
+import { scanBuffer } from "@/lib/core/ingest/scan";
+import { enqueueImport } from "@/lib/core/queue";
+import { auth } from "@/lib/core/auth";
+import { FREE_LIMITS, getSubscription, monthlyUploads, recordUsage, toSubState } from "@/lib/core/billing";
+import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
+import { logger } from "@/lib/core/logger";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
+import { requireWritable } from "@/lib/core/guards";
+import { saveBytes } from "@/lib/core/storage";
+import "@/lib/packs/register";
+import { getAdapter } from "@/lib/core/ingest/adapters";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -33,6 +35,9 @@ export async function POST(req: Request) {
   const form = await req.formData();
   const upload = form.get("file");
   const sourceType = String(form.get("sourceType") ?? "tms");
+  if (!getAdapter(sourceType)) {
+    return NextResponse.json({ error: `unsupported sourceType: ${sourceType}` }, { status: 400 });
+  }
   if (!(upload instanceof File)) {
     return NextResponse.json({ error: "missing file" }, { status: 400 });
   }

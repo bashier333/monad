@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { deleteOrgData } from "../lib/org-data";
+import { deleteOrgData } from "../lib/core/org-data";
 
 const RETENTION_DAYS = 90;
 const execute = process.argv.includes("--execute");

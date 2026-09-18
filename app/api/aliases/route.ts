@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { bustAliasCache, bustAnswerCache } from "@/lib/answers/service";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
-import { requireCan } from "@/lib/roles";
-import { requireWritable } from "@/lib/guards";
+import { bustAliasCache, bustAnswerCache } from "@/lib/core/answers/service";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
+import { requireCan } from "@/lib/core/roles";
+import { requireWritable } from "@/lib/core/guards";
 
 export async function GET() {
   const session = await auth();

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/core/logger";
 
 export async function GET(req: Request) {
   if (process.env.NODE_ENV === "production") {

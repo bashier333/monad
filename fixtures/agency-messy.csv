@@ -1,0 +1,5 @@
+Project,Date,Person,Task,Hours,Rate
+Acme Site,2026-09-07,Alice,edit,10,100
+,2026-09-08,Bob,color,5,80
+Acme Site,13/40/2026,Alice,edit,8,100
+Acme Site,2026-09-07,Alice,edit,-2,100

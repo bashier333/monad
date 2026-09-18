@@ -6,9 +6,9 @@ import FleetSizePicker from "@/components/FleetSizePicker";
 import GraduateButton from "@/components/GraduateButton";
 import OnboardingChecklist, { type ChecklistState } from "@/components/OnboardingChecklist";
 import UploadForm from "@/components/UploadForm";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { getActiveOrg } from "@/lib/org";
+import { auth } from "@/lib/core/auth";
+import { db } from "@/lib/core/db";
+import { getActiveOrg } from "@/lib/core/org";
 
 export default async function UploadPage() {
   const session = await auth();

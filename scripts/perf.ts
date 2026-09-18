@@ -1,5 +1,5 @@
-import { computeLaneMargins, type FeeInput, type FuelInput, type LoadInput } from "../lib/margin/engine";
-import { seedAliases } from "../lib/margin/places";
+import { computeLaneMargins, type FeeInput, type FuelInput, type LoadInput } from "../lib/packs/freight/margin/engine";
+import { seedAliases } from "../lib/packs/freight/margin/places";
 
 const N = 100_000;
 
