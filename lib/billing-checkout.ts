@@ -26,6 +26,7 @@ export function buildCheckoutParams(o: CheckoutOptions): Stripe.Checkout.Session
     ...(o.trialDays && o.trialDays > 0 ? { subscription_data: { trial_period_days: o.trialDays } } : {}),
     ...(o.couponId ? { discounts: [{ coupon: o.couponId }] } : {}),
     automatic_tax: { enabled: true },
-    ...(o.taxExempt ? { customer_update: { address: "auto" as const }, tax_id_collection: { enabled: true } } : {}),
+    customer_update: { address: "auto", name: "auto" },
+    ...(o.taxExempt ? { tax_id_collection: { enabled: true } } : {}),
   };
 }

@@ -8,6 +8,7 @@ describe("buildCheckoutParams (W6)", () => {
     const p = buildCheckoutParams(BASE);
     expect(p.mode).toBe("subscription");
     expect(p.automatic_tax).toEqual({ enabled: true });
+    expect(p.customer_update).toEqual({ address: "auto", name: "auto" });
     expect(p).not.toHaveProperty("subscription_data");
   });
 

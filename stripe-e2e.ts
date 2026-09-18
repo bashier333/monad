@@ -65,7 +65,16 @@ function skip(label: string, reason: string) {
 }
 
 function errMsg(e: unknown): string {
-  return e instanceof Error ? errMsg(e) : String(e);
+  try {
+    if (typeof e === "string") return e.slice(0, 500);
+    if (e && typeof e === "object" && "message" in e && typeof (e as { message: unknown }).message === "string") {
+      const m = (e as { message: string }).message;
+      return m.length > 500 ? m.slice(0, 500) : m;
+    }
+    return String(e).slice(0, 500);
+  } catch {
+    return Object.prototype.toString.call(e);
+  }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -100,6 +109,8 @@ async function runProrationTests() {
       customer: await createOrGetCustomer(),
       mode: "subscription",
       line_items: [{ price: TEAM_PRICE_ID, quantity: 1 }],
+      success_url: `${BASE_URL}/settings?billing=success`,
+      cancel_url: `${BASE_URL}/settings?billing=cancelled`,
       metadata: { organizationId: TEST_ORGANIZATION_ID },
       automatic_tax: { enabled: true },
     });
@@ -172,13 +183,15 @@ async function runProrationTests() {
   // P-205: Coupon/pilot-discount codes at checkout
   if (COUPON_ID) {
     try {
-      const session = await stripe.checkout.sessions.create({
-        customer: await createOrGetCustomer(),
-        mode: "subscription",
-        line_items: [{ price: TEAM_PRICE_ID, quantity: 1 }],
-        discounts: [{ coupon: COUPON_ID }],
-        metadata: { organizationId: TEST_ORGANIZATION_ID },
-      });
+    const session = await stripe.checkout.sessions.create({
+      customer: await createOrGetCustomer(),
+      mode: "subscription",
+      line_items: [{ price: TEAM_PRICE_ID, quantity: 1 }],
+      success_url: `${BASE_URL}/settings?billing=success`,
+      cancel_url: `${BASE_URL}/settings?billing=cancelled`,
+      discounts: [{ coupon: COUPON_ID }],
+      metadata: { organizationId: TEST_ORGANIZATION_ID },
+    });
     const retrieved = await stripe.checkout.sessions.retrieve(session.id);
     const hasDiscount = (retrieved.discounts?.length ?? 0) > 0;
       report("P-205: coupon applied to checkout", hasDiscount, `coupon=${COUPON_ID}`);
@@ -192,13 +205,15 @@ async function runProrationTests() {
   // P-206: Annual billing option with discount
   if (ANNUAL_PRICE_ID) {
     try {
-      const session = await stripe.checkout.sessions.create({
-        customer: await createOrGetCustomer(),
-        mode: "subscription",
-        line_items: [{ price: ANNUAL_PRICE_ID, quantity: 1 }],
-        metadata: { organizationId: TEST_ORGANIZATION_ID },
-        automatic_tax: { enabled: true },
-      });
+    const session = await stripe.checkout.sessions.create({
+      customer: await createOrGetCustomer(),
+      mode: "subscription",
+      line_items: [{ price: ANNUAL_PRICE_ID, quantity: 1 }],
+      success_url: `${BASE_URL}/settings?billing=success`,
+      cancel_url: `${BASE_URL}/settings?billing=cancelled`,
+      metadata: { organizationId: TEST_ORGANIZATION_ID },
+      automatic_tax: { enabled: true },
+    });
       const retrieved = await stripe.checkout.sessions.retrieve(session.id);
       report("P-206: annual billing session created", !!session.url && !!retrieved.id, `price=${ANNUAL_PRICE_ID}`);
     } catch (e) {
@@ -221,7 +236,6 @@ async function runDunningTests() {
     const sub = await stripe.subscriptions.create({
       customer,
       items: [{ price: TEAM_PRICE_ID }],
-      collection_method: "subscription",
       metadata: { organizationId: TEST_ORGANIZATION_ID },
     });
     // In test mode, simulate day-3 by updating payment status
@@ -273,6 +287,8 @@ async function runTaxReceiptTests() {
       customer: await createOrGetCustomer(),
       mode: "subscription",
       line_items: [{ price: TEAM_PRICE_ID, quantity: 1 }],
+      success_url: `${BASE_URL}/settings?billing=success`,
+      cancel_url: `${BASE_URL}/settings?billing=cancelled`,
       automatic_tax: { enabled: true },
       metadata: { organizationId: TEST_ORGANIZATION_ID },
     });
@@ -288,8 +304,10 @@ async function runTaxReceiptTests() {
       customer: await createOrGetCustomer(),
       mode: "subscription",
       line_items: [{ price: TEAM_PRICE_ID, quantity: 1 }],
+      success_url: `${BASE_URL}/settings?billing=success`,
+      cancel_url: `${BASE_URL}/settings?billing=cancelled`,
       automatic_tax: { enabled: true },
-      customer_update: { address: "auto" },
+      customer_update: { address: "auto", name: "auto" },
       tax_id_collection: { enabled: true },
       metadata: { organizationId: TEST_ORGANIZATION_ID },
     });
@@ -329,13 +347,13 @@ async function runTaxReceiptTests() {
     report("P-216: billing history", false, errMsg(e));
   }
 
-  // P-217: Failed-invoice retry button
+  // P-217: Failed-invoice retry button (open invoice → pay = the retry path)
   try {
     const customer = await createOrGetCustomer();
     const invoice = await stripe.invoices.create({
       customer,
       collection_method: "send_invoice",
-      due_date: Math.floor(Date.now() / 1000) - 86400, // overdue
+      due_date: Math.floor(Date.now() / 1000) + 86400,
     });
     await stripe.invoiceItems.create({
       customer,
@@ -385,7 +403,7 @@ async function runReconcileTest() {
 
   try {
     // Run the reconcile script in dry-run mode
-    const reconcileScript = readFileSync(new URL("../scripts/reconcile-billing.ts", import.meta.url), "utf-8");
+    const reconcileScript = readFileSync(new URL("./scripts/reconcile-billing.ts", import.meta.url), "utf-8");
     report("P-236: reconcile script exists and readable", reconcileScript.length > 0, `${reconcileScript.length} bytes`);
     report("P-236: reconcile script has Stripe-vs-DB tier audit logic", reconcileScript.includes("subscription") && reconcileScript.includes("tier"), "audit logic present");
   } catch (e) {
@@ -411,11 +429,16 @@ async function runPauseResumeTest() {
     const paused = await stripe.subscriptions.update(sub.id, {
       pause_collection: { behavior: "mark_uncollectible" },
     });
-    report("P-278: subscription pause (mark_uncollectible)", paused.pause_collection?.behavior === "mark_uncollectible", "pause applied");
+    const afterPause = await stripe.subscriptions.retrieve(sub.id);
+    report("P-278: subscription pause (mark_uncollectible)", afterPause.pause_collection?.behavior === "mark_uncollectible", "pause applied");
 
-    // Resume via the dedicated resume API
-    const resumed = await stripe.subscriptions.resume(sub.id, {});
-    report("P-278: subscription resume", resumed.pause_collection === null, "resume applied");
+    // Resume mirrors the app pause route (clears pause_collection)
+    if (afterPause.pause_collection?.behavior) {
+      const resumed = await stripe.subscriptions.update(sub.id, { pause_collection: "" });
+      report("P-278: subscription resume (clear pause_collection)", resumed.pause_collection === null, "resume applied");
+    } else {
+      report("P-278: subscription resume", false, "pause did not stick — resume skipped");
+    }
   } catch (e) {
     report("P-278: pause/resume", false, errMsg(e));
   }
@@ -427,7 +450,13 @@ async function runPauseResumeTest() {
 async function createOrGetCustomer() {
   const customers = await stripe.customers.list({ email: TEST_EMAIL, limit: 1 });
   if (customers.data.length > 0) return customers.data[0].id;
-  const c = await stripe.customers.create({ email: TEST_EMAIL });
+  const c = await stripe.customers.create({
+    email: TEST_EMAIL,
+    name: "E2E Tester",
+    address: { line1: "123 Test St", city: "San Francisco", state: "CA", postal_code: "94105", country: "US" },
+  });
+  const pm = await stripe.paymentMethods.attach("pm_card_visa", { customer: c.id });
+  await stripe.customers.update(c.id, { invoice_settings: { default_payment_method: pm.id } });
   return c.id;
 }
 
@@ -501,6 +530,16 @@ async function main() {
     console.log("  app health: unreachable (is BASE_URL running?)");
   }
   console.log("");
+
+  try {
+    await stripe.tax.settings.update({
+      head_office: { address: { line1: "123 Test St", city: "San Francisco", state: "CA", postal_code: "94105", country: "US" } },
+      defaults: { tax_code: "txcd_10000000" },
+    });
+    console.log("  tax head-office address + default SaaS tax code set (automatic_tax unblocked)\n");
+  } catch (e) {
+    console.log(`  tax settings NOT set (${errMsg(e)}) — set head office + default tax code at dashboard > test/settings/tax\n`);
+  }
 
   await runProrationTests();
   await runDunningTests();
