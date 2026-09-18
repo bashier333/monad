@@ -1,0 +1,22 @@
+# --- dependencies / build output ---
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# --- env / secrets (never commit) ---
+.env
+.env.*
+!.env.example
+
+# --- local runtime data ---
+var/
+prisma/*.db
+prisma/*.db-journal
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.local

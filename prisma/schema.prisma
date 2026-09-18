@@ -1,0 +1,344 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  DISPATCHER
+  VIEWER
+}
+
+model Organization {
+  id           String         @id @default(cuid())
+  name         String
+  slug         String         @unique
+  weekStartsOn Int            @default(1)
+  timezone     String         @default("America/Chicago")
+  settings     Json?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  memberships  Membership[]
+  files        DataFile[]
+  runs         ImportRun[]
+  mappings     ColumnMapping[]
+  placeAliases PlaceAlias[]
+  shares       AnswerShare[]
+  corrections  Correction[]
+  standingRules StandingRule[]
+  briefs       Brief[]
+  subscription Subscription?
+  meterEvents  MeterEvent[]
+  accessLogs   AccessLog[]
+  pilotChecklist PilotChecklist?
+  notifications Notification[]
+}
+
+model AnswerShare {
+  id             String       @id @default(cuid())
+  organizationId String
+  weekStart      String
+  token          String       @unique
+  expiresAt      DateTime
+  revoked        Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+model Correction {
+  id             String       @id @default(cuid())
+  organizationId String
+  targetType     String       @default("cost-line")
+  targetKey      String
+  field          String       @default("")
+  oldValue       String       @default("")
+  newValue       String       @default("")
+  reason         String       @default("")
+  status         String       @default("open")
+  proposedById   String
+  decidedById    String?
+  decidedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([organizationId, targetKey])
+  @@index([proposedById])
+}
+
+model StandingRule {
+  id             String       @id @default(cuid())
+  organizationId String
+  kind           String       @default("reattribute")
+  costKind       String       @default("")
+  matchField     String       @default("")
+  matchValue     String       @default("")
+  toLoad         String?
+  reason         String       @default("")
+  authorId       String
+  active         Boolean      @default(true)
+  sourceCorrectionId String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, active])
+}
+
+model Notification {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  kind           String
+  title          String
+  href           String       @default("")
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId, readAt])
+  @@index([userId, readAt])
+}
+
+model Brief {
+  id             String       @id @default(cuid())
+  organizationId String
+  weekStart      String
+  content        Json
+  emailedTo      Json?
+  feedback       Json?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, weekStart])
+  @@index([organizationId])
+}
+
+model Subscription {
+  id               String       @id @default(cuid())
+  organizationId   String       @unique
+  tier             String       @default("free")
+  status           String       @default("active")
+  stripeCustomerId String?
+  stripeSubId      String?
+  currentPeriodEnd DateTime?
+  statusChangedAt  DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model MeterEvent {
+  id             String       @id @default(cuid())
+  organizationId String
+  kind           String
+  qty            Int          @default(1)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, kind, createdAt])
+}
+
+model AccessLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  action         String
+  target         String       @default("")
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+}
+
+model PilotChecklist {
+  id                 String       @id @default(cuid())
+  organizationId     String       @unique
+  firstAnswerAt      DateTime?
+  firstCorrectionAt  DateTime?
+  meetingConfirmedAt DateTime?
+  meetingConfirmedBy String?
+  convertedAt        DateTime?
+  notes              String       @default("")
+  updatedAt          DateTime     @updatedAt
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model PlaceAlias {
+  id             String       @id @default(cuid())
+  organizationId String
+  alias          String
+  canonical      String
+  createdById    String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, alias])
+  @@index([organizationId])
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           Role         @default(VIEWER)
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+}
+
+model User {
+  id            String       @id @default(cuid())
+  name          String?
+  email         String?      @unique
+  emailVerified DateTime?
+  image         String?
+  emailOptOut   Boolean      @default(false)
+  accounts      Account[]
+  sessions      Session[]
+  memberships   Membership[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  NEEDS_REVIEW
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model DataFile {
+  id             String       @id @default(cuid())
+  organizationId String
+  uploadedById   String
+  filename       String
+  bytes          Int
+  mime           String
+  checksum       String
+  storageKey     String
+  scannedOk      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  runs           ImportRun[]
+
+  @@index([organizationId, checksum])
+}
+
+model ImportRun {
+  id                String       @id @default(cuid())
+  organizationId    String
+  fileId            String
+  uploadedById      String
+  sourceType        String       @default("tms")
+  status            ImportStatus @default(PENDING)
+  progress          Int          @default(0)
+  totalRows         Int          @default(0)
+  okRows            Int          @default(0)
+  quarantinedRows   Int          @default(0)
+  skippedRows       Int          @default(0)
+  dateMin           DateTime?
+  dateMax           DateTime?
+  headers           Json?
+  mapping           Json?
+  mappingConfidence Json?
+  duplicateOfRunId  String?
+  decision          String?
+  decisionNote      String?
+  conflicts         Json?
+  failureReason     String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  file              DataFile     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  staged            StagedRecord[]
+  rowErrors         ImportRowError[]
+
+  @@index([organizationId, status])
+}
+
+model StagedRecord {
+  id             String    @id @default(cuid())
+  runId          String
+  organizationId String
+  rowNumber      Int
+  loadKey        String?
+  data           Json
+  status         String    @default("ok")
+  createdAt      DateTime  @default(now())
+  run            ImportRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([organizationId, loadKey])
+  @@index([organizationId, status])
+}
+
+model ImportRowError {
+  id        String    @id @default(cuid())
+  runId     String
+  rowNumber Int
+  raw       Json
+  errors    Json
+  createdAt DateTime  @default(now())
+  run       ImportRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+}
+
+model ColumnMapping {
+  id             String       @id @default(cuid())
+  organizationId String
+  sourceType     String
+  fingerprint    String
+  mapping        Json
+  confidence     Json
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, sourceType, fingerprint])
+}

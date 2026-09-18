@@ -18,12 +18,13 @@
 # Setup:
 #   1. cd app
 #   2. cp .env.example .env
-#   3. Fill in .env:
+#   3. Fill in .env (names match app/.env.example):
+#      - AUTH_SECRET=$(openssl rand -base64 32)
+#      - AUTH_URL=http://localhost:3000
 #      - STRIPE_SECRET_KEY=sk_test_...       (from stripe.com/test/apikeys)
 #      - STRIPE_WEBHOOK_SECRET=whsec_...     (from stripe.com/test/webhooks)
 #      - STRIPE_TEAM_PRICE_ID=price_...      (from stripe.com/test/prices)
-#      - STRIPE_PUBLISHABLE_KEY=pk_test_...  (from stripe.com/test/apikeys)
-#      - RESEND_API_KEY=re_...               (optional, for email tests)
+#      - AUTH_RESEND_KEY=re_...              (optional, for email tests)
 #   4. docker compose up -d
 #   5. Wait for healthchecks: docker compose ps
 #   6. Apply DB migrations: docker compose exec app npx prisma db push

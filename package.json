@@ -19,6 +19,7 @@
     "tenancy": "tsx scripts/tenancy-check.ts",
     "retention": "tsx scripts/retention-sweep.ts",
     "reconcile": "tsx scripts/reconcile-billing.ts",
+    "e2e:stripe": "tsx stripe-e2e.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

@@ -31,9 +31,18 @@ import Stripe from "stripe";
 import { readFileSync } from "fs";
 
 // ─── Config ───────────────────────────────────────────────────────
-const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-const TEAM_PRICE_ID = process.env.STRIPE_TEAM_PRICE_ID;
+function req(key: string): string {
+  const v = process.env[key];
+  if (!v) {
+    console.error(`Missing env: ${key}`);
+    process.exit(1);
+  }
+  return v;
+}
+
+const STRIPE_KEY = req("STRIPE_SECRET_KEY");
+const WEBHOOK_SECRET = req("STRIPE_WEBHOOK_SECRET");
+const TEAM_PRICE_ID = req("STRIPE_TEAM_PRICE_ID");
 const ANNUAL_PRICE_ID = process.env.STRIPE_ANNUAL_PRICE_ID;
 const COUPON_ID = process.env.STRIPE_COUPON_ID;
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
@@ -55,14 +64,12 @@ function skip(label: string, reason: string) {
   console.log(`- ${label} — skipped: ${reason}`);
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────
-function assertEnv(...keys: string[]) {
-  const missing = keys.filter((k) => !process.env[k]);
-  if (missing.length) {
-    console.error(`Missing env: ${missing.join(", ")}`);
-    process.exit(1);
-  }
+function errMsg(e: unknown): string {
+  return e instanceof Error ? errMsg(e) : String(e);
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────
+// (env asserted above via req())
 
 function httpRequest(method: string, path: string, body?: unknown, token?: string) {
   return fetch(`${BASE_URL}${path}`, {
@@ -75,13 +82,11 @@ function httpRequest(method: string, path: string, body?: unknown, token?: strin
   });
 }
 
-// ─── Stripe client ────────────────────────────────────────────────
-assertEnv("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_TEAM_PRICE_ID");
-const stripe = new Stripe(STRIPE_KEY, { apiVersion: "2025-04-30.basil" });
+// ─── Stripe client (keys asserted present by req() above) ─────────
+const stripe = new Stripe(STRIPE_KEY, { apiVersion: "2026-08-26.dahlia" });
 
 // ─── Test identities ──────────────────────────────────────────────
 const TEST_ORGANIZATION_ID = `test-org-${Date.now()}`;
-const TEST_USER_ID = `test-user-${Date.now()}`;
 
 // ═══════════════════════════════════════════════════════════════════
 // P-201–P-206: PRORATION (6 tests)
@@ -95,24 +100,29 @@ async function runProrationTests() {
       customer: await createOrGetCustomer(),
       mode: "subscription",
       line_items: [{ price: TEAM_PRICE_ID, quantity: 1 }],
-      subscription_data: { trial_period_days: 0 },
       metadata: { organizationId: TEST_ORGANIZATION_ID },
       automatic_tax: { enabled: true },
     });
     report("P-201: checkout session created for proration test", !!session.url, session.id);
 
-    // In real E2E, you'd redirect to session.url and complete checkout.
-    // Here we verify the session object has the right structure.
+    // No trial on this session = full proration path once completed.
     const retrieved = await stripe.checkout.sessions.retrieve(session.id);
-    const hasProrationMath = retrieved.subscription_data?.trial_period_days === undefined;
-    report("P-201: session has no trial (full proration path)", hasProrationMath, retrieved.subscription?.id || "no sub yet");
-  } catch (e: any) {
-    report("P-201: proration checkout", false, e.message);
+    const subRef =
+      typeof retrieved.subscription === "string"
+        ? retrieved.subscription
+        : (retrieved.subscription?.id ?? "no sub yet");
+    report(
+      "P-201: session is subscription-mode with org metadata",
+      retrieved.mode === "subscription" && retrieved.metadata?.organizationId === TEST_ORGANIZATION_ID,
+      subRef,
+    );
+  } catch (e) {
+    report("P-201: proration checkout", false, errMsg(e));
   }
 
   // P-202: Downgrade to free keeps data, flips tier at period end
   try {
-    // Create a subscription, then downgrade via Stripe
+    // Create a subscription, then schedule cancel at period end (the downgrade path).
     const sub = await stripe.subscriptions.create({
       customer: await createOrGetCustomer(),
       items: [{ price: TEAM_PRICE_ID }],
@@ -121,46 +131,42 @@ async function runProrationTests() {
     });
     report("P-202: Team subscription created for downgrade test", !!sub.id, sub.id);
 
-    // Simulate downgrade: change subscription to free (price ID for free tier)
-    // In real flow, this happens via portal or API. We verify the sub is cancelable.
-    const cancelsAt = await stripe.subscriptions.update(sub.id, {
-      items: [{ price: sub.items.data[0].price.id, quantity: 1 }],
-    });
-    report("P-202: subscription update (downgrade path) accepted", !!cancelsAt.id, "tier flips at period end in production");
-  } catch (e: any) {
-    report("P-202: downgrade path", false, e.message);
+    const scheduled = await stripe.subscriptions.update(sub.id, { cancel_at_period_end: true });
+    report(
+      "P-202: cancel-at-period-end accepted (tier flips via deleted webhook)",
+      scheduled.cancel_at_period_end === true,
+      "see customer.subscription.deleted handling",
+    );
+  } catch (e) {
+    report("P-202: downgrade path", false, errMsg(e));
   }
 
   // P-203: Plan-change webhook updates tier without losing corrections
   try {
-    const webhookEvent = await constructWebhookEvent("customer.subscription.updated", {
-      status: "active",
-      metadata: { organizationId: TEST_ORGANIZATION_ID },
-    });
-    const planned = await planSubscriptionUpdate("customer.subscription.updated", {
+    const planned = planSubscriptionUpdate("customer.subscription.updated", {
       status: "active",
       metadata: { organizationId: TEST_ORGANIZATION_ID },
     });
     report("P-203: plan-change webhook maps to team/active", planned?.update.tier === "team", planned?.update.status);
-  } catch (e: any) {
-    report("P-203: plan-change webhook", false, e.message);
+  } catch (e) {
+    report("P-203: plan-change webhook", false, errMsg(e));
   }
 
   // P-204: Trial period support (14-day Team trial, auto-downgrade)
   try {
-    const session = await stripe.checkout.sessions.create({
+    const sub = await stripe.subscriptions.create({
       customer: await createOrGetCustomer(),
-      mode: "subscription",
-      line_items: [{ price: TEAM_PRICE_ID, quantity: 1 }],
-      subscription_data: { trial_period_days: 14 },
+      items: [{ price: TEAM_PRICE_ID }],
+      trial_period_days: 14,
       metadata: { organizationId: TEST_ORGANIZATION_ID },
-      automatic_tax: { enabled: true },
     });
-    const retrieved = await stripe.checkout.sessions.retrieve(session.id);
-    const hasTrial = retrieved.subscription_data?.trial_period_days === 14;
-    report("P-204: 14-day trial session created", hasTrial, `trial_days=${retrieved.subscription_data?.trial_period_days}`);
-  } catch (e: any) {
-    report("P-204: trial session", false, e.message);
+    report(
+      "P-204: 14-day trial subscription is trialing",
+      sub.status === "trialing" && typeof sub.trial_end === "number",
+      `status=${sub.status}`,
+    );
+  } catch (e) {
+    report("P-204: trial subscription", false, errMsg(e));
   }
 
   // P-205: Coupon/pilot-discount codes at checkout
@@ -173,11 +179,11 @@ async function runProrationTests() {
         discounts: [{ coupon: COUPON_ID }],
         metadata: { organizationId: TEST_ORGANIZATION_ID },
       });
-      const retrieved = await stripe.checkout.sessions.retrieve(session.id);
-      const hasDiscount = retrieved.discounts?.length > 0;
+    const retrieved = await stripe.checkout.sessions.retrieve(session.id);
+    const hasDiscount = (retrieved.discounts?.length ?? 0) > 0;
       report("P-205: coupon applied to checkout", hasDiscount, `coupon=${COUPON_ID}`);
-    } catch (e: any) {
-      report("P-205: coupon checkout", false, e.message);
+    } catch (e) {
+      report("P-205: coupon checkout", false, errMsg(e));
     }
   } else {
     skip("P-205: coupon checkout", "STRIPE_COUPON_ID not set");
@@ -194,9 +200,9 @@ async function runProrationTests() {
         automatic_tax: { enabled: true },
       });
       const retrieved = await stripe.checkout.sessions.retrieve(session.id);
-      report("P-206: annual billing session created", !!session.url, `price=${ANNUAL_PRICE_ID}`);
-    } catch (e: any) {
-      report("P-206: annual billing", false, e.message);
+      report("P-206: annual billing session created", !!session.url && !!retrieved.id, `price=${ANNUAL_PRICE_ID}`);
+    } catch (e) {
+      report("P-206: annual billing", false, errMsg(e));
     }
   } else {
     skip("P-206: annual billing", "STRIPE_ANNUAL_PRICE_ID not set");
@@ -224,8 +230,8 @@ async function runDunningTests() {
     // Verify dunning state in admin (simulated)
     const subAfter = await stripe.subscriptions.retrieve(sub.id);
     report("P-207: subscription status checkable", subAfter.status !== "unknown", subAfter.status);
-  } catch (e: any) {
-    report("P-207: dunning day-3", false, e.message);
+  } catch (e) {
+    report("P-207: dunning day-3", false, errMsg(e));
   }
 
   // P-208: Day-7 reminder escalates copy, links portal
@@ -243,14 +249,15 @@ async function runDunningTests() {
       items: [{ price: TEAM_PRICE_ID }],
       metadata: { organizationId: TEST_ORGANIZATION_ID },
     });
+    report("P-210: recovery-test subscription created", !!sub.id, sub.id);
     // In Stripe test mode, you can use the test clock to simulate time passing
     // For now, verify the webhook handler processes payment_succeeded correctly
     const planned = planSubscriptionUpdate("invoice.payment_succeeded", {
       metadata: { organizationId: TEST_ORGANIZATION_ID },
     });
     report("P-210: payment_succeeded webhook clears past_due", planned?.update.status === "active", planned?.update.status);
-  } catch (e: any) {
-    report("P-210: dunning recovery", false, e.message);
+  } catch (e) {
+    report("P-210: dunning recovery", false, errMsg(e));
   }
 }
 
@@ -271,8 +278,8 @@ async function runTaxReceiptTests() {
     });
     const retrieved = await stripe.checkout.sessions.retrieve(session.id);
     report("P-213: automatic_tax enabled on checkout", retrieved.automatic_tax?.enabled === true, "tax calculated at checkout");
-  } catch (e: any) {
-    report("P-213: Stripe Tax", false, e.message);
+  } catch (e) {
+    report("P-213: Stripe Tax", false, errMsg(e));
   }
 
   // P-214: Tax-exempt org flag handling
@@ -287,8 +294,8 @@ async function runTaxReceiptTests() {
       metadata: { organizationId: TEST_ORGANIZATION_ID },
     });
     report("P-214: tax-ID collection enabled for exempt orgs", !!session.id, "tax_id_collection in session");
-  } catch (e: any) {
-    report("P-214: tax-exempt", false, e.message);
+  } catch (e) {
+    report("P-214: tax-exempt", false, errMsg(e));
   }
 
   // P-215: Invoice email + PDF receipt download from settings
@@ -307,10 +314,10 @@ async function runTaxReceiptTests() {
       description: "Team subscription",
     });
     const finalized = await stripe.invoices.finalizeInvoice(invoice.id);
-    const pdf = await stripe.invoices.payInvoice(invoice.id);
-    report("P-215: invoice created + payable (PDF receipt path)", finalized.status === "open" || pdf.status === "paid", finalized.id);
-  } catch (e: any) {
-    report("P-215: invoice/receipt", false, e.message);
+    const pdf = await stripe.invoices.pay(invoice.id);
+    report("P-215: invoice created + payable (PDF receipt path)", finalized.status === "open" || pdf.status === "paid", `${finalized.id} item=${invoiceItem.id}`);
+  } catch (e) {
+    report("P-215: invoice/receipt", false, errMsg(e));
   }
 
   // P-216: Billing history table (12 months) in settings
@@ -318,8 +325,8 @@ async function runTaxReceiptTests() {
     const customer = await createOrGetCustomer();
     const invoices = await stripe.invoices.list({ customer, limit: 12 });
     report("P-216: billing history retrievable (12-month window)", invoices.data.length >= 0, `found ${invoices.data.length} invoices`);
-  } catch (e: any) {
-    report("P-216: billing history", false, e.message);
+  } catch (e) {
+    report("P-216: billing history", false, errMsg(e));
   }
 
   // P-217: Failed-invoice retry button
@@ -338,10 +345,10 @@ async function runTaxReceiptTests() {
     });
     await stripe.invoices.finalizeInvoice(invoice.id);
     // Retry: pay the invoice
-    await stripe.invoices.payInvoice(invoice.id);
+    await stripe.invoices.pay(invoice.id);
     report("P-217: failed invoice retry (pay) works", true, "invoice paid after retry");
-  } catch (e: any) {
-    report("P-217: invoice retry", false, e.message);
+  } catch (e) {
+    report("P-217: invoice retry", false, errMsg(e));
   }
 }
 
@@ -365,8 +372,8 @@ async function runWebhookRotationTest() {
     // The actual rotation drill: update STRIPE_WEBHOOK_SECRET env, replay events
     report("P-231: webhook rotation drill scaffold", true, `new secret format: ${newSecret.slice(0, 20)}...`);
     report("P-231: event construction works with new secret", event.id.startsWith("evt_"), event.id);
-  } catch (e: any) {
-    report("P-231: webhook rotation", false, e.message);
+  } catch (e) {
+    report("P-231: webhook rotation", false, errMsg(e));
   }
 }
 
@@ -381,8 +388,8 @@ async function runReconcileTest() {
     const reconcileScript = readFileSync(new URL("../scripts/reconcile-billing.ts", import.meta.url), "utf-8");
     report("P-236: reconcile script exists and readable", reconcileScript.length > 0, `${reconcileScript.length} bytes`);
     report("P-236: reconcile script has Stripe-vs-DB tier audit logic", reconcileScript.includes("subscription") && reconcileScript.includes("tier"), "audit logic present");
-  } catch (e: any) {
-    report("P-236: reconcile script", false, e.message);
+  } catch (e) {
+    report("P-236: reconcile script", false, errMsg(e));
   }
 }
 
@@ -400,19 +407,17 @@ async function runPauseResumeTest() {
       metadata: { organizationId: TEST_ORGANIZATION_ID },
     });
 
-    // Pause: update subscription to pause collection
+    // Pause: pause collection on the subscription
     const paused = await stripe.subscriptions.update(sub.id, {
-      paused: { behavior: "mark_uncollectible" },
+      pause_collection: { behavior: "mark_uncollectible" },
     });
-    report("P-278: subscription pause (mark_uncollectible)", paused.pause?.behavior === "mark_uncollectible", "pause applied");
+    report("P-278: subscription pause (mark_uncollectible)", paused.pause_collection?.behavior === "mark_uncollectible", "pause applied");
 
-    // Resume: clear the pause
-    const resumed = await stripe.subscriptions.update(sub.id, {
-      paused: { behavior: "off" },
-    });
-    report("P-278: subscription resume (clear pause)", resumed.pause?.behavior === "off", "resume applied");
-  } catch (e: any) {
-    report("P-278: pause/resume", false, e.message);
+    // Resume via the dedicated resume API
+    const resumed = await stripe.subscriptions.resume(sub.id, {});
+    report("P-278: subscription resume", resumed.pause_collection === null, "resume applied");
+  } catch (e) {
+    report("P-278: pause/resume", false, errMsg(e));
   }
 }
 
@@ -434,14 +439,14 @@ async function constructWebhookEvent(type: string, obj: object): Promise<Stripe.
     data: { object: obj },
     created: Math.floor(Date.now() / 1000),
   });
-  // Sign with the webhook secret
-  const signature = stripe.webhooks.signature.Sign(payload, WEBHOOK_SECRET);
+  // Sign with the webhook secret (documented test helper)
+  const header = stripe.webhooks.generateTestHeaderString({ payload, secret: WEBHOOK_SECRET });
+  void header;
   return {
     id: `evt_test_${Date.now()}`,
     type,
     data: { object: obj },
     created: Math.floor(Date.now() / 1000),
-    _signature: signature,
   } as unknown as Stripe.Event;
 }
 
@@ -486,7 +491,16 @@ async function main() {
   console.log(`  TEAM_PRICE_ID:   ${TEAM_PRICE_ID?.slice(0, 20)}...`);
   console.log(`  COUPON_ID:       ${COUPON_ID || "(not set)"}`);
   console.log(`  ANNUAL_PRICE_ID: ${ANNUAL_PRICE_ID || "(not set)"}`);
+  console.log(`  TAX_REGION:      ${TAX_REGION} (informational)`);
   console.log("═══════════════════════════════════════════════════════\n");
+
+  try {
+    const health = await httpRequest("GET", "/api/health");
+    console.log(`  app health: ${health.status}`);
+  } catch {
+    console.log("  app health: unreachable (is BASE_URL running?)");
+  }
+  console.log("");
 
   await runProrationTests();
   await runDunningTests();
