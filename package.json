@@ -1,0 +1,56 @@
+{
+  "name": "decision-layer-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "worker": "tsx scripts/worker.ts",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "perf": "tsx scripts/perf.ts",
+    "perf:shapes": "tsx scripts/bench-shapes.ts",
+    "tenancy": "tsx scripts/tenancy-check.ts",
+    "retention": "tsx scripts/retention-sweep.ts",
+    "reconcile": "tsx scripts/reconcile-billing.ts",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.7.0",
+    "@prisma/client": "^6.0.0",
+    "bullmq": "^6.3.7",
+    "csv-parse": "^5.6.0",
+    "next": "^15.0.0",
+    "next-auth": "^5.0.0-beta.32",
+    "posthog-js": "^1.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "stripe": "^22.6.2",
+    "xlsx": "^0.18.5",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.1.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^3.2.7",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.0.0",
+    "prisma": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}
