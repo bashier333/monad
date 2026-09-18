@@ -1,0 +1,4 @@
+LoadID,PickupDate,Origin,Destination,Driver,Truck,Revenue,Miles,Broker,Detention
+D301,2026-09-07,El Paso TX,Phoenix AZ,Dana,Unit D1,2300.00,431,DryRun,0
+D302,2026-09-09,Phoenix AZ,El Paso TX,Dana,Unit D1,2250.00,431,DryRun,60
+D303,2026-09-11,El Paso TX,Austin TX,Dana,Unit D1,1400.00,580,DryRun,0

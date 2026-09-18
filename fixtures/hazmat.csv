@@ -1,0 +1,3 @@
+LoadID,PickupDate,Origin,Destination,Driver,Truck,Revenue,Miles,Broker,PermitFee
+9481,2026-09-07,Houston TX,Oklahoma City OK,Jay,Unit 9,2200.00,478,BlueLine,150.00
+9482,2026-09-10,Oklahoma City OK,Houston TX,Jay,Unit 9,2200.00,478,BlueLine,150.00

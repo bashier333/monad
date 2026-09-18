@@ -1,0 +1,3 @@
+LoadID,PickupDate,Origin,Destination,Driver,Truck,Revenue,Miles,Broker,GallonsHauled
+9421,2026-09-07,Houston TX,San Antonio TX,Cid,Unit 3,1600.00,197,BlueLine,6500
+9422,2026-09-10,San Antonio TX,Houston TX,Cid,Unit 3,1600.00,197,BlueLine,6500

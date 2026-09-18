@@ -1,0 +1,4 @@
+LoadID,PickupDate,Origin,Destination,Driver,Truck,Revenue,Miles,Broker
+9461,2026-09-07,Dallas TX,Fort Worth TX,Hal,Unit 7,350.00,32,BlueLine
+9462,2026-09-07,Fort Worth TX,Dallas TX,Hal,Unit 7,350.00,32,BlueLine
+9463,2026-09-08,Dallas TX,Fort Worth TX,Hal,Unit 7,350.00,32,BlueLine

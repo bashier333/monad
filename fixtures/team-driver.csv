@@ -1,0 +1,3 @@
+LoadID,PickupDate,Origin,Destination,Driver,CoDriver,Truck,Revenue,Miles,Broker
+9441,2026-09-07,El Paso TX,Phoenix AZ,Eli,Fay,Unit 5,2600.00,431,RedRock
+9442,2026-09-09,Phoenix AZ,El Paso TX,Fay,Eli,Unit 5,2600.00,431,RedRock

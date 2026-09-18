@@ -1,0 +1,4 @@
+LoadID,PickupDate,Origin,Destination,Driver,Truck,Revenue,Miles,Broker,Detention
+F201,2026-09-07,Fort Worth TX,Oklahoma City OK,Frank,Unit F1,1500.00,301,SteelHaul,0
+F202,2026-09-08,Oklahoma City OK,Fort Worth TX,Frank,Unit F1,1450.00,301,SteelHaul,120
+F203,2026-09-10,Fort Worth TX,Dallas TX,Frank,Unit F1,500.00,32,SteelHaul,0

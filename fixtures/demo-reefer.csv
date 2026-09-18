@@ -1,0 +1,4 @@
+LoadID,PickupDate,Origin,Destination,Driver,Truck,Revenue,Miles,Broker,Detention
+R101,2026-09-07,Dallas TX,Houston TX,Rita,Unit R1,2100.00,242,FreshLine,0
+R102,2026-09-08,Houston TX,Austin TX,Rita,Unit R1,800.00,165,FreshLine,45
+R103,2026-09-09,Austin TX,Dallas TX,Rita,Unit R1,750.00,195,FreshLine,0

@@ -1,0 +1,3 @@
+LoadID,PickupDate,Origin,Destination,Driver,Truck,PercentPay,Settlement,Miles,Broker
+9451,2026-09-07,Austin TX,Dallas TX,Gus,Unit 6,72,1296.00,195,BlueLine
+9452,2026-09-08,Dallas TX,Austin TX,Gus,Unit 6,72,1296.00,195,BlueLine

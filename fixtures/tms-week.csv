@@ -1,0 +1,9 @@
+LoadID,PickupDate,Origin,Destination,Driver,Truck,Revenue,Miles,Broker,Detention
+4821,2026-09-07,Dallas TX,Houston TX,Deshawn,Unit 12,1850.00,242,BlueLine,0
+4822,2026-09-08,DAL,Houston,T. Owner,Unit 7,1725.50,239,BlueLine,150
+4823,2026-09-09,Fort Worth TX,Oklahoma City OK,Deshawn,Unit 12,,301,RedRock,0
+4824,13/40/2026,Austin TX,Dallas TX,Vera,Unit 3,900.00,195,BlueLine,0
+4825,2026-09-10,Houston TX,San Antonio TX,Deshawn,Unit 12,640.00,-12,RedRock,0
+4821,2026-09-07,Dallas TX,Houston TX,Deshawn,Unit 12,1850.00,242,BlueLine,0
+4826,2026-09-11,El Paso TX,Phoenix AZ,Vera,Unit 3,2100.00,430,,0
+4827,2026-09-12,Phoenix AZ,El Paso TX,Deshawn,Unit 12,1980.00,431,BlueLine,75

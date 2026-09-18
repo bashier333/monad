@@ -1,0 +1,37 @@
+import { NextResponse } from "next/server";
+import { cacheStats } from "@/lib/cache";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { getActiveOrg } from "@/lib/org";
+import { requireCan } from "@/lib/roles";
+
+export async function GET() {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const active = await getActiveOrg(session.user.id);
+  if (!active) return NextResponse.json({ error: "no organization" }, { status: 400 });
+  try {
+    requireCan(active.membership.role, "billing:manage");
+  } catch {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  const orgId = active.organization.id;
+  const [bytes, meter, users] = await Promise.all([
+    db.dataFile.aggregate({ where: { organizationId: orgId }, _sum: { bytes: true } }),
+    db.meterEvent.groupBy({ by: ["kind"], where: { organizationId: orgId }, _sum: { qty: true } }),
+    db.membership.count({ where: { organizationId: orgId } }),
+  ]);
+  const usage: Record<string, number> = {};
+  for (const g of meter) usage[g.kind] = g._sum.qty ?? 0;
+
+  return NextResponse.json({
+    llmUsd: 0,
+    llmNote: "No LLM calls in the product path yet (deterministic matcher + template briefs). Revisit when agent features land.",
+    storageBytes: bytes._sum.bytes ?? 0,
+    usage,
+    seats: users,
+    cache: cacheStats(),
+    grossMarginNote: "COGS is storage + compute only — margin stays >80% until LLM features ship.",
+  });
+}

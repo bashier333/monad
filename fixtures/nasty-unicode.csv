@@ -1,0 +1,3 @@
+LoadID,PickupDate,Origin,Destination,Driver,Truck,Revenue,Miles,Broker,Detention
+9001,2026-09-07,San José CA,Cañon City CO,José,Unit 5,1500.00,300,BlueLine,0
+9002,2026-09-08,Zürich TX,Dallas TX,Zoë,Unit 5,1600.00,310,BlueLine,25
