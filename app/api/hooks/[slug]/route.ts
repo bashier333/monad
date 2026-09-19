@@ -26,6 +26,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
 
   const raw = await req.text();
   if (raw.length > MAX_BODY) return NextResponse.json({ error: "payload too large" }, { status: 413 });
+  const stamp = req.headers.get("x-hook-timestamp");
+  if (stamp) {
+    const ts = Date.parse(stamp);
+    if (Number.isNaN(ts) || Math.abs(Date.now() - ts) > 5 * 60 * 1000) {
+      return NextResponse.json({ error: "stale timestamp (replay window 5min)" }, { status: 401 });
+    }
+  }
   if (!verifySignature(settings.hookSecret, raw, req.headers.get("x-hook-signature"))) {
     return NextResponse.json({ error: "bad signature" }, { status: 401 });
   }

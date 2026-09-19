@@ -16,6 +16,7 @@ import { requireCan } from "@/lib/core/roles";
 import { requireWritable } from "@/lib/core/guards";
 import { recordEvent } from "@/lib/core/events-db";
 import { fatigueGuard, learnedThresholdOverrides } from "@/lib/core/workflow";
+import { appOrigin, escapeHtml } from "@/lib/core/security";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -110,15 +111,15 @@ export async function POST(req: Request) {
     where: { organizationId: active.organization.id },
     include: { user: { select: { id: true, email: true, emailOptOut: true } } },
   });
-  const origin = new URL(req.url).origin;
+  const origin = appOrigin(req.url);
   const emailedTo: string[] = [];
   for (const m of members) {
     if (!m.user.email || m.user.emailOptOut) continue;
     const unsub = unsubscribeUrl(origin, m.user.id);
-    const html = `<p>${content.paragraph}</p><p><a href="${origin}/briefs/${content.weekStart}">Read the full brief</a></p><p><a href="${unsub}">Unsubscribe</a></p>`;
+    const html = `<p>${escapeHtml(content.paragraph)}</p><p><a href="${origin}/briefs/${content.weekStart}">Read the full brief</a></p><p><a href="${unsub}">Unsubscribe</a></p>`;
     const sent = await sendEmail(m.user.email, `Monday margin brief — week of ${content.weekStart}`, html, requestId, {
       "List-Unsubscribe": `<${unsub}>`,
-    });
+    }, content.paragraph);
     if (sent) emailedTo.push(m.user.email);
   }
   await db.brief.update({ where: { id: brief.id }, data: { emailedTo } });
@@ -127,7 +128,8 @@ export async function POST(req: Request) {
   await logAccess(active.organization.id, session.user.id, "brief:generate", content.weekStart);
   logger.info("brief generated", { requestId, orgId: active.organization.id, week: content.weekStart, emailed: emailedTo.length });
   if (content.anomalies.length > 0 && settings.anomalyEmail === true) {
-    const alertHtml = `<p>${content.anomalies.length} lanes moved more than expected:</p><ul>${content.anomalies.map((a) => `<li>${a.lane}: ${a.direction} ${Math.abs(a.swingPts)}pts (${a.causes.join(", ")})</li>`).join("")}</ul><p><a href="${origin}/briefs/${content.weekStart}">Read the full brief</a></p>`;
+    const alertItems = content.anomalies.map((a) => `<li>${escapeHtml(a.lane)}: ${a.direction} ${Math.abs(a.swingPts)}pts (${a.causes.map((c) => escapeHtml(c)).join(", ")})</li>`).join("");
+    const alertHtml = `<p>${content.anomalies.length} lanes moved more than expected:</p><ul>${alertItems}</ul><p><a href="${origin}/briefs/${content.weekStart}">Read the full brief</a></p>`;
     for (const m of members) {
       if (!m.user.email || m.user.emailOptOut) continue;
       await sendEmail(m.user.email, `Margin alert — ${content.anomalies.length} lanes moved`, alertHtml, requestId, {
@@ -221,15 +223,15 @@ async function generateAgencyBrief(
     where: { organizationId },
     include: { user: { select: { id: true, email: true, emailOptOut: true } } },
   });
-  const origin = new URL(req.url).origin;
+  const origin = appOrigin(req.url);
   const emailedTo: string[] = [];
   for (const m of members) {
     if (!m.user.email || m.user.emailOptOut) continue;
     const unsub = unsubscribeUrl(origin, m.user.id);
-    const html = `<p>${content.paragraph}</p><p><a href="${origin}/briefs/${content.weekStart}?pack=agency">Read the full brief</a></p><p><a href="${unsub}">Unsubscribe</a></p>`;
+    const html = `<p>${escapeHtml(content.paragraph)}</p><p><a href="${origin}/briefs/${content.weekStart}?pack=agency">Read the full brief</a></p><p><a href="${unsub}">Unsubscribe</a></p>`;
     const sent = await sendEmail(m.user.email, `Monday studio brief — week of ${content.weekStart}`, html, requestId, {
       "List-Unsubscribe": `<${unsub}>`,
-    });
+    }, content.paragraph);
     if (sent) emailedTo.push(m.user.email);
   }
   await db.brief.update({ where: { id: brief.id }, data: { emailedTo } });
@@ -238,7 +240,8 @@ async function generateAgencyBrief(
   await logAccess(organizationId, userId, "brief:generate", `agency:${content.weekStart}`);
   logger.info("agency brief generated", { requestId, orgId: organizationId, week: content.weekStart, emailed: emailedTo.length });
   if (content.anomalies.length > 0 && (settings.agencyAnomalyEmail ?? settings.anomalyEmail) === true) {
-    const alertHtml = `<p>${content.anomalies.length} projects moved more than expected:</p><ul>${content.anomalies.map((a) => `<li>${a.lane}: ${a.direction} ${Math.abs(a.swingPts)}pts (${a.causes.join(", ")})</li>`).join("")}</ul><p><a href="${origin}/briefs/${content.weekStart}?pack=agency">Read the full brief</a></p>`;
+    const alertItems = content.anomalies.map((a) => `<li>${escapeHtml(a.lane)}: ${a.direction} ${Math.abs(a.swingPts)}pts (${a.causes.map((c) => escapeHtml(c)).join(", ")})</li>`).join("");
+    const alertHtml = `<p>${content.anomalies.length} projects moved more than expected:</p><ul>${alertItems}</ul><p><a href="${origin}/briefs/${content.weekStart}?pack=agency">Read the full brief</a></p>`;
     for (const m of members) {
       if (!m.user.email || m.user.emailOptOut) continue;
       await sendEmail(m.user.email, `Studio alert — ${content.anomalies.length} projects moved`, alertHtml, requestId, {

@@ -69,6 +69,13 @@ async function main() {
   const eventCutoff = new Date(Date.now() - 365 * 86_400_000);
   const oldEvents = await db.eventLog.deleteMany({ where: { createdAt: { lt: eventCutoff } } });
   console.log(`event log: pruned ${oldEvents.count} events older than 1y (hot 90d, cold 1y)`);
+
+  const accessCutoff = new Date(Date.now() - 365 * 86_400_000 - 86_400_000);
+  const oldAccess = await db.accessLog.deleteMany({ where: { createdAt: { lt: accessCutoff } } });
+  console.log(`access log: pruned ${oldAccess.count} rows older than 1y +1d`);
+
+  const expiredShares = await db.answerShare.deleteMany({ where: { expiresAt: { lt: new Date() } } });
+  console.log(`shares: purged ${expiredShares.count} expired tokens`);
   await db.$disconnect();
 }
 

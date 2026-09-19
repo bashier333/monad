@@ -1,9 +1,10 @@
-import { randomUUID } from "crypto";
+import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { resolveWeek } from "@/lib/core/answers/service";
 import { cacheBust } from "@/lib/core/cache";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 
@@ -29,11 +30,12 @@ export async function POST(req: Request) {
       organizationId: active.organization.id,
       weekStart: anchor,
       pack,
-      token: randomUUID(),
+      token: randomBytes(16).toString("hex"),
       expiresAt,
     },
   });
   const url = new URL(req.url);
+  await logAccess(active.organization.id, session.user.id, "share:create", share.id, req.headers.get("x-request-id") ?? "none");
   return NextResponse.json({ url: `${url.origin}/s/${share.token}`, expiresAt });
 }
 
@@ -56,5 +58,6 @@ export async function DELETE(req: Request) {
   if (!share) return NextResponse.json({ error: "not found" }, { status: 404 });
   await db.answerShare.update({ where: { id: share.id }, data: { revoked: true } });
   cacheBust("share:");
+  await logAccess(active.organization.id, session.user.id, "share:revoke", share.id, req.headers.get("x-request-id") ?? "none");
   return NextResponse.json({ ok: true });
 }

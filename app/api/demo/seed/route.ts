@@ -4,6 +4,7 @@ import path from "path";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
 import { enqueueImport } from "@/lib/core/queue";
 import { logger } from "@/lib/core/logger";
 import { getActiveOrg } from "@/lib/core/org";
@@ -83,5 +84,6 @@ export async function POST(req: Request) {
 
   logger.info("demo seed requested", { requestId, orgId: active.organization.id, runs: runIds.length });
   if (runIds.length === 0) return NextResponse.json({ skipped: true });
+  await logAccess(active.organization.id, session.user.id, "demo:seed", runIds.join(","), requestId);
   return NextResponse.json({ runs: runIds });
 }

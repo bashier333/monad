@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { cancelRun, finalizeRun } from "@/lib/core/ingest/pipeline";
+import { finalizeRun, cancelRun } from "@/lib/core/ingest/pipeline";
 import { parseDecision } from "@/lib/core/imports/validate";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 import { requireWritable } from "@/lib/core/guards";
@@ -34,10 +35,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   if (decision === "skip") {
     await cancelRun(id, requestId, "skipped by user after duplicate/overlap review");
+    await logAccess(active.organization.id, session.user.id, "import:decide", `${id}:skip`, requestId);
     return NextResponse.json({ ok: true, status: "CANCELLED" });
   }
   if (decision === "merge" || decision === "replace") {
     await finalizeRun(id, requestId, decision);
+    await logAccess(active.organization.id, session.user.id, "import:decide", `${id}:${decision}`, requestId);
     return NextResponse.json({ ok: true, status: "COMPLETED" });
   }
   return NextResponse.json({ error: "decision must be merge, replace, or skip" }, { status: 400 });

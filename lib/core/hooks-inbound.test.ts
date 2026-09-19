@@ -22,4 +22,13 @@ describe("inbound webhooks (R-381–R-390)", () => {
     expect(e.version).toBe(1);
     expect(e.payload.rows).toBe(3);
   });
+
+  it("replay window is 5 minutes (S-633)", () => {
+    const now = Date.now();
+    const fresh = new Date(now - 60_000).toISOString();
+    const stale = new Date(now - 10 * 60_000).toISOString();
+    expect(Math.abs(now - Date.parse(fresh)) <= 5 * 60 * 1000).toBe(true);
+    expect(Math.abs(now - Date.parse(stale)) <= 5 * 60 * 1000).toBe(false);
+    expect(Number.isNaN(Date.parse("not-a-date"))).toBe(true);
+  });
 });

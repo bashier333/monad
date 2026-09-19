@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe, getSubscription } from "@/lib/core/billing";
 import { auth } from "@/lib/core/auth";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 
@@ -26,5 +27,6 @@ export async function POST(req: Request) {
     customer: sub.stripeCustomerId,
     return_url: `${origin}/settings`,
   });
+  await logAccess(active.organization.id, session.user.id, "billing:portal", "", req.headers.get("x-request-id") ?? "none");
   return NextResponse.json({ url: portal.url });
 }

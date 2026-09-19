@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 
 export async function GET() {
@@ -51,5 +52,6 @@ export async function PATCH(req: Request) {
     update: data,
     create: { organizationId: active.organization.id, ...data },
   });
+  await logAccess(active.organization.id, session.user.id, "pilots:checklist", Object.keys(data).join(","), req.headers.get("x-request-id") ?? "none");
   return NextResponse.json({ checklist });
 }

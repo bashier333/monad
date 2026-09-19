@@ -6,6 +6,7 @@ import { buildAgencyExportCSV } from "@/lib/packs/agency/csv";
 import { auth } from "@/lib/core/auth";
 import { getActiveOrg } from "@/lib/core/org";
 import { logAccess } from "@/lib/core/access";
+import { recordUsage } from "@/lib/core/billing";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -37,10 +38,12 @@ export async function GET(req: Request) {
     csv = buildExportCSV(answer.lanes, answer.loads, laneFilter);
     weekStart = answer.meta.weekStart;
   }
-  await logAccess(active.organization.id, session.user.id, "export", `${pack}:${weekStart}`);
+  await logAccess(active.organization.id, session.user.id, "export", `${pack}:${weekStart}`, req.headers.get("x-request-id") ?? "none");
+  await recordUsage(active.organization.id, "export");
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
+      controller.enqueue(encoder.encode("﻿"));
       const CHUNK = 65536;
       for (let i = 0; i < csv.length; i += CHUNK) {
         controller.enqueue(encoder.encode(csv.slice(i, i + CHUNK)));

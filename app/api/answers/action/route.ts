@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { describeAction, parseAction, validateActionParams } from "@/lib/core/answers/actions";
+import { requireJson } from "@/lib/core/json-guard";
 import { resolveWeek } from "@/lib/core/answers/service";
 import { cacheBust } from "@/lib/core/cache";
 import { auth } from "@/lib/core/auth";
@@ -19,6 +20,8 @@ export async function POST(req: Request) {
   const active = await getActiveOrg(session.user.id);
   if (!active) return NextResponse.json({ error: "no organization" }, { status: 400 });
 
+  const guarded = requireJson(req);
+  if (!guarded.ok) return guarded.response;
   const body = (await req.json()) as { query?: string; week?: string; pack?: string; confirm?: boolean };
   const pack = body.pack === "agency" ? "agency" : "freight";
   const action = body.query ? parseAction(body.query, pack) : null;

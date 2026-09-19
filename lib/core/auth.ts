@@ -30,5 +30,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // login history must never break sign-in
       }
     },
+    async signOut(message) {
+      try {
+        const userId = (message as { session?: { userId?: string } })?.session?.userId;
+        if (!userId) return;
+        const membership = await db.membership.findFirst({
+          where: { userId },
+          select: { organizationId: true },
+        });
+        if (membership) {
+          const { logAccess } = await import("@/lib/core/access");
+          await logAccess(membership.organizationId, userId, "auth:signout", "");
+        }
+      } catch {
+        // logout must never break
+      }
+    },
   },
 });

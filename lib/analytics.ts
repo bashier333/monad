@@ -10,7 +10,13 @@ export function initAnalytics() {
   const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
   if (!key) return;
   void import("posthog-js").then(({ default: posthog }) => {
-    posthog.init(key, { api_host: host });
+    posthog.init(key, {
+      api_host: host,
+      autocapture: false,
+      capture_pageview: false,
+      disable_session_recording: true,
+      respect_dnt: true,
+    });
     enabled = true;
   });
 }

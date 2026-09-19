@@ -17,4 +17,10 @@ describe("agency rule validation (X6 E-261)", () => {
     const r = validateAgencyRuleInput({ costKind: "detention", matchField: "driver", matchValue: "x", toLoad: null });
     expect(r.ok).toBe(false);
   });
+
+  it("rejects arrays/objects for scalar fields (S-251)", () => {
+    expect(validateAgencyRuleInput({ costKind: ["labor"], matchField: "client", matchValue: "x", toLoad: null }).ok).toBe(false);
+    expect(validateAgencyRuleInput({ costKind: "labor", matchField: { evil: 1 }, matchValue: "x", toLoad: null }).ok).toBe(false);
+    expect(validateAgencyRuleInput({ costKind: "labor", matchField: "nope", matchValue: "x", toLoad: null }).ok).toBe(false);
+  });
 });

@@ -2,6 +2,9 @@ import Link from "next/link";
 import { getWeeklyAnswer } from "@/lib/packs/freight/service";
 import { getAgencyAnswer } from "@/lib/packs/agency/service";
 import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
+
+export const metadata = { robots: "noindex, nofollow" };
 
 export default async function SharePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -16,6 +19,7 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
       </main>
     );
   }
+  await logAccess(share.organizationId, "anonymous", "share:view", share.id);
 
   if (share.pack === "agency") {
     const answer = await getAgencyAnswer(share.organizationId, share.organization.weekStartsOn, share.weekStart);

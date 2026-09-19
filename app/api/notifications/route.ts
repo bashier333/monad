@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 
 export async function GET() {
@@ -30,6 +31,7 @@ export async function POST(req: Request) {
       where: { organizationId: active.organization.id, userId: session.user.id, readAt: null },
       data: { readAt: new Date() },
     });
+    await logAccess(active.organization.id, session.user.id, "notifications:read-all", "", req.headers.get("x-request-id") ?? "none");
     return NextResponse.json({ ok: true });
   }
   if (!body.id) return NextResponse.json({ error: "id or all required" }, { status: 400 });

@@ -91,7 +91,7 @@ export async function POST(req: Request) {
 
   logger.info("upload accepted", { requestId, runId: run.id, file: upload.name, bytes: bytes.length });
   await recordUsage(active.organization.id, "upload");
-  await logAccess(active.organization.id, session.user.id, "upload", upload.name);
+  await logAccess(active.organization.id, session.user.id, "upload", upload.name, requestId);
   await enqueueImport({ runId: run.id, requestId });
   return NextResponse.json({ runId: run.id });
 }

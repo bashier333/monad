@@ -5,6 +5,7 @@ import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
+import { appOrigin, hashEmail, parseInviteRole, validateInviteEmail } from "@/lib/core/security";
 
 export async function GET() {
   const session = await auth();
@@ -34,9 +35,10 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json()) as { email?: string; role?: "DISPATCHER" | "VIEWER" };
-  const email = String(body.email ?? "").trim().toLowerCase();
-  if (!email || !email.includes("@")) return NextResponse.json({ error: "valid email required" }, { status: 400 });
-  const role = body.role === "DISPATCHER" ? "DISPATCHER" : "VIEWER";
+  const parsed = validateInviteEmail(body.email);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+  const email = parsed.email;
+  const role = parseInviteRole(body.role);
 
   const user = await db.user.upsert({
     where: { email },
@@ -49,9 +51,9 @@ export async function POST(req: Request) {
     create: { userId: user.id, organizationId: active.organization.id, role },
   });
   await recordUsage(active.organization.id, "seat");
-  await logAccess(active.organization.id, session.user.id, "org:invite", email);
+  await logAccess(active.organization.id, session.user.id, "org:invite", hashEmail(email));
 
-  const origin = new URL(req.url).origin;
+  const origin = appOrigin(req.url);
   return NextResponse.json({
     ok: true,
     magicLink: `${origin}/api/auth/signin?callbackUrl=${encodeURIComponent("/answers")}`,
@@ -81,7 +83,7 @@ export async function DELETE(req: Request) {
     await db.membership.deleteMany({
       where: { userId: user.id, organizationId: active.organization.id },
     });
-    await logAccess(active.organization.id, session.user.id, "org:revoke", email);
+    await logAccess(active.organization.id, session.user.id, "org:revoke", hashEmail(email));
   }
   return NextResponse.json({ ok: true });
 }

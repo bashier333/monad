@@ -21,6 +21,13 @@ Benchmarks are lost on exit (E-745, stated honestly): cross-org percentiles and
 "you vs median" context stop the day you leave. Your rows, trail, and exports
 leave with you — the comparison context doesn't.
 
+## Sharing safety (S-586)
+
+Share links render groups + totals only (never revision/load detail), expire in
+30 days, carry no cookies, and are blocked from crawlers (noindex). Anyone with
+the link can screenshot it — treat share links like forwarded email, and revoke
+them when the conversation ends.
+
 ## API docs per pack (E-498)
 
 - Freight: `GET /api/answers/lane-margins?week=`, `GET /api/answers/lane?lane=&week=`.

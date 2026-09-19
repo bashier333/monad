@@ -11,8 +11,15 @@ export function sanitizeMapping(
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
     return { ok: false, error: "mapping must be an object" };
   }
+  const entries = Object.entries(input as Record<string, unknown>);
+  if (entries.length > 200) {
+    return { ok: false, error: "mapping has too many keys (max 200)" };
+  }
   const mapping: Record<string, number> = {};
-  for (const [field, idx] of Object.entries(input as Record<string, unknown>)) {
+  for (const [field, idx] of entries) {
+    if (field === "__proto__" || field === "constructor" || field === "prototype") {
+      return { ok: false, error: `invalid field name: ${field}` };
+    }
     if (idx === null || idx === undefined) continue;
     if (!Number.isInteger(idx) || (idx as number) < 0 || (idx as number) >= headersLength) {
       return { ok: false, error: `column index out of range for field ${field}` };

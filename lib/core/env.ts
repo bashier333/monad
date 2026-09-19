@@ -19,6 +19,13 @@ export type Env = z.infer<typeof schema>;
 
 let cached: Env | null = null;
 
+export function checkProductionSecrets(e: { AUTH_SECRET?: string; NODE_ENV?: string }): string | null {
+  if (e.NODE_ENV === "production" && (!e.AUTH_SECRET || e.AUTH_SECRET === "dev-only-secret-replace-me" || e.AUTH_SECRET.length < 32)) {
+    return "AUTH_SECRET must be a real ≥32-char secret in production";
+  }
+  return null;
+}
+
 export function getEnv(): Env {
   if (cached) return cached;
   const parsed = schema.safeParse(process.env);
@@ -28,8 +35,9 @@ export function getEnv(): Env {
     return cached;
   }
   cached = parsed.data;
-  if (cached.AUTH_SECRET === "dev-only-secret-replace-me" && cached.NODE_ENV === "production") {
-    console.warn("[env] AUTH_SECRET is the dev default in production — set a real secret.");
+  const problem = checkProductionSecrets({ AUTH_SECRET: cached.AUTH_SECRET, NODE_ENV: cached.NODE_ENV });
+  if (problem) {
+    throw new Error(`[env] ${problem}`);
   }
   return cached;
 }

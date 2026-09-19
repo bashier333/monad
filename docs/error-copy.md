@@ -14,3 +14,8 @@ Plain words, no codes to users. Pattern: what happened + the one next action.
 Machine APIs (v2, webhooks) return `{error: {code, message, requestId}}` — codes for
 machines, messages still plain. Quarantine codes (REQUIRED, ROUND_GAP…) appear only
 in operator-facing tables with the glossary one click away.
+
+## Boolean coercion (S-252)
+
+Flags are strict: `body.up !== false` means true (missing counts as up);
+opt-ins use `=== true`. Documented here so every flag endpoint behaves the same.

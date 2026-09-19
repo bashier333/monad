@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sanitizeMapping } from "@/lib/core/imports/validate";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 import { requireWritable } from "@/lib/core/guards";
@@ -31,5 +32,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
 
   await db.importRun.update({ where: { id }, data: { mapping: parsed.mapping } });
+  await logAccess(active.organization.id, session.user.id, "import:mapping", id, req.headers.get("x-request-id") ?? "none");
   return NextResponse.json({ ok: true });
 }

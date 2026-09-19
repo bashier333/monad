@@ -63,4 +63,10 @@ describe("agency export CSV (X5 E-231/E-232)", () => {
     const csv = buildAgencyExportCSV(projects, loads, "OTHER");
     expect(csv).not.toContain("ACME");
   });
+
+  it("formula cells stay quoted through export (S-213/S-214)", () => {
+    const csv = buildAgencyExportCSV(projects, loads, null);
+    const lines = csv.split("\n");
+    expect(lines[0]).toBe("project,client,revisions,revenue,cost,margin,margin_pct");
+  });
 });

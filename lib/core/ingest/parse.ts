@@ -10,9 +10,15 @@ export interface ParsedTable {
 }
 
 export const MAX_ROWS = 500_000;
+export const MAX_SHEETS = 100;
+export const MAX_CELLS = 5_000_000;
 
 export function assertRowCap(n: number): void {
   if (n > MAX_ROWS) throw new Error(`too many rows (${n} > ${MAX_ROWS})`);
+}
+
+export function assertCellCap(rows: number, cols: number): void {
+  if (rows * cols > MAX_CELLS) throw new Error(`too many cells (${rows}x${cols} > ${MAX_CELLS})`);
 }
 
 function decodeText(bytes: Buffer): { text: string; encoding: string } {
@@ -61,11 +67,14 @@ export function parseBuffer(filename: string, bytes: Buffer): ParsedTable {
   if (filename.toLowerCase().endsWith(".xlsx")) {
     let wb: XLSX.WorkBook;
     try {
-      wb = XLSX.read(bytes, { type: "buffer" });
+      wb = XLSX.read(bytes, { type: "buffer", cellFormula: false, WTF: false });
     } catch {
       throw new Error("unreadable workbook — if password-protected, remove the password and re-upload");
     }
     const sheets = wb.SheetNames;
+    if (sheets.length > MAX_SHEETS) {
+      throw new Error(`too many sheets (${sheets.length} > ${MAX_SHEETS})`);
+    }
     const hidden = (name: string) => {
       const idx = wb.SheetNames.indexOf(name);
       const props = wb.Workbook?.Sheets?.[idx] as { Hidden?: number } | undefined;
@@ -89,6 +98,7 @@ export function parseBuffer(filename: string, bytes: Buffer): ParsedTable {
     const norm = aoa.map((r) => (Array.isArray(r) ? r.map((c) => String(c)) : []));
     const [headers = [], ...rows] = norm;
     assertRowCap(rows.length);
+    assertCellCap(rows.length, headers.length);
     const split = splitDataFooters(headers, rows);
     return {
       headers: headers.map((h) => h.trim()),

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { bustAnswerCache } from "@/lib/core/answers/service";
 import { validateRuleInput } from "@/lib/packs/freight/rules-validate";
 import { validateAgencyRuleInput } from "@/lib/packs/agency/rules-validate";
+import { requireJson } from "@/lib/core/json-guard";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
@@ -34,6 +35,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  const guarded = requireJson(req);
+  if (!guarded.ok) return guarded.response;
   const body = (await req.json()) as {
     costKind?: string;
     matchField?: string;

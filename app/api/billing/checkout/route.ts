@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { getStripe, getSubscription } from "@/lib/core/billing";
+import { getStripe, getSubscription, recordUsage } from "@/lib/core/billing";
 import { buildCheckoutParams } from "@/lib/core/billing-checkout";
 import { getEnv } from "@/lib/core/env";
 import { auth } from "@/lib/core/auth";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 
@@ -56,6 +57,11 @@ export async function POST(req: Request) {
       couponId: typeof body.couponId === "string" && body.couponId ? body.couponId.slice(0, 64) : undefined,
       taxExempt: body.taxExempt === true,
     }),
+    ...(req.headers.get("Idempotency-Key")
+      ? [{ idempotencyKey: req.headers.get("Idempotency-Key") as string }]
+      : []),
   );
+  await recordUsage(active.organization.id, "checkout");
+  await logAccess(active.organization.id, session.user.id, "billing:checkout", String(trialDays), req.headers.get("x-request-id") ?? "none");
   return NextResponse.json({ url: checkout.url });
 }

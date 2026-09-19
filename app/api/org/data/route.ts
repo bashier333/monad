@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
-import { deleteOrgData } from "@/lib/core/org-data";
+import { deleteOrgData, EXPORT_SCHEMA_VERSION } from "@/lib/core/org-data";
 import { requireCan } from "@/lib/core/roles";
 
 export async function GET() {
@@ -23,15 +24,21 @@ export async function GET() {
     db.importRun.findMany({ where: { organizationId: orgId }, include: { file: true } }),
   ]);
 
-  return new NextResponse(
-    JSON.stringify({ exportedAt: new Date().toISOString(), staged, mappings, aliases, corrections, rules, briefs, runs }, null, 2),
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="export-${active.organization.slug}.json"`,
-      },
-    },
+  const body = JSON.stringify(
+    { schemaVersion: EXPORT_SCHEMA_VERSION, exportedAt: new Date().toISOString(), orgId, staged, mappings, aliases, corrections, rules, briefs, runs },
+    null,
+    2,
   );
+  const checksum = createHash("sha256").update(body).digest("hex");
+  await logAccess(orgId, session.user.id, "org:export", checksum.slice(0, 16));
+
+  return new NextResponse(body, {
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Disposition": `attachment; filename="export-${active.organization.slug}.json"`,
+      "X-Export-Checksum": checksum,
+    },
+  });
 }
 
 export async function DELETE(req: Request) {

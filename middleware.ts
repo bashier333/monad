@@ -1,15 +1,25 @@
 import { NextResponse } from "next/server";
 import { checkRate } from "@/lib/core/ratelimit";
 
-const RULES: Array<{ prefix: string; limit: number; windowMs: number }> = [
-  { prefix: "/api/auth", limit: 30, windowMs: 60_000 },
+const RULES: Array<{ prefix: string; limit: number; windowMs: number }> = [  { prefix: "/api/auth", limit: 30, windowMs: 60_000 },
   { prefix: "/api/uploads", limit: 20, windowMs: 60_000 },
   { prefix: "/api/answers", limit: 120, windowMs: 60_000 },
   { prefix: "/api/briefs/generate", limit: 10, windowMs: 60_000 },
   { prefix: "/api/rules/preview", limit: 30, windowMs: 60_000 },
   { prefix: "/api/hooks", limit: 60, windowMs: 60_000 },
   { prefix: "/api/search", limit: 60, windowMs: 60_000 },
+  { prefix: "/s/", limit: 60, windowMs: 60_000 },
+  { prefix: "/api/demo", limit: 10, windowMs: 60_000 },
+  { prefix: "/api/answers/export", limit: 30, windowMs: 60_000 },
 ];
+
+export function clientIp(req: Request): string {
+  const raw = req.headers.get("x-forwarded-for") ?? "";
+  const chain = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  if (chain.length === 0) return "unknown";
+  if (process.env.TRUSTED_PROXY) return chain[0];
+  return chain[chain.length - 1];
+}
 
 export function middleware(req: Request) {
   const url = new URL(req.url);
@@ -22,12 +32,16 @@ export function middleware(req: Request) {
 
   const res = NextResponse.next();
   res.headers.set("x-request-id", crypto.randomUUID());
+  res.headers.set("X-Content-Type-Options", "nosniff");
+  res.headers.set("X-Frame-Options", "SAMEORIGIN");
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = clientIp(req);
   for (const r of RULES) {
     if (url.pathname.startsWith(r.prefix)) {
       const verdict = checkRate(`${r.prefix}:${ip}`, r.limit, r.windowMs);
       if (!verdict.ok) {
+        console.warn(JSON.stringify({ ts: new Date().toISOString(), level: "warn", msg: "rate limited", prefix: r.prefix, ip }));
         return NextResponse.json({ error: "rate limited — slow down" }, {
           status: 429,
           headers: { "Retry-After": String(Math.ceil(verdict.retryAfterMs / 1000)) },

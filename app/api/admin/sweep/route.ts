@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sweepStaleRuns } from "@/lib/core/ingest/pipeline";
 import { auth } from "@/lib/core/auth";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 
@@ -16,5 +17,6 @@ export async function POST(req: Request) {
   }
 
   const reset = await sweepStaleRuns(req.headers.get("x-request-id") ?? "admin");
+  await logAccess(active.organization.id, session.user.id, "admin:sweep", String(reset), req.headers.get("x-request-id") ?? "none");
   return NextResponse.json({ reset });
 }

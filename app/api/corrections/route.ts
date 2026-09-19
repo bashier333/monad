@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { parseStatusFilter } from "@/lib/core/imports/validate";
+import { requireJson } from "@/lib/core/json-guard";
+import { logAccess } from "@/lib/core/access";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
@@ -18,6 +20,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  const guarded = requireJson(req);
+  if (!guarded.ok) return guarded.response;
   const body = (await req.json()) as {
     targetKey?: string;
     targets?: Array<{ targetKey?: string; field?: string }>;
@@ -36,27 +40,35 @@ export async function POST(req: Request) {
     if (!t.targetKey || !t.field) {
       return NextResponse.json({ error: "every target needs targetKey and field" }, { status: 400 });
     }
+    if (String(t.targetKey).length > 200 || String(t.field).length > 80) {
+      return NextResponse.json({ error: "targetKey (max 200) / field (max 80) too long" }, { status: 400 });
+    }
   }
+  const reason = String(body.reason ?? "").slice(0, 5000);
+  const oldValue = String(body.oldValue ?? "").slice(0, 2000);
+  const newValue = String(body.newValue ?? "").slice(0, 200);
   const blocked = await requireWritable(active.organization.id);
   if (blocked) return blocked;
   const proposerId = session.user.id;
+  const requestId = req.headers.get("x-request-id") ?? "none";
 
   const created = await db.$transaction(
     targets.map((t) =>
       db.correction.create({
         data: {
           organizationId: active.organization.id,
-          targetKey: t.targetKey as string,
-          field: t.field as string,
-          oldValue: String(body.oldValue ?? ""),
-          newValue: String(body.newValue ?? ""),
-          reason: String(body.reason ?? ""),
+          targetKey: String(t.targetKey),
+          field: String(t.field),
+          oldValue,
+          newValue,
+          reason,
           proposedById: proposerId,
         },
       }),
     ),
   );
   await stampFirstCorrection(active.organization.id);
+  await logAccess(active.organization.id, proposerId, "correction:propose", String(created.length), requestId);
   return NextResponse.json({ corrections: created });
 }
 

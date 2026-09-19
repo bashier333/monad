@@ -8,6 +8,7 @@ export async function sendEmail(
   html: string,
   requestId: string,
   extraHeaders: Record<string, string> = {},
+  text?: string,
 ): Promise<boolean> {
   const env = getEnv();
   if (!env.AUTH_RESEND_KEY) {
@@ -17,7 +18,7 @@ export async function sendEmail(
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${env.AUTH_RESEND_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: env.EMAIL_FROM, to, subject, html, headers: extraHeaders }),
+    body: JSON.stringify({ from: env.EMAIL_FROM, to, subject, html, ...(text ? { text } : {}), headers: extraHeaders }),
   });
   if (!res.ok) {
     logger.error("email send failed", { requestId, to, status: res.status });

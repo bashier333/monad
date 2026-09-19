@@ -77,6 +77,9 @@ export default async function AdminPage() {
         <Link href="/api/admin/failures" className="underline">
           Failures JSON
         </Link>
+        <Link href="/api/admin/queue" className="underline">
+          Queue depth
+        </Link>
         <Link href="/api/admin/costs" className="underline">
           Costs JSON
         </Link>

@@ -4,7 +4,7 @@ export function checkRate(
   key: string,
   limit: number,
   windowMs: number,
-  now = Date.now(),
+  now = typeof performance !== "undefined" ? performance.now() : Date.now(),
 ): { ok: boolean; retryAfterMs: number } {
   const b = buckets.get(key);
   if (!b || now >= b.resetAt) {

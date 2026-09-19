@@ -73,4 +73,13 @@ describe("agency brief builder (X6 E-271–275)", () => {
     });
     expect(b.recentDecisions).toHaveLength(1);
   });
+
+  it("empty week returns an empty brief, not a crash (S-923)", () => {
+    const cur = answer([], "2026-09-07");
+    const b = buildAgencyBrief(cur, null, 0);
+    expect(b.winners).toEqual([]);
+    expect(b.losers).toEqual([]);
+    expect(b.totals.revenue).toBe(0);
+    expect(typeof b.paragraph).toBe("string");
+  });
 });

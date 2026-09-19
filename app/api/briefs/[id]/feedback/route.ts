@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -30,6 +31,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     where: { id },
     data: { feedback: feedback as unknown as Prisma.InputJsonValue },
   });
+  await logAccess(active.organization.id, session.user.id, "brief:feedback", id, req.headers.get("x-request-id") ?? "none");
   if (body.up === false) {
     await db.correction.create({
       data: {

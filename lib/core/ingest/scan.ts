@@ -18,6 +18,7 @@ export function scanBuffer(filename: string, bytes: Buffer): ScanResult {
   }
   if (bytes.length === 0) return { ok: false, mime: "unknown", reason: "empty file" };
   if (bytes.length > MAX_BYTES) return { ok: false, mime: "unknown", reason: "file exceeds 50MB" };
+  if (filename.includes("\0")) return { ok: false, mime: "unknown", reason: "invalid filename" };
 
   if (isXlsx) {
     const isZip = bytes[0] === 0x50 && bytes[1] === 0x4b;

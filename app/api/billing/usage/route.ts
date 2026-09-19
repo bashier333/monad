@@ -29,5 +29,17 @@ export async function GET() {
       }
     }
   }
+  const settings = (active.organization.settings ?? {}) as { storageQuotaBytes?: number };
+  if (settings.storageQuotaBytes !== undefined && settings.storageQuotaBytes > 0) {
+    const bytes = await db.dataFile.aggregate({
+      where: { organizationId: active.organization.id },
+      _sum: { bytes: true },
+    });
+    const used = bytes._sum.bytes ?? 0;
+    const pct = Math.round((used / settings.storageQuotaBytes) * 100);
+    if (pct >= 80) {
+      alerts.push(`storage at ${pct}% of quota (${used}/${settings.storageQuotaBytes} bytes)`);
+    }
+  }
   return NextResponse.json({ usage, windowDays: 30, alerts });
 }

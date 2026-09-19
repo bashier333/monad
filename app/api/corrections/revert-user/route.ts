@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 import { requireWritable } from "@/lib/core/guards";
@@ -25,5 +26,6 @@ export async function POST(req: Request) {
     where: { organizationId: active.organization.id, proposedById: body.userId, status: "applied" },
     data: { status: "reverted", decidedById: session.user.id, decidedAt: new Date() },
   });
+  await logAccess(active.organization.id, session.user.id, "correction:bulk-revert", `${body.userId}:${result.count}`, req.headers.get("x-request-id") ?? "none");
   return NextResponse.json({ reverted: result.count });
 }

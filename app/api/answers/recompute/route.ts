@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
-import { getAgencyAnswer } from "@/lib/packs/agency/service";
+import { getWeeklyAnswer, getFreightForecast } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { getAgencyAnswer, getAgencyForecast } from "@/lib/packs/agency/service";
 import { cacheBust } from "@/lib/core/cache";
+import { logAccess } from "@/lib/core/access";
 import { auth } from "@/lib/core/auth";
 import { recordUsage } from "@/lib/core/billing";
 import { getActiveOrg } from "@/lib/core/org";
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
     cacheBust(`answer:agency:${active.organization.id}:`);
     const answer = await getAgencyAnswer(active.organization.id, active.organization.weekStartsOn, anchor);
     await recordUsage(active.organization.id, "recompute", 1, "agency");
-    await recordUsage(active.organization.id, "recompute");
+    await logAccess(active.organization.id, session.user.id, "answer:recompute", `agency:${anchor}`, req.headers.get("x-request-id") ?? "none");
     return NextResponse.json({
       meta: answer.meta,
       totals: answer.totals,
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
 
   const answer = await getWeeklyAnswer(active.organization.id, active.organization.weekStartsOn, anchor);
   await recordUsage(active.organization.id, "recompute");
+  await logAccess(active.organization.id, session.user.id, "answer:recompute", `freight:${anchor}`, req.headers.get("x-request-id") ?? "none");
   return NextResponse.json({
     meta: answer.meta,
     totals: answer.totals,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { bustAliasCache, bustAnswerCache } from "@/lib/core/answers/service";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
+import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 import { requireWritable } from "@/lib/core/guards";
@@ -52,5 +53,6 @@ export async function POST(req: Request) {
   });
   bustAliasCache(active.organization.id);
   bustAnswerCache(active.organization.id);
+  await logAccess(active.organization.id, session.user.id, "alias:save", norm(body.alias));
   return NextResponse.json({ alias: created });
 }
