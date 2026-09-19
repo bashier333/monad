@@ -22,8 +22,13 @@ export async function POST(req: Request) {
   const blocked = await requireWritable(active.organization.id);
   if (blocked) return blocked;
 
-  const result = await db.correction.updateMany({
+  const targets = await db.correction.findMany({
     where: { organizationId: active.organization.id, proposedById: body.userId, status: "applied" },
+    select: { id: true },
+    take: 500,
+  });
+  const result = await db.correction.updateMany({
+    where: { id: { in: targets.map((t) => t.id) } },
     data: { status: "reverted", decidedById: session.user.id, decidedAt: new Date() },
   });
   await logAccess(active.organization.id, session.user.id, "correction:bulk-revert", `${body.userId}:${result.count}`, req.headers.get("x-request-id") ?? "none");

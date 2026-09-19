@@ -36,3 +36,9 @@ audit every access (AccessLog). Exports carry only the requesting org's rows.
 ## Steward + reviews (R-969/R-970)
 
 Steward: eng lead until named otherwise. Quarterly review: calendar item.
+
+## Forensics (S-818)
+
+Incident export = org JSON export (`/api/org/data`, schema v1, checksummed) +
+AccessLog filtered by window (`/activity` UI, org-scoped). No prod shell needed
+for read-only forensics; writes go through the API with auth + audit.

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getWeeklyAnswer, getFreightForecast } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
-import { getAgencyAnswer, getAgencyForecast } from "@/lib/packs/agency/service";
+import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { getAgencyAnswer } from "@/lib/packs/agency/service";
 import { cacheBust } from "@/lib/core/cache";
 import { logAccess } from "@/lib/core/access";
 import { auth } from "@/lib/core/auth";

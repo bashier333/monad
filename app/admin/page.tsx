@@ -39,6 +39,9 @@ export default async function AdminPage() {
   const votes = briefs.flatMap((b) =>
     ((b.feedback ?? []) as Array<{ up?: boolean; note?: string; at?: string }>).map((f) => ({ ...f, week: b.weekStart })),
   );
+  const signins = await db.accessLog.count({
+    where: { organizationId: orgId, action: "auth:signin", createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } },
+  });
   const ups = votes.filter((v) => v.up !== false).length;
   const quality = votes.length === 0 ? null : Math.round((ups / votes.length) * 100);
   const corrTotal = corrections.reduce((s, c) => s + c._count, 0);
@@ -55,6 +58,7 @@ export default async function AdminPage() {
         <div className="rounded border p-2">Uploads: {uploads._sum.qty ?? 0}</div>
         <div className="rounded border p-2">Answers viewed: {answers._sum.qty ?? 0}</div>
         <div className="rounded border p-2">Corrections: {corrTotal}</div>
+        <div className="rounded border p-2">Logins (30d): {signins}</div>
         <div className="rounded border p-2">Briefs: {briefs.length}</div>
         <div className="rounded border p-2">Brief quality: {quality === null ? "no votes yet" : `${quality}% up (${votes.length} votes)`}</div>
         <div className="rounded border p-2">

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
+import { getSubscription } from "@/lib/core/billing";
 import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { deleteOrgData, EXPORT_SCHEMA_VERSION } from "@/lib/core/org-data";
@@ -14,8 +15,10 @@ export async function GET() {
   if (!active) return NextResponse.json({ error: "no organization" }, { status: 400 });
 
   const orgId = active.organization.id;
+  const sub = await getSubscription(orgId);
+  const rowTake = sub.tier === "free" ? 50_000 : 200_000;
   const [staged, mappings, aliases, corrections, rules, briefs, runs] = await Promise.all([
-    db.stagedRecord.findMany({ where: { organizationId: orgId }, take: 200_000 }),
+    db.stagedRecord.findMany({ where: { organizationId: orgId }, take: rowTake }),
     db.columnMapping.findMany({ where: { organizationId: orgId } }),
     db.placeAlias.findMany({ where: { organizationId: orgId } }),
     db.correction.findMany({ where: { organizationId: orgId } }),

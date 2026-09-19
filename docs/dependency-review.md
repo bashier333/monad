@@ -22,6 +22,12 @@ csv-parse MIT · xlsx Apache-2.0 (confirmed, S-749) · vitest/tsx/eslint/tailwin
 No GPL/AGPL in tree (S-793 note: manual review this date; automated ban pending tooling).
 Typosquat: names/maintainers match upstream (S-751–S-759 note).
 
+## Devdeps (S-761–S-768)
+
+vitest/tsx/eslint/tailwind/typescript/@types: same review bar, MIT throughout.
+Install scripts: only `prisma generate` (postinstall, ours) — nothing third-party
+runs code at install (S-768 note).
+
 ## Per-dep notes (S-701–S-730 highlights)
 
 - next-auth beta: stable cutover tracked, rollback = pin previous beta (S-706/S-734 note).

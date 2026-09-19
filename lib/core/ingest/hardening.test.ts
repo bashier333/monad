@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 import { describe, expect, it } from "vitest";
-import { assertCellCap, assertRowCap, MAX_CELLS, MAX_ROWS, MAX_SHEETS, parseBuffer } from "@/lib/core/ingest/parse";
+import { assertCellCap, assertRowCap, MAX_ROWS, MAX_SHEETS, parseBuffer } from "@/lib/core/ingest/parse";
 import { scanBuffer } from "@/lib/core/ingest/scan";
 import { sanitizeMapping } from "@/lib/core/imports/validate";
 

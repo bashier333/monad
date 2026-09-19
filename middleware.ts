@@ -17,9 +17,30 @@ export function clientIp(req: Request): string {
   const raw = req.headers.get("x-forwarded-for") ?? "";
   const chain = raw.split(",").map((s) => s.trim()).filter(Boolean);
   if (chain.length === 0) return "unknown";
-  if (process.env.TRUSTED_PROXY) return chain[0];
-  return chain[chain.length - 1];
+  const ip = process.env.TRUSTED_PROXY ? chain[0] : chain[chain.length - 1];
+  if (ip.includes(":")) {
+    const parts = ip.split(":");
+    if (parts.length > 4) return `${parts.slice(0, 4).join(":")}::/64`;
+  }
+  return ip;
 }
+
+const AUTHENTICATED_PATHS = [
+  "/answers",
+  "/briefs",
+  "/corrections",
+  "/upload",
+  "/uploads",
+  "/settings",
+  "/admin",
+  "/dashboard",
+  "/imports",
+  "/packs",
+  "/activity",
+  "/search",
+  "/rules",
+  "/pilots",
+];
 
 export function middleware(req: Request) {
   const url = new URL(req.url);
@@ -35,6 +56,9 @@ export function middleware(req: Request) {
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("X-Frame-Options", "SAMEORIGIN");
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  if (AUTHENTICATED_PATHS.some((p) => url.pathname === p || url.pathname.startsWith(`${p}/`))) {
+    res.headers.set("Cache-Control", "no-store, must-revalidate");
+  }
 
   const ip = clientIp(req);
   for (const r of RULES) {

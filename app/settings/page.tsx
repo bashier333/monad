@@ -4,6 +4,7 @@ import DangerZone from "@/components/DangerZone";
 import InviteForm from "@/components/InviteForm";
 import OrgSettingsForm from "@/components/OrgSettingsForm";
 import OrgSwitcher from "@/components/OrgSwitcher";
+import SessionsButton from "@/components/SessionsButton";
 import { auth } from "@/lib/core/auth";
 import { getActiveOrg } from "@/lib/core/org";
 
@@ -64,6 +65,10 @@ export default async function SettingsPage() {
                 predictOptOut: settings.predictOptOut === true,
               }}
             />
+          </section>
+          <section className="rounded border p-4">
+            <h2 className="mb-2 font-medium">Sessions</h2>
+            <SessionsButton />
           </section>
           <section className="rounded border p-4">
             <h2 className="mb-2 font-medium">Team</h2>

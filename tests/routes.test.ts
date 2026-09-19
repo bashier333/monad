@@ -72,6 +72,7 @@ const EXPECTED: Record<string, string[]> = {
   "/notifications": ["GET", "POST"],
   "/health": ["GET"],
   "/auth/[...nextauth]": ["GET", "POST"],
+  "/auth/sessions": ["GET", "DELETE"],
   "/admin/sweep": ["POST"],
   "/admin/queue": ["GET"],
   "/admin/packs": ["GET"],
