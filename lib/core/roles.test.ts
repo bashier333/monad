@@ -1,27 +1,40 @@
-import { can } from "@/lib/core/roles";
 import { describe, expect, it } from "vitest";
+import { can, requireCan, type Action } from "@/lib/core/roles";
 
-describe("roles matrix", () => {
-  it("lets everyone view answers", () => {
-    expect(can("OWNER", "answer:view")).toBe(true);
-    expect(can("DISPATCHER", "answer:view")).toBe(true);
-    expect(can("VIEWER", "answer:view")).toBe(true);
+const ACTIONS: Action[] = [
+  "answer:view",
+  "upload:import",
+  "correction:propose",
+  "correction:approve",
+  "rule:manage",
+  "org:invite",
+  "billing:manage",
+];
+
+describe("RBAC matrix (R-619)", () => {
+  it("owners can do everything, viewers only view", () => {
+    for (const a of ACTIONS) expect(can("OWNER", a)).toBe(true);
+    for (const a of ACTIONS) {
+      if (a === "answer:view") expect(can("VIEWER", a)).toBe(true);
+      else expect(can("VIEWER", a)).toBe(false);
+    }
   });
 
-  it("lets owners and dispatchers propose corrections, owners only approve", () => {
-    expect(can("OWNER", "correction:propose")).toBe(true);
+  it("dispatchers upload/propose but never approve/manage/bill", () => {
+    expect(can("DISPATCHER", "upload:import")).toBe(true);
     expect(can("DISPATCHER", "correction:propose")).toBe(true);
-    expect(can("VIEWER", "correction:propose")).toBe(false);
-    expect(can("OWNER", "correction:approve")).toBe(true);
     expect(can("DISPATCHER", "correction:approve")).toBe(false);
-    expect(can("VIEWER", "correction:approve")).toBe(false);
+    expect(can("DISPATCHER", "rule:manage")).toBe(false);
+    expect(can("DISPATCHER", "billing:manage")).toBe(false);
   });
 
-  it("reserves rules, invites, and billing for owners", () => {
-    for (const action of ["rule:manage", "org:invite", "billing:manage"] as const) {
-      expect(can("OWNER", action)).toBe(true);
-      expect(can("DISPATCHER", action)).toBe(false);
-      expect(can("VIEWER", action)).toBe(false);
+  it("requireCan throws 403 with role + action", () => {
+    try {
+      requireCan("VIEWER", "rule:manage");
+      expect.unreachable();
+    } catch (e) {
+      expect((e as Error).message).toMatch(/VIEWER.*rule:manage/);
+      expect((e as Error & { status?: number }).status).toBe(403);
     }
   });
 });

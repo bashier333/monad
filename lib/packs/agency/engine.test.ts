@@ -91,3 +91,36 @@ describe("agency margin engine (hand-computed)", () => {
     expect(weekBounds("2026-09-09", 1)).toEqual({ start: "2026-09-07", end: "2026-09-13" });
   });
 });
+
+describe("budget vs actual (R-145)", () => {
+  it("attaches budget + variance per project", () => {
+    const r = computeProjectMargins(
+      [rec({ recordKey: "T1", date: "2026-09-07", project: "Acme Site", hours: "10", rate: "100", person: "Alice" })],
+      [],
+      [],
+      [],
+      ALIASES,
+      [],
+      WEEK.start,
+      WEEK.end,
+      [{ project: "Acme Site", amount: "800" }],
+    );
+    expect(r.projects[0].budget).toBe(800);
+    expect(r.projects[0].budgetVsActual).toBe(200);
+  });
+
+  it("null budget when no project-list row", () => {
+    const r = computeProjectMargins(
+      [rec({ recordKey: "T1", date: "2026-09-07", project: "Acme Site", hours: "10", rate: "100", person: "Alice" })],
+      [],
+      [],
+      [],
+      ALIASES,
+      [],
+      WEEK.start,
+      WEEK.end,
+    );
+    expect(r.projects[0].budget).toBeNull();
+    expect(r.projects[0].budgetVsActual).toBeNull();
+  });
+});

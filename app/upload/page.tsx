@@ -53,6 +53,8 @@ export default async function UploadPage() {
   };
   const fleetSize = ((active.organization.settings ?? {}) as { fleetSize?: string }).fleetSize ?? "";
   const teamSize = ((active.organization.settings ?? {}) as { teamSize?: string }).teamSize ?? "";
+  const staleCutoff = Date.now() - 10 * 60 * 1000;
+  const stuck = runs.filter((r) => (r.status === "PENDING" || r.status === "PROCESSING") && new Date(r.createdAt).getTime() < staleCutoff);
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-8">
@@ -91,6 +93,15 @@ export default async function UploadPage() {
         <DemoResetButton slug={active.organization.slug} />
       </p>
       <GraduateButton />
+      {stuck.length > 0 && (
+        <p className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">
+          Stuck over 10 min? The stale-run sweep resets dead runs automatically — meanwhile,{" "}
+          <Link href="/help" className="underline">
+            read the import runbook
+          </Link>
+          .
+        </p>
+      )}
       <section>
         <h2 className="font-medium">Import history</h2>
         {runs.length === 0 ? (

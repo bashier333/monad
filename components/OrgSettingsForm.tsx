@@ -14,6 +14,8 @@ export default function OrgSettingsForm({
     agencyWeekStartsOn: number;
     agencyAnomalyThresholdPts: number;
     agencyAnomalyEmail: boolean;
+    locale: string;
+    predictOptOut: boolean;
   };
 }) {
   const [weekStartsOn, setWeekStartsOn] = useState(String(initial.weekStartsOn));
@@ -23,6 +25,8 @@ export default function OrgSettingsForm({
   const [agencyWeekStartsOn, setAgencyWeekStartsOn] = useState(String(initial.agencyWeekStartsOn));
   const [agencyThreshold, setAgencyThreshold] = useState(String(initial.agencyAnomalyThresholdPts));
   const [agencyAnomalyEmail, setAgencyAnomalyEmail] = useState(initial.agencyAnomalyEmail);
+  const [locale, setLocale] = useState(initial.locale);
+  const [predictOptOut, setPredictOptOut] = useState(initial.predictOptOut);
   const [msg, setMsg] = useState("");
 
   async function save(e: React.FormEvent) {
@@ -38,6 +42,8 @@ export default function OrgSettingsForm({
         agencyWeekStartsOn: Number(agencyWeekStartsOn),
         agencyAnomalyThresholdPts: Number(agencyThreshold),
         agencyAnomalyEmail,
+        locale,
+        predictOptOut,
       }),
     });
     setMsg(res.ok ? "Saved." : "Save failed — check values (week 0–6, threshold 1–50).");
@@ -80,6 +86,20 @@ export default function OrgSettingsForm({
       <label className="flex items-center gap-1">
         <input type="checkbox" checked={agencyAnomalyEmail} onChange={(e) => setAgencyAnomalyEmail(e.target.checked)} />
         Email me on studio anomalies
+      </label>
+      <label>
+        Language
+        <select value={locale} onChange={(e) => setLocale(e.target.value)} className="ml-1 rounded border p-1">
+          {["en", "es", "de"].map((l) => (
+            <option key={l} value={l}>
+              {l}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex items-center gap-1">
+        <input type="checkbox" checked={predictOptOut} onChange={(e) => setPredictOptOut(e.target.checked)} />
+        Turn off forecasts
       </label>
       <button type="submit" className="rounded bg-black px-3 py-1 text-white">
         Save

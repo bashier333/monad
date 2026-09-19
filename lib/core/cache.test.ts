@@ -46,4 +46,21 @@ describe("TTL LRU cache (W9)", () => {
     expect(cacheGet("answer:agency:o9:s:x", 10)).toBeNull();
     expect(cacheGet("answer:o9:s:x", 10)).toBeNull();
   });
+
+  it("singleflight dedupes concurrent misses (R-526)", async () => {
+    const { singleflight } = await import("@/lib/core/cache");
+    let calls = 0;
+    const fn = async () => {
+      const mine = ++calls;
+      await new Promise((r) => setTimeout(r, 20));
+      return mine;
+    };
+    const [a, b, c] = await Promise.all([singleflight("k", fn), singleflight("k", fn), singleflight("other", fn)]);
+    expect(a).toBe(1);
+    expect(b).toBe(1);
+    expect(c).toBe(2);
+    expect(calls).toBe(2);
+    const d = await singleflight("k", fn);
+    expect(d).toBe(3);
+  });
 });

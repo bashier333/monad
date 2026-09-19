@@ -1,5 +1,6 @@
 import "@/lib/packs/freight/adapters";
 import "@/lib/packs/agency/adapters";
+import "@/lib/packs/plugins";
 import { FREIGHT_MANIFEST } from "@/lib/packs/freight/manifest";
 import { AGENCY_MANIFEST } from "@/lib/packs/agency/manifest";
 import { validatePackManifest, type PackManifest } from "@/lib/packs/manifest";

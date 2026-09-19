@@ -11,11 +11,12 @@ export default async function BriefPage({
   searchParams,
 }: {
   params: Promise<{ week: string }>;
-  searchParams: Promise<{ pack?: string }>;
+  searchParams: Promise<{ pack?: string; mode?: string }>;
 }) {
   const { week } = await params;
   const sp = await searchParams;
   const pack = sp.pack === "agency" ? "agency" : "freight";
+  const mode = sp.mode === "monday" || sp.mode === "tv" ? sp.mode : null;
   const session = await auth();
   if (!session?.user?.id) {
     return (
@@ -58,15 +59,24 @@ export default async function BriefPage({
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-4 md:p-8">
+      {mode === "tv" && <meta httpEquiv="refresh" content="300" />}
       <p className="print:hidden text-sm">
         <Link href="/briefs" className="underline">
           ← All briefs
         </Link>
+        {" · "}
+        <Link href={`/briefs/${week}?pack=${pack}&mode=monday`} className="underline">
+          Monday mode
+        </Link>
+        {" · "}
+        <Link href={`/briefs/${week}?pack=${pack}&mode=tv`} className="underline">
+          TV mode
+        </Link>
       </p>
-      <h1 className="text-xl font-bold">
+      <h1 className={`${mode === "monday" ? "text-4xl" : "text-xl"} font-bold`}>
         Week of {c.weekStart} {pack === "agency" ? "(studio)" : "(fleet)"}
       </h1>
-      <p className="rounded border p-4">{c.paragraph}</p>
+      <p className={`rounded border p-4 ${mode === "monday" ? "text-2xl" : ""}`}>{c.paragraph}</p>
 
       <div className="grid grid-cols-3 gap-2 text-sm">
         <div className="rounded border p-2">Revenue: ${c.totals.revenue.toFixed(2)}</div>

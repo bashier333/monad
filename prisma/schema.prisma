@@ -345,3 +345,94 @@ model ColumnMapping {
 
   @@unique([organizationId, sourceType, fingerprint])
 }
+
+model EventLog {
+  id        String   @id @default(cuid())
+  type      String
+  version   Int      @default(1)
+  orgId     String
+  pack      String   @default("freight")
+  payload   Json
+  status    String   @default("ok")
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([orgId, createdAt])
+  @@index([type, createdAt])
+  @@index([status])
+}
+
+model WebhookEndpoint {
+  id        String   @id @default(cuid())
+  orgId     String
+  url       String
+  secret    String
+  events    Json
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  orgId      String
+  name       String
+  keyHash    String    @unique
+  prefix     String
+  scopes     Json
+  tier       String    @default("standard")
+  revoked    Boolean   @default(false)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([orgId])
+}
+
+model AlertRule {
+  id        String   @id @default(cuid())
+  orgId     String
+  pack      String   @default("freight")
+  metric    String
+  op        String
+  threshold Float
+  channel   String   @default("inapp")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([orgId, active])
+}
+
+model WorkflowPlaybook {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  steps     Json
+  schedule  String?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  runs      WorkflowRun[]
+
+  @@index([orgId])
+}
+
+model WorkflowRun {
+  id         String           @id @default(cuid())
+  playbookId String
+  status     String           @default("ok")
+  log        Json
+  createdAt  DateTime         @default(now())
+  playbook   WorkflowPlaybook @relation(fields: [playbookId], references: [id], onDelete: Cascade)
+
+  @@index([playbookId, createdAt])
+}
+
+model OrgDeletion {
+  id          String   @id @default(cuid())
+  orgId       String   @unique
+  requestedBy String
+  purgeAt     DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([purgeAt])
+}

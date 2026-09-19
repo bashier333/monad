@@ -3,6 +3,7 @@ import {
   AGENCY_CURRENCY,
   AGENCY_ENGINE_VERSION,
   weekBounds,
+  type AgencyBudget,
   type AgencyFee,
   type AgencyInput,
   type AgencyInvoice,
@@ -30,6 +31,7 @@ import {
 export interface AgencyAnswer extends AgencyResult {
   meta: AnswerMeta;
   joinConflicts: HourConflict[];
+  forecasts?: Array<{ project: string; point: number; lo: number; high: number; mape: number; drivers: string[] }>;
 }
 
 void bustAnswerCache;
@@ -39,6 +41,7 @@ interface AgencyInputs {
   assets: AgencyAsset[];
   fees: AgencyFee[];
   invoices: AgencyInvoice[];
+  budgets: AgencyBudget[];
   aliases: Map<string, string>;
   dataAsOf: Date | null;
 }
@@ -62,6 +65,7 @@ export async function getAgencyInputs(organizationId: string): Promise<AgencyInp
   const assets: AgencyAsset[] = [];
   const fees: AgencyFee[] = [];
   const invoices: AgencyInvoice[] = [];
+  const budgets: AgencyBudget[] = [];
   for (const s of staged) {
     const d = s.data as Record<string, string>;
     const runId = s.run.id;
@@ -69,6 +73,8 @@ export async function getAgencyInputs(organizationId: string): Promise<AgencyInp
     const rowNumber = s.rowNumber;
     if (s.run.sourceType === "invoice") {
       invoices.push({ project: d.project ?? "", amount: d.amount ?? "", runId, fileName, rowNumber });
+    } else if (s.run.sourceType === "project") {
+      if (d.revenue) budgets.push({ project: d.project ?? "", amount: d.revenue });
     } else if (s.run.sourceType === "asset") {
       assets.push({ project: d.project ?? "", date: d.date ?? "", amount: d.amount ?? "", runId, fileName, rowNumber });
     } else if (s.run.sourceType === "rate") {
@@ -97,7 +103,7 @@ export async function getAgencyInputs(organizationId: string): Promise<AgencyInp
     select: { createdAt: true },
   });
 
-  return { records, assets, fees, invoices, aliases, dataAsOf: latest?.createdAt ?? null };
+  return { records, assets, fees, invoices, budgets, aliases, dataAsOf: latest?.createdAt ?? null };
 }
 
 export async function getAgencyCorrections(organizationId: string): Promise<AppliedCorrection[]> {
@@ -157,6 +163,7 @@ export function buildAgencyAnswer(
     corrections,
     weekStart,
     weekEnd,
+    inputs.budgets,
   );
   const join = joinAgencyByProject(
     inputs.records.map((r) => ({
@@ -203,4 +210,35 @@ export async function getAgencyAnswer(
   const full = buildAgencyAnswer(inputs, corrections, start, end);
   if (full.projects.length <= 5000) cacheSet(cacheKey, full, 60_000);
   return full;
+}
+
+export async function getAgencyForecast(
+  organizationId: string,
+  weekStartsOn: number,
+  anchorISO: string,
+): Promise<Array<{ project: string; point: number; lo: number; high: number; mape: number; drivers: string[] }>> {
+  const { linearForecast, forecastBands, backtestForecast, explainForecast } = await import("@/lib/core/predict");
+  const cursor = new Date(`${anchorISO}T00:00:00Z`);
+  const perProject = new Map<string, Array<{ weekStart: string; margin: number }>>();
+  for (let w = 0; w < 6; w++) {
+    const a = cursor.toISOString().slice(0, 10);
+    const answer = await getAgencyAnswer(organizationId, weekStartsOn, a);
+    for (const p of answer.projects) {
+      const list = perProject.get(p.project) ?? [];
+      list.push({ weekStart: a, margin: p.margin });
+      perProject.set(p.project, list);
+    }
+    cursor.setUTCDate(cursor.getUTCDate() - 7);
+  }
+  const out: Array<{ project: string; point: number; lo: number; high: number; mape: number; drivers: string[] }> = [];
+  for (const [project, history] of perProject) {
+    const ordered = [...history].sort((a, b) => a.weekStart.localeCompare(b.weekStart));
+    if (ordered.length < 2) continue;
+    const f = linearForecast(ordered);
+    const bands = forecastBands(f, ordered);
+    const m = backtestForecast(ordered);
+    const e = explainForecast(f, ordered);
+    out.push({ project, point: f.point, lo: bands.lo, high: bands.high, mape: m, drivers: e.drivers });
+  }
+  return out.sort((a, b) => a.point - b.point);
 }

@@ -94,7 +94,7 @@ export default async function AnswersPage({
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full min-w-[640px] text-sm" aria-label="Lane margins, worst first">
               <thead>
                 <tr className="text-left text-gray-500">
                   <th className="py-1">Lane</th>

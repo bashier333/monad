@@ -14,4 +14,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({ clientId: env.AUTH_GOOGLE_ID, clientSecret: env.AUTH_GOOGLE_SECRET }),
     Resend({ apiKey: env.AUTH_RESEND_KEY, from: env.EMAIL_FROM }),
   ],
+  events: {
+    async signIn({ user }) {
+      try {
+        if (!user.id) return;
+        const membership = await db.membership.findFirst({
+          where: { userId: user.id },
+          select: { organizationId: true },
+        });
+        if (membership) {
+          const { logAccess } = await import("@/lib/core/access");
+          await logAccess(membership.organizationId, user.id, "auth:signin", "");
+        }
+      } catch {
+        // login history must never break sign-in
+      }
+    },
+  },
 });

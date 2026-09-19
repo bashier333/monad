@@ -50,7 +50,7 @@ export async function buildAgencyVariant(
     for (let w = 0; w < 4; w++) {
       const a = cursor.toISOString().slice(0, 10);
       const { start, end } = weekBounds(a, weekStartsOn);
-      const r = computeProjectMargins(inputs.records, inputs.assets, inputs.fees, inputs.invoices, inputs.aliases, corrections, start, end);
+      const r = computeProjectMargins(inputs.records, inputs.assets, inputs.fees, inputs.invoices, inputs.aliases, corrections, start, end, inputs.budgets);
       weeks.push({
         ...r,
         joinConflicts: [],
@@ -70,7 +70,7 @@ export async function buildAgencyVariant(
 
   const { start, end } = weekBounds(anchorISO, weekStartsOn);
   const filtered = { ...inputs, records: filterRecords(inputs.records, by, key) };
-  const r = computeProjectMargins(filtered.records, inputs.assets, inputs.fees, inputs.invoices, inputs.aliases, corrections, start, end);
+  const r = computeProjectMargins(filtered.records, inputs.assets, inputs.fees, inputs.invoices, inputs.aliases, corrections, start, end, inputs.budgets);
   const full: AgencyAnswer = {
     ...r,
     joinConflicts: [],

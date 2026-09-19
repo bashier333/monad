@@ -29,6 +29,7 @@ const FREIGHT_TYPES = ["tms", "fuel", "broker", "manual"];
 
 export interface WeeklyAnswer extends EngineResult {
   meta: AnswerMeta;
+  forecasts?: Array<{ lane: string; point: number; lo: number; high: number; mape: number; drivers: string[] }>;
 }
 
 interface Inputs {
@@ -173,4 +174,35 @@ export async function getWeeklyAnswer(
   const full = buildAnswer(inputs, corrections, start, end);
   if (full.loads.length <= 5000) cacheSet(cacheKey, full, 60_000);
   return full;
+}
+
+export async function getFreightForecast(
+  organizationId: string,
+  weekStartsOn: number,
+  anchorISO: string,
+): Promise<Array<{ lane: string; point: number; lo: number; high: number; mape: number; drivers: string[] }>> {
+  const { linearForecast, forecastBands, backtestForecast, explainForecast } = await import("@/lib/core/predict");
+  const cursor = new Date(`${anchorISO}T00:00:00Z`);
+  const perLane = new Map<string, Array<{ weekStart: string; margin: number }>>();
+  for (let w = 0; w < 6; w++) {
+    const a = cursor.toISOString().slice(0, 10);
+    const answer = await getWeeklyAnswer(organizationId, weekStartsOn, a);
+    for (const l of answer.lanes) {
+      const list = perLane.get(l.lane) ?? [];
+      list.push({ weekStart: a, margin: l.margin });
+      perLane.set(l.lane, list);
+    }
+    cursor.setUTCDate(cursor.getUTCDate() - 7);
+  }
+  const out: Array<{ lane: string; point: number; lo: number; high: number; mape: number; drivers: string[] }> = [];
+  for (const [lane, history] of perLane) {
+    const ordered = [...history].sort((a, b) => a.weekStart.localeCompare(b.weekStart));
+    if (ordered.length < 2) continue;
+    const f = linearForecast(ordered);
+    const bands = forecastBands(f, ordered);
+    const m = backtestForecast(ordered);
+    const e = explainForecast(f, ordered);
+    out.push({ lane, point: f.point, lo: bands.lo, high: bands.high, mape: m, drivers: e.drivers });
+  }
+  return out.sort((a, b) => a.point - b.point);
 }

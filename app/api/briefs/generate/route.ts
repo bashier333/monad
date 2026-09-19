@@ -14,6 +14,8 @@ import { logger } from "@/lib/core/logger";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 import { requireWritable } from "@/lib/core/guards";
+import { recordEvent } from "@/lib/core/events-db";
+import { fatigueGuard, learnedThresholdOverrides } from "@/lib/core/workflow";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -69,18 +71,27 @@ export async function POST(req: Request) {
     select: { targetKey: true, field: true, status: true, reason: true },
     take: 100,
   });
-  const content = buildBrief(
+  const learned = learnedThresholdOverrides(
+    (prev?.lanes ?? []).map((l) => ({ key: l.lane, margin: l.margin, marginPct: l.marginPct, cost: l.cost, costByKind: l.costByKind })),
+  );
+  const freightBrief = buildBrief(
     current,
     prev,
     openCorrections,
     settings.anomalyThresholdPts ?? DEFAULT_ANOMALY_PTS,
     newSince,
     {
-      overrides: settings.anomalyOverrides,
+      overrides: { ...learned, ...(settings.anomalyOverrides ?? {}) },
       suppressed: settings.anomalySuppressed,
       recentDecisions: decided.map((d) => ({ load: d.targetKey, field: d.field, status: d.status, reason: d.reason })),
     },
   );
+  const { anomalies: freightAnomalies, digestNote: freightDigest } = fatigueGuard(freightBrief.anomalies);
+  const content = {
+    ...freightBrief,
+    anomalies: freightAnomalies,
+    paragraph: freightDigest ? `${freightBrief.paragraph} ${freightDigest}` : freightBrief.paragraph,
+  };
 
   const brief = await db.brief.upsert({
     where: {
@@ -112,6 +123,7 @@ export async function POST(req: Request) {
   }
   await db.brief.update({ where: { id: brief.id }, data: { emailedTo } });
   await recordUsage(active.organization.id, "brief");
+  await recordEvent("brief.generated", active.organization.id, "freight", { briefId: brief.id, week: content.weekStart });
   await logAccess(active.organization.id, session.user.id, "brief:generate", content.weekStart);
   logger.info("brief generated", { requestId, orgId: active.organization.id, week: content.weekStart, emailed: emailedTo.length });
   if (content.anomalies.length > 0 && settings.anomalyEmail === true) {
@@ -175,18 +187,27 @@ async function generateAgencyBrief(
     select: { targetKey: true, field: true, status: true, reason: true },
     take: 100,
   });
-  const content = buildAgencyBrief(
+  const agencyLearned = learnedThresholdOverrides(
+    (prev?.projects ?? []).map((p) => ({ key: p.project, margin: p.margin, marginPct: p.marginPct, cost: p.cost, costByKind: p.costByKind })),
+  );
+  const agencyBrief = buildAgencyBrief(
     current,
     prev,
     openCorrections,
     settings.agencyAnomalyThresholdPts ?? DEFAULT_ANOMALY_PTS,
     newSince,
     {
-      overrides: settings.agencyAnomalyOverrides,
+      overrides: { ...agencyLearned, ...(settings.agencyAnomalyOverrides ?? {}) },
       suppressed: settings.agencyAnomalySuppressed,
       recentDecisions: decided.map((d) => ({ load: d.targetKey, field: d.field, status: d.status, reason: d.reason })),
     },
   );
+  const { anomalies: agencyAnomalies, digestNote: agencyDigest } = fatigueGuard(agencyBrief.anomalies);
+  const content = {
+    ...agencyBrief,
+    anomalies: agencyAnomalies,
+    paragraph: agencyDigest ? `${agencyBrief.paragraph} ${agencyDigest}` : agencyBrief.paragraph,
+  };
 
   const brief = await db.brief.upsert({
     where: {
@@ -213,6 +234,7 @@ async function generateAgencyBrief(
   }
   await db.brief.update({ where: { id: brief.id }, data: { emailedTo } });
   await recordUsage(organizationId, "brief", 1, "agency");
+  await recordEvent("brief.generated", organizationId, "agency", { briefId: brief.id, week: content.weekStart });
   await logAccess(organizationId, userId, "brief:generate", `agency:${content.weekStart}`);
   logger.info("agency brief generated", { requestId, orgId: organizationId, week: content.weekStart, emailed: emailedTo.length });
   if (content.anomalies.length > 0 && (settings.agencyAnomalyEmail ?? settings.anomalyEmail) === true) {

@@ -66,3 +66,15 @@ export function clearCache(): void {
   hitsByPrefix.clear();
   missesByPrefix.clear();
 }
+
+const inflight = new Map<string, Promise<unknown>>();
+
+export async function singleflight<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const existing = inflight.get(key);
+  if (existing) return existing as Promise<T>;
+  const p = fn().finally(() => {
+    if (inflight.get(key) === p) inflight.delete(key);
+  });
+  inflight.set(key, p);
+  return p;
+}

@@ -7,6 +7,7 @@ import { notify } from "@/lib/core/notify";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 import { requireWritable } from "@/lib/core/guards";
+import { recordEvent } from "@/lib/core/events-db";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -53,5 +54,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (updated.proposedById !== session.user.id) {
     await notify(active.organization.id, updated.proposedById, `correction:${status}`, `Your flag on ${updated.targetKey} was ${status}`, "/corrections");
   }
+  await recordEvent("correction.decided", active.organization.id, "freight", { correctionId: id, status, targetKey: updated.targetKey });
   return NextResponse.json({ correction: updated });
 }

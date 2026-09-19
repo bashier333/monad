@@ -6,6 +6,7 @@ const GUIDES = [
   { id: "upload", title: "1. Upload an export" },
   { id: "read", title: "2. Read an answer" },
   { id: "correct", title: "3. Correct a cost" },
+  { id: "agency", title: "4. Agency pack: project margins" },
 ];
 
 export default function HelpSearch({ children }: { children: React.ReactNode }) {

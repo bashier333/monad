@@ -3,6 +3,7 @@ import BillingPanel from "@/components/BillingPanel";
 import DangerZone from "@/components/DangerZone";
 import InviteForm from "@/components/InviteForm";
 import OrgSettingsForm from "@/components/OrgSettingsForm";
+import OrgSwitcher from "@/components/OrgSwitcher";
 import { auth } from "@/lib/core/auth";
 import { getActiveOrg } from "@/lib/core/org";
 
@@ -35,11 +36,17 @@ export default async function SettingsPage() {
     agencyWeekStartsOn?: number;
     agencyAnomalyThresholdPts?: number;
     agencyAnomalyEmail?: boolean;
+    locale?: string;
+    predictOptOut?: boolean;
   };
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
       <h1 className="text-xl font-bold">Settings — {active.organization.name}</h1>
+      <section className="rounded border p-4">
+        <h2 className="mb-2 font-medium">Organizations</h2>
+        <OrgSwitcher currentId={active.organization.id} />
+      </section>
       {isOwner ? (
         <>
           <section className="rounded border p-4">
@@ -53,6 +60,8 @@ export default async function SettingsPage() {
                 agencyWeekStartsOn: settings.agencyWeekStartsOn ?? active.organization.weekStartsOn,
                 agencyAnomalyThresholdPts: settings.agencyAnomalyThresholdPts ?? 6,
                 agencyAnomalyEmail: settings.agencyAnomalyEmail === true,
+                locale: settings.locale ?? "en",
+                predictOptOut: settings.predictOptOut === true,
               }}
             />
           </section>

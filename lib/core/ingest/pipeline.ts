@@ -6,6 +6,7 @@ import { findConflicts } from "@/lib/core/ingest/merge";
 import { parseBuffer } from "@/lib/core/ingest/parse";
 import { scanBuffer } from "@/lib/core/ingest/scan";
 import { bustAnswerCache } from "@/lib/core/answers/service";
+import { recordEvent } from "@/lib/core/events-db";
 import { db } from "@/lib/core/db";
 import { logger } from "@/lib/core/logger";
 import { readBytes } from "@/lib/core/storage";
@@ -63,6 +64,10 @@ export async function processImport(runId: string, requestId = "bg"): Promise<vo
       return;
     }
     const suggestion = adapter.detect(headers);
+    const drift = detectHeaderDrift(run.headers as string[] | null, headers);
+    if (drift.added.length > 0 || drift.removed.length > 0) {
+      logger.warn("header drift vs previous run", { requestId, runId, drift });
+    }
     await setProgress(runId, 45, {
       mapping: suggestion.mapping,
       mappingConfidence: suggestion.confidence,
@@ -130,6 +135,7 @@ export async function processImport(runId: string, requestId = "bg"): Promise<vo
               : `date range overlaps ${overlap.length} completed run(s)`,
         },
       });
+      await recordEvent("import.needs_review", run.organizationId, packFromSourceType(run.sourceType), { runId, dup: dup?.id ?? null, overlap: overlap.length });
       logger.info("import needs review", { requestId, runId, dup: dup?.id ?? null, overlap: overlap.length });
       return;
     }
@@ -210,8 +216,26 @@ export async function finalizeRun(
     where: { id: runId },
     data: { status: "COMPLETED", progress: 100, decision, conflicts: conflicts as unknown as Prisma.InputJsonValue },
   });
+  await recordEvent("import.completed", run.organizationId, packFromSourceType(run.sourceType), { runId, decision });
   bustAnswerCache(run.organizationId);
   logger.info("import completed", { requestId, runId, decision, conflicts: conflicts.length });
+}
+
+const AGENCY_TYPES_SET = new Set(["time", "revision", "approval", "invoice", "asset", "rate", "project", "feedback"]);
+
+export function packFromSourceType(sourceType: string): string {
+  return AGENCY_TYPES_SET.has(sourceType) ? "agency" : "freight";
+}
+
+export function detectHeaderDrift(prev: string[] | null, cur: string[]): { added: string[]; removed: string[] } {
+  if (!prev || prev.length === 0) return { added: [], removed: [] };
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const p = new Set(prev.map(norm));
+  const c = new Set(cur.map(norm));
+  return {
+    added: cur.filter((h) => !p.has(norm(h))),
+    removed: prev.filter((h) => !c.has(norm(h))),
+  };
 }
 
 export async function cancelRun(runId: string, requestId: string, note: string): Promise<void> {

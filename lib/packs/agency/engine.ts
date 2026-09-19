@@ -51,6 +51,11 @@ export interface AgencyInvoice {
   rowNumber: number;
 }
 
+export interface AgencyBudget {
+  project: string;
+  amount: string;
+}
+
 export interface ProjectMargin {
   project: string;
   client: string;
@@ -59,6 +64,8 @@ export interface ProjectMargin {
   cost: number;
   margin: number;
   marginPct: number | null;
+  budget: number | null;
+  budgetVsActual: number | null;
   costByKind: Record<string, number>;
   recordKeys: string[];
   appliedRules: AgencyRuleDef[];
@@ -108,6 +115,7 @@ export function computeProjectMargins(
   corrections: AppliedCorrection[],
   weekStart: string,
   weekEnd: string,
+  budgets: AgencyBudget[] = [],
 ): AgencyResult {
   const inWeek = records.filter((r) => {
     const d = toISODate(r.date);
@@ -217,6 +225,14 @@ export function computeProjectMargins(
     if (!byProject.has(project)) unmatchedRevenue.push({ project, amount });
   }
 
+  const budgetByProject = new Map<string, number>();
+  for (const b of budgets) {
+    const project = normalizeName(b.project, aliases);
+    if (!project) continue;
+    const amount = parseMoney(b.amount);
+    if (amount !== 0) budgetByProject.set(project, amount);
+  }
+
   const projectMap = new Map<string, ProjectMargin>();
   const ruleIds = new Set<string>(["R-ag-4"]);
   for (const lm of byKey.values()) {
@@ -234,6 +250,8 @@ export function computeProjectMargins(
         cost: 0,
         margin: 0,
         marginPct: null,
+        budget: null,
+        budgetVsActual: null,
         costByKind: {},
         recordKeys: [],
         appliedRules: [],
@@ -251,11 +269,17 @@ export function computeProjectMargins(
     }
   }
 
-  const projects = [...projectMap.values()].map((p) => ({
-    ...p,
-    margin: Math.round((p.revenue - p.cost) * 100) / 100,
-    marginPct: pct(Math.round((p.revenue - p.cost) * 100) / 100, p.revenue),
-  }));
+  const projects = [...projectMap.values()].map((p) => {
+    const margin = Math.round((p.revenue - p.cost) * 100) / 100;
+    const budget = budgetByProject.get(p.project) ?? null;
+    return {
+      ...p,
+      margin,
+      marginPct: pct(margin, p.revenue),
+      budget,
+      budgetVsActual: budget === null ? null : Math.round((p.cost - budget) * 100) / 100,
+    };
+  });
   projects.sort((a, b) => a.margin - b.margin);
 
   const totals = {

@@ -69,7 +69,7 @@ describe("agency preview math (X6 E-297)", () => {
       rowNumber: i + 2,
     }));
     const invoices = [{ project: "ACME", amount: "5000", runId: "run", fileName: "i.csv", rowNumber: 2 }];
-    const inputs = { records, assets: [], fees: [], invoices, aliases: new Map<string, string>(), dataAsOf: null };
+    const inputs = { records, assets: [], fees: [], invoices, budgets: [], aliases: new Map<string, string>(), dataAsOf: null };
     const rule = expandRule(
       { id: "p", kind: "reattribute", costKind: "labor", matchField: "client", matchValue: "acme", toLoad: null, reason: "p" },
       LOADS,

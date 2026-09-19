@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAgencyAnswer } from "@/lib/packs/agency/service";
+import { getAgencyAnswer, getAgencyForecast } from "@/lib/packs/agency/service";
 import { packEnabled } from "@/lib/core/packs";
 import { resolveWeek } from "@/lib/core/answers/service";
 import { auth } from "@/lib/core/auth";
@@ -31,8 +31,11 @@ export async function GET(req: Request) {
     return NextResponse.json({ projects: [], totals: null, meta: null, note: "future period — no data yet" });
   }
 
-  const settings = (active.organization.settings ?? {}) as { agencyWeekStartsOn?: number };
+  const settings = (active.organization.settings ?? {}) as { agencyWeekStartsOn?: number; predictOptOut?: boolean };
   const answer = await getAgencyAnswer(active.organization.id, settings.agencyWeekStartsOn ?? active.organization.weekStartsOn, anchor);
+  if (!(settings.predictOptOut === true)) {
+    answer.forecasts = await getAgencyForecast(active.organization.id, settings.agencyWeekStartsOn ?? active.organization.weekStartsOn, anchor);
+  }
   if (await historyBlocked(active.organization.id, answer.meta.weekStart)) {
     return NextResponse.json({ error: "free tier: 90-day history — upgrade to Team for full history" }, { status: 402 });
   }

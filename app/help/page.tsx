@@ -77,6 +77,11 @@ export default function HelpPage() {
             Layout, empty states, loading skeletons, and mobile tables reuse the shared
             standards (E-250): same primitives, same 44px targets, same overflow rules.
           </p>
+          <p>
+            Shortcuts: press <span className="font-mono">Cmd/Ctrl+K</span> anywhere for the
+            command palette (every page is one keystroke away); <span className="font-mono">/</span>{" "}
+            focuses the Ask box; <span className="font-mono">Esc</span> closes dialogs.
+          </p>
         </div>
       </section>
       </HelpSearch>

@@ -1,34 +1,30 @@
-# Discovery-call notes (P-308)
+# Playbooks + alerts (R-043–R-049, R-042)
 
-File per call: `calls/YYYY-MM-DD-org.md`. Template: role/fleet, Monday workflow verbatim,
-last-wrong-numbers story + dollars, where fixes live, replay-without-automation answer,
-last software bought + trigger, pilot yes/no + export promised?, referrals. File same day.
+## Alert rules (R-042)
 
-# Pricing conversations (P-309)
+`AlertRule`: margin|cost, op </>, threshold, channel inapp|email, pack-scoped.
+`POST /api/answers/action` with "notify me when lane X drops" drafts one (confirm
+first). Evaluation runs against the week's groups; in-app alerts land in the bell,
+email honors opt-out + unsubscribe.
 
-Anchor on their wasted hours, not our costs. Quote Team flat; trial 14d on request;
-annual = 2 months free. Never discount without a pilot commitment in return. Log every
-quote + outcome in the call note.
+## Playbooks (R-043)
 
-# Objections, top 10 (P-310)
+Multi-step: brief → notify → export. `GET/POST /api/playbooks`,
+`GET/POST/DELETE /api/playbooks/[id]`, run with `{dryRun: true}` to preview
+effects (R-046). Every run lands in `WorkflowRun` history with per-step results
+(R-045); failed steps retry once, then mark partial.
 
-1. "Our TMS already reports this." → Show the trail, not the total.
-2. "Excel works fine." → Time last Monday's close; multiply by 52.
-3. "Data is messy." → Messy is the requirement; quarantine demo on their file.
-4. "Another tool to learn." → One upload, one answer, 10 minutes concierge.
-5. "What about our other system?" → Multi-source merge demo.
-6. "Security?" → DPA + subprocessor list + export/delete demo.
-7. "What if you're wrong?" → Every figure links its source; corrections feed back.
-8. "Price?" → One bad lane-week pays for a year. Then trial.
-9. "We'll build it internally." → 118-task backlog + eval harness; good luck, call us in 6 months.
-10. "Not now." → What changes the timing? Calendar it.
+## Templates per pack (R-044)
 
-# Founder → first-hire handoff (P-311)
+5 starters: Monday brief + notify, weekly export, studio brief + notify,
+month-end export, Friday flash. Create from a starter with `fromStarter` index.
 
-Shadow 5 calls, run 5 with review, then solo with call-note audit for 10. Handoff package:
-this playbook + objection list + pricing log + pilot lifecycle runbook.
+## Permissions (R-047)
 
-# Weekly business review (P-312)
+Playbooks are org-scoped; creating/running needs `upload:import`, deleting the
+same. Schedules are advisory strings (cron-shaped) until the worker runs
+repeatables per org — the hourly sweep chain exists in `scripts/worker.ts`.
 
-30 min Mondays: run volume, NRR signals, memory activation %, correction→rule %, pilot
-criteria states, top friction, one decision. Same template every week; decisions logged.
+## Marketplace (R-048)
+
+Refused until 3+ orgs run custom playbooks — share templates by copying JSON.

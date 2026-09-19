@@ -17,6 +17,10 @@ Switching packs is a choice, not a migration: enable both, upload each pack's
 files, compare answers. Namespaced throughout (shares, briefs, metering carry pack).
 Disabling a pack hides its answers; data is kept until you delete the org.
 
+Benchmarks are lost on exit (E-745, stated honestly): cross-org percentiles and
+"you vs median" context stop the day you leave. Your rows, trail, and exports
+leave with you — the comparison context doesn't.
+
 ## API docs per pack (E-498)
 
 - Freight: `GET /api/answers/lane-margins?week=`, `GET /api/answers/lane?lane=&week=`.

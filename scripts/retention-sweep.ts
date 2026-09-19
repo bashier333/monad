@@ -25,8 +25,30 @@ async function main() {
     select: { id: true, status: true, updatedAt: true },
   });
 
+  const dueDeletions = await db.orgDeletion.findMany({
+    where: { purgeAt: { lt: new Date() } },
+    select: { orgId: true, purgeAt: true },
+  });
+  for (const d of dueDeletions) {
+    if (!execute) {
+      console.log(`WOULD PURGE org ${d.orgId} (grace expired ${d.purgeAt.toISOString()})`);
+      continue;
+    }
+    await deleteOrgData(d.orgId);
+    await db.orgDeletion.deleteMany({ where: { orgId: d.orgId } });
+    console.log(`PURGED org ${d.orgId} (grace expired)`);
+  }
+
   if (expired.length === 0) {
     console.log("retention-sweep: nothing past 90-day retention.");
+  }
+  const teamCutoff = new Date(Date.now() - 365 * 86_400_000);
+  const teamStale = await db.subscription.findMany({
+    where: { status: "canceled", statusChangedAt: { lt: teamCutoff }, tier: "team" },
+    select: { organizationId: true },
+  });
+  for (const t of teamStale) {
+    console.log(`NOTE org ${t.organizationId} team canceled >1y — retention per tier keeps team data (review manually)`);
   }
   for (const e of expired) {
     if (!execute) {
@@ -44,6 +66,9 @@ async function main() {
     await db.importRun.delete({ where: { id: a.id } });
     console.log(`PURGED abandoned run ${a.id}`);
   }
+  const eventCutoff = new Date(Date.now() - 365 * 86_400_000);
+  const oldEvents = await db.eventLog.deleteMany({ where: { createdAt: { lt: eventCutoff } } });
+  console.log(`event log: pruned ${oldEvents.count} events older than 1y (hot 90d, cold 1y)`);
   await db.$disconnect();
 }
 

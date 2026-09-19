@@ -34,15 +34,29 @@ export async function POST(req: Request) {
   }
   const form = await req.formData();
   const upload = form.get("file");
-  const sourceType = String(form.get("sourceType") ?? "tms");
-  if (!getAdapter(sourceType)) {
-    return NextResponse.json({ error: `unsupported sourceType: ${sourceType}` }, { status: 400 });
-  }
   if (!(upload instanceof File)) {
     return NextResponse.json({ error: "missing file" }, { status: 400 });
   }
+  const rawSourceType = String(form.get("sourceType") ?? "auto");
+  const { resolveSourceType } = await import("@/lib/core/ingest/source-suggest").catch(() => ({
+    resolveSourceType: (f: string, c: string) => (c === "auto" ? "tms" : c),
+  }));
+  const sourceType = resolveSourceType(upload.name, rawSourceType);
+  if (!getAdapter(sourceType)) {
+    return NextResponse.json({ error: `unsupported sourceType: ${sourceType}` }, { status: 400 });
+  }
 
   const bytes = Buffer.from(await upload.arrayBuffer());
+  const settings = (active.organization.settings ?? {}) as { storageQuotaBytes?: number };
+  if (settings.storageQuotaBytes !== undefined) {
+    const used = await db.dataFile.aggregate({
+      where: { organizationId: active.organization.id },
+      _sum: { bytes: true },
+    });
+    if ((used._sum.bytes ?? 0) + bytes.length > settings.storageQuotaBytes) {
+      return NextResponse.json({ error: "storage quota exceeded — delete old files or raise the quota in settings" }, { status: 402 });
+    }
+  }
   const scan = scanBuffer(upload.name, bytes);
   if (!scan.ok) {
     return NextResponse.json({ error: scan.reason }, { status: 400 });

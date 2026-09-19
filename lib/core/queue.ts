@@ -32,14 +32,14 @@ export async function getImportQueue(): Promise<Queue<ImportJob> | null> {
   return queue;
 }
 
-export async function enqueueImport(job: ImportJob): Promise<"queued" | "inline"> {
+export async function enqueueImport(job: ImportJob, priority = 0): Promise<"queued" | "inline"> {
   const q = await getImportQueue();
   if (!q) {
     const { enqueue } = await import("@/lib/core/jobs");
     enqueue(() => processImport(job.runId, job.requestId));
     return "inline";
   }
-  await q.add("process-import", job);
+  await q.add("process-import", job, { priority });
   return "queued";
 }
 

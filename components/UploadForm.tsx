@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export default function UploadForm() {
   const [file, setFile] = useState<File | null>(null);
-  const [sourceType, setSourceType] = useState("tms");
+  const [sourceType, setSourceType] = useState("auto");
   const [state, setState] = useState<"idle" | "busy" | "error">("idle");
   const [message, setMessage] = useState("");
 
@@ -44,6 +44,7 @@ export default function UploadForm() {
           onChange={(e) => setSourceType(e.target.value)}
           className="mt-1 block rounded border p-1"
         >
+          <option value="auto">Auto (from filename)</option>
           <option value="tms">TMS / dispatch export</option>
           <option value="fuel">Fuel CSV</option>
           <option value="broker">Broker statement</option>

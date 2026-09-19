@@ -104,7 +104,7 @@ export default async function AgencyAnswersPage({
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full min-w-[640px] text-sm" aria-label="Project margins, worst first">
               <thead>
                 <tr className="text-left text-gray-500">
                   <th className="py-1">Project</th>

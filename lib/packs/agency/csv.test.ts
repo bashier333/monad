@@ -11,6 +11,8 @@ const projects: ProjectMargin[] = [
     cost: 1600,
     margin: 900,
     marginPct: 36,
+    budget: 2000,
+    budgetVsActual: -400,
     costByKind: { labor: 1600 },
     recordKeys: ["R1"],
     appliedRules: [],

@@ -2,7 +2,11 @@ import Link from "next/link";
 import Bell from "@/components/Bell";
 
 const LINKS = [
+  ["Home", "/dashboard"],
   ["Answers", "/answers"],
+  ["Projects", "/answers/projects"],
+  ["Search", "/search"],
+  ["Packs", "/packs"],
   ["Upload", "/upload"],
   ["Briefs", "/briefs"],
   ["Corrections", "/corrections"],

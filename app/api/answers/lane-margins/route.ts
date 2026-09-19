@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
+import { getWeeklyAnswer, getFreightForecast } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
 import { packEnabled } from "@/lib/core/packs";
 import { auth } from "@/lib/core/auth";
 import { recordUsage } from "@/lib/core/billing";
@@ -26,6 +26,10 @@ export async function GET(req: Request) {
   }
 
   const answer = await getWeeklyAnswer(active.organization.id, active.organization.weekStartsOn, anchor);
+  const settings = (active.organization.settings ?? {}) as { predictOptOut?: boolean };
+  if (!(settings.predictOptOut === true)) {
+    answer.forecasts = await getFreightForecast(active.organization.id, active.organization.weekStartsOn, anchor);
+  }
   if (await historyBlocked(active.organization.id, answer.meta.weekStart)) {
     return NextResponse.json({ error: "free tier: 90-day history — upgrade to Team for full history" }, { status: 402 });
   }
