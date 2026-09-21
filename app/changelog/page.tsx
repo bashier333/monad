@@ -1,5 +1,14 @@
 const ENTRIES: Array<{ version: string; date: string; notes: string[] }> = [
   {
+    version: "1.3.0",
+    date: "2026-09-21",
+    notes: [
+      "UI 10x: 5-item nav with More sheet, ⌘K palette trigger, shortcuts modal, theme/density in nav.",
+      "Answers: week-over-week deltas, all topic spotlights, paywall with one-click upgrade.",
+      "Landing loads faster (optimized hero image); every surface shows the running version with update checks.",
+    ],
+  },
+  {
     version: "1.2.0",
     date: "2026-09-21",
     notes: [

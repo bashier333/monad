@@ -18,12 +18,18 @@ no install location to update into, so they fall back to a download link.
 
 ## Publishing a release
 
-1. Bump `version` in `package.json`.
-2. `npm run dist:exe` (with `SQLITE_TEMPLATE=1` for the template DB).
-3. Confirm `dist/Monad-Ontology-Setup-<version>.exe` (+ `.blockmap`) exists.
+1. `npm run release <x.y.z> -- --notes="headline one;headline two"` — bumps
+   `package.json`, `lib/core/version.ts` (single source), the changelog page,
+   `CHANGELOG.md`, and the lockfile together. Nothing else needs hand-editing:
+   health, status, landing, download, `/api/desktop`, and the exe feed all
+   read the single source at runtime.
+2. Gates: `npm run typecheck && npm run lint && npm run test`.
+3. `npm run dist:exe` (with `SQLITE_TEMPLATE=1` for the template DB).
+4. Confirm `dist/Monad-Ontology-Setup-<version>.exe` (+ `.blockmap`) exists.
    The feed picks the newest version by semver, not by file date.
-4. Deploy the website. Clients with `UPDATE_FEED_URL=https://<host>/api/updates`
+5. Deploy the website. Clients with `UPDATE_FEED_URL=https://<host>/api/updates`
    pick it up on next launch (or via Check for updates).
+6. Commit: `git add -A && git commit -m "feat: v<x.y.z> — <headline>"`.
 
 ## Client configuration
 

@@ -23,6 +23,7 @@
     "retention": "tsx scripts/retention-sweep.ts",
     "reconcile": "tsx scripts/reconcile-billing.ts",
     "e2e:stripe": "tsx stripe-e2e.ts",
+    "release": "tsx scripts/release.ts",
     "electron:dev": "electron electron/main.cjs",
     "exe:prepare": "node electron/prepare.cjs",
     "dist:exe": "npm run build && npm run exe:prepare && electron-builder --win",

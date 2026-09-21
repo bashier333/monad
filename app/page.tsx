@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Space_Grotesk } from "next/font/google";
 import Reveal from "./reveal";
+import { APP_VERSION } from "@/lib/core/version";
 
 // World: light manifesto instrument. Stone-50 ground, hairline borders,
 // tabular numerals, one signal emerald. Surfaces 16px, controls full-pill.
@@ -106,8 +107,11 @@ export default function MonadPage() {
 
       <footer className="border-t border-stone-200">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm text-stone-500 md:px-8">
-          <p>Monad. One model. One line.</p>
+          <p>Monad v{APP_VERSION}. One model. One line.</p>
           <p className="flex gap-5">
+            <Link href="/download" className="transition-colors hover:text-stone-900">
+              Download
+            </Link>
             <Link href="/platforms/ontology" className="transition-colors hover:text-stone-900">
               Ontology
             </Link>

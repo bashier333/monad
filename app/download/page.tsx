@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import DownloadForm from "./form";
 import Reveal from "../reveal";
+import { APP_VERSION } from "@/lib/core/version";
 
 // World: light manifesto instrument. Stone-50 ground, hairline borders,
 // tabular numerals, one signal emerald. Surfaces 16px, controls full-pill.
@@ -63,7 +64,7 @@ export default function DownloadPage() {
             >
               Download for Windows
             </a>
-            <p className={`${mono.className} mt-4 text-xs text-stone-500`}>Version 1.2.0 · Windows 64-bit</p>
+            <p className={`${mono.className} mt-4 text-xs text-stone-500`}>Version {APP_VERSION} · Windows 64-bit · <Link href="/changelog" className="underline">what&apos;s new</Link></p>
             <p className="mx-auto mt-3 max-w-[44ch] text-xs leading-relaxed text-stone-500">
               Guided installer for Windows 64-bit — no admin needed, installs for your user account with
               Start Menu and desktop shortcuts. First launch creates its own local database; nothing to configure.

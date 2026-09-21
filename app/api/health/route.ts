@@ -3,6 +3,7 @@ import { db } from "@/lib/core/db";
 import { getEnv } from "@/lib/core/env";
 import { logger } from "@/lib/core/logger";
 import { ensureSqlite } from "@/lib/core/sqlite";
+import { APP_VERSION } from "@/lib/core/version";
 
 // SQLite file setup runs here (once per process) rather than in
 // instrumentation.ts: route handlers are provably server-only, while the
@@ -40,6 +41,7 @@ export async function GET(req: Request) {
   }
   return NextResponse.json({
     ok: database === "reachable",
+    version: APP_VERSION,
     time: new Date().toISOString(),
     requestId,
     config: {

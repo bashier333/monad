@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 
 export default function StatusPage() {
-  const [health, setHealth] = useState<{ ok?: boolean; time?: string } | null>(null);
+  const [health, setHealth] = useState<{ ok?: boolean; time?: string; version?: string } | null>(null);
 
   useEffect(() => {
     void fetch("/api/health")
       .then((r) => r.json())
-      .then((b: { ok?: boolean; time?: string }) => setHealth(b))
+      .then((b: { ok?: boolean; time?: string; version?: string }) => setHealth(b))
       .catch(() => setHealth({}));
   }, []);
 
@@ -23,6 +23,12 @@ export default function StatusPage() {
             : "Degraded — see known issues or contact support."}
       </p>
       <p className="text-gray-500">Checked {health?.time ? new Date(health.time).toLocaleString() : "—"}</p>
+      <p className="text-gray-500">
+        Running v{health?.version ?? "…"} ·{" "}
+        <a href="/changelog" className="underline">
+          what&apos;s new
+        </a>
+      </p>
       <p>
         <a href="/known-issues" className="underline">Known issues</a> ·{" "}
         <a href="/changelog" className="underline">Changelog</a> ·{" "}
