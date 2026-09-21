@@ -9,8 +9,12 @@ import UploadForm from "@/components/UploadForm";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
+import { FREE_LIMITS, monthlyUploads } from "@/lib/core/billing";
 
-export default async function UploadPage() {
+// Upload first, context after: the form sits above the fold, one Try-sample
+// beside it, business selectors and checklists below. History filters
+// server-side via ?q= so no client JS is needed for search.
+export default async function UploadPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const session = await auth();
   if (!session?.user?.id) {
     return (
@@ -32,18 +36,23 @@ export default async function UploadPage() {
       </main>
     );
   }
+  const { q } = await searchParams;
+  const query = (q ?? "").trim();
 
-  const runs = await db.importRun.findMany({
-    where: { organizationId: active.organization.id },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-    include: { file: { select: { filename: true } } },
-  });
-
-  const [mappingCount, stagedOk, correctionCount] = await Promise.all([
+  const [runs, mappingCount, stagedOk, correctionCount, uploadsThisMonth] = await Promise.all([
+    db.importRun.findMany({
+      where: {
+        organizationId: active.organization.id,
+        ...(query ? { file: { filename: { contains: query } } } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: { file: { select: { filename: true } } },
+    }),
     db.columnMapping.count({ where: { organizationId: active.organization.id } }),
     db.stagedRecord.count({ where: { organizationId: active.organization.id, status: "ok" } }),
     db.correction.count({ where: { organizationId: active.organization.id } }),
+    monthlyUploads(active.organization.id),
   ]);
   const checklist: ChecklistState = {
     uploaded: runs.length > 0,
@@ -59,16 +68,51 @@ export default async function UploadPage() {
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-8">
       <h1 className="text-xl font-bold">Upload — {active.organization.name}</h1>
-      <section className="rounded border p-4 text-sm">
-        <h2 className="font-medium">Which business is this for?</h2>
+      <p className="text-sm ds-text-2" role="status">
+        {uploadsThisMonth}/{FREE_LIMITS.uploadsPerMonth} free uploads used this month
+        {uploadsThisMonth >= FREE_LIMITS.uploadsPerMonth ? (
+          <>
+            {" — "}<Link href="/pricing" className="underline">Upgrade to Team for unlimited</Link>
+          </>
+        ) : null}
+      </p>
+      <div id="upload-form">
+        <UploadForm />
+      </div>
+      <p className="flex flex-wrap items-center gap-2 text-sm ds-text-2">
+        No file handy?
+        <DemoSeedButton />
+        <details className="inline">
+          <summary className="cursor-pointer underline">More samples</summary>
+          <span className="inline-flex flex-wrap items-center gap-2">
+            <DemoSeedButton pack="reefer" label="Reefer sample" />
+            <DemoSeedButton pack="flatbed" label="Flatbed sample" />
+            <DemoSeedButton pack="dryvan" label="Dry-van sample" />
+            <DemoSeedButton pack="agency-video" label="Studio sample (video)" />
+            <DemoSeedButton pack="agency-design" label="Studio sample (design)" />
+            <DemoResetButton slug={active.organization.slug} />
+          </span>
+        </details>
+      </p>
+      <GraduateButton />
+      {stuck.length > 0 && (
+        <p className="rounded border p-3 text-sm ds-panel" style={{ borderColor: "var(--warn)" }}>
+          {stuck.length} run{stuck.length === 1 ? "" : "s"} stuck over 10 min. The stale-run sweep resets dead
+          runs automatically — or{" "}
+          <a href="#upload-form" className="underline">re-upload the file</a>, or{" "}
+          <Link href="/help" className="underline">read the import runbook</Link>.
+        </p>
+      )}
+      <section className="rounded border p-4 text-sm" style={{ borderColor: "var(--hairline)" }}>
+        <h2 className="font-medium ds-text">Which business is this for?</h2>
         <div className="mt-2 grid gap-2 md:grid-cols-2">
-          <Link href="/answers" className="rounded border p-3 hover:bg-gray-50">
-            <span className="font-medium">Fleet / carriers</span>
-            <span className="block text-gray-600">Lane margins from TMS, fuel + broker files.</span>
+          <Link href="/answers" className="ds-state rounded border p-3" style={{ borderColor: "var(--hairline)" }}>
+            <span className="font-medium ds-text">Fleet / carriers</span>
+            <span className="block ds-text-2">Lane margins from TMS, fuel + broker files.</span>
           </Link>
-          <Link href="/answers/projects" className="rounded border p-3 hover:bg-gray-50">
-            <span className="font-medium">Video studio / agency</span>
-            <span className="block text-gray-600">Project margins from time, revision + invoice exports.</span>
+          <Link href="/answers/projects" className="ds-state rounded border p-3" style={{ borderColor: "var(--hairline)" }}>
+            <span className="font-medium ds-text">Video studio / agency</span>
+            <span className="block ds-text-2">Project margins from time, revision + invoice exports.</span>
           </Link>
         </div>
       </section>
@@ -78,58 +122,56 @@ export default async function UploadPage() {
       <OnboardingChecklist state={checklist} pack="agency" />
       <DemoTour />
       <DemoTour pack="agency" />
-      <p className="text-sm text-gray-600">
+      <p className="text-sm ds-text-2">
         <Link href="/help" className="underline">How uploading works</Link>
       </p>
-      <UploadForm />
-      <p className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-        No file handy?
-        <DemoSeedButton />
-        <DemoSeedButton pack="reefer" label="Reefer sample" />
-        <DemoSeedButton pack="flatbed" label="Flatbed sample" />
-        <DemoSeedButton pack="dryvan" label="Dry-van sample" />
-        <DemoSeedButton pack="agency-video" label="Studio sample (video)" />
-        <DemoSeedButton pack="agency-design" label="Studio sample (design)" />
-        <DemoResetButton slug={active.organization.slug} />
-      </p>
-      <GraduateButton />
-      {stuck.length > 0 && (
-        <p className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">
-          Stuck over 10 min? The stale-run sweep resets dead runs automatically — meanwhile,{" "}
-          <Link href="/help" className="underline">
-            read the import runbook
-          </Link>
-          .
-        </p>
-      )}
       <section>
-        <h2 className="font-medium">Import history</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-medium ds-text">Import history</h2>
+          <form method="get" className="flex gap-2" role="search" aria-label="Filter imports">
+            <label htmlFor="history-q" className="sr-only">Filter by filename</label>
+            <input
+              id="history-q"
+              name="q"
+              defaultValue={query}
+              placeholder="Filter by filename…"
+              autoComplete="off"
+              className="ds-control rounded border px-2 py-1 text-sm ds-text"
+              style={{ borderColor: "var(--hairline)", background: "var(--ground)" }}
+            />
+            <button type="submit" className="rounded border px-2 py-1 text-sm ds-text" style={{ borderColor: "var(--hairline)" }}>
+              Filter
+            </button>
+          </form>
+        </div>
         {runs.length === 0 ? (
-          <p className="mt-1 text-sm text-gray-600">No imports yet — upload above or try the sample week.</p>
+          <p className="mt-1 text-sm ds-text-2">
+            {query ? `No imports match “${query}”.` : "No imports yet — upload above or try the sample week."}
+          </p>
         ) : (
-        <div className="overflow-x-auto">
-        <table className="mt-2 w-full min-w-[560px] text-sm">
+        <div className="overflow-x-auto rounded ds-panel" role="region" aria-label="Import history" tabIndex={0}>
+        <table className="ds-table mt-2 w-full min-w-[560px] text-sm">
           <thead>
-            <tr className="text-left text-gray-500">
-              <th className="py-1">File</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Rows ok / quarantined</th>
+            <tr className="text-left">
+              <th scope="col" className="py-1 font-medium ds-text-2">File</th>
+              <th scope="col" className="font-medium ds-text-2">Type</th>
+              <th scope="col" className="font-medium ds-text-2">Status</th>
+              <th scope="col" className="font-medium ds-text-2">Rows ok / quarantined</th>
             </tr>
           </thead>
           <tbody>
             {runs.map((r) => (
-              <tr key={r.id} className="border-t">
+              <tr key={r.id} className="border-t" style={{ borderColor: "var(--hairline)" }}>
                 <td className="py-1">
-                  <Link href={`/imports/${r.id}`} className="underline">
+                  <Link href={`/imports/${r.id}`} className="underline ds-text">
                     {r.file.filename}
                   </Link>
                 </td>
-                <td>{r.sourceType}</td>
-                <td>
+                <td className="ds-text-2">{r.sourceType}</td>
+                <td className="ds-text-2">
                   {r.status} ({r.progress}%)
                 </td>
-                <td>
+                <td className="ds-text-2">
                   {r.okRows} / {r.quarantinedRows}
                 </td>
               </tr>

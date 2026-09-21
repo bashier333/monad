@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const schema = z.object({
-  DATABASE_URL: z.string().default("postgresql://decision:decision@localhost:5432/decisionlayer"),
+  DATABASE_URL: z.string().default("postgresql://monad:monad@localhost:5432/monad"),
   AUTH_SECRET: z.string().default("dev-only-secret-replace-me"),
   AUTH_URL: z.string().default("http://localhost:3000"),
   AUTH_GOOGLE_ID: z.string().default(""),

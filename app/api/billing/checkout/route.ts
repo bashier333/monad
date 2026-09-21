@@ -19,9 +19,19 @@ export async function POST(req: Request) {
   }
 
   const stripe = getStripe();
-  const priceId = getEnv().STRIPE_TEAM_PRICE_ID || process.env.NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID || "";
+  const body0 = (await req.json().catch(() => ({}))) as { annual?: boolean; trialDays?: number; couponId?: string; taxExempt?: boolean };
+  // Annual = a separate annual price ID (Stripe has no billing-cycle switch
+  // on one price). Unset env means annual checkout isn't offered yet — the
+  // pricing page hides the toggle in that case, this 501 is the backstop.
+  const annual = body0.annual === true;
+  const priceId = annual
+    ? process.env.STRIPE_TEAM_ANNUAL_PRICE_ID || ""
+    : getEnv().STRIPE_TEAM_PRICE_ID || process.env.NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID || "";
   if (!stripe || !priceId) {
-    return NextResponse.json({ error: "billing not configured (missing Stripe key or price)" }, { status: 501 });
+    return NextResponse.json(
+      { error: annual ? "annual billing is not enabled yet — monthly checkout works today" : "billing not configured (missing Stripe key or price)" },
+      { status: 501 }
+    );
   }
 
   const sub = await getSubscription(active.organization.id);
@@ -41,11 +51,7 @@ export async function POST(req: Request) {
   }
 
   const origin = new URL(req.url).origin;
-  const body = (await req.json().catch(() => ({}))) as {
-    trialDays?: number;
-    couponId?: string;
-    taxExempt?: boolean;
-  };
+  const body = body0;
   const trialDays = Math.min(Math.max(Number(body.trialDays ?? 0), 0), 30);
   const checkout = await stripe.checkout.sessions.create(
     buildCheckoutParams({

@@ -9,12 +9,18 @@ next-env.d.ts
 # --- env / secrets (never commit) ---
 .env
 .env.*
+monad.env
 !.env.example
 
 # --- local runtime data ---
 var/
 prisma/*.db
 prisma/*.db-journal
+prisma/schema.sqlite.prisma
+generated/
+
+# --- packaged desktop output (never commit; may contain secrets) ---
+dist/
 
 # --- OS / editor ---
 .DS_Store

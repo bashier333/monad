@@ -6,6 +6,19 @@ export default function HelpPage() {
     <main className="mx-auto max-w-2xl space-y-6 p-8 text-sm">
       <h1 className="text-xl font-bold">Help</h1>
       <HelpSearch>
+      <section id="ontology" className="rounded border p-4">
+        <h2 className="font-medium">0. Understanding your business model</h2>
+        <div className="mt-1 space-y-1 text-gray-700">
+          <p>
+            New to the workspace? Start with{" "}
+            <Link href="/help/ontology" className="underline">
+              the plain-English guide
+            </Link>
+            : nouns and verbs, your first ten minutes, what the AI may and may not do, a glossary,
+            and the questions every newcomer asks.
+          </p>
+        </div>
+      </section>
       <section id="upload" className="rounded border p-4">
         <h2 className="font-medium">1. Upload an export</h2>
         <div className="mt-1 space-y-1 text-gray-700">

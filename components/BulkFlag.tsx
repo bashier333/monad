@@ -41,9 +41,33 @@ export default function BulkFlag({ loads }: { loads: Array<{ loadKey: string; ki
     if (res.ok) setSelected(new Set());
   }
 
+  const allSelected = selected.size === loads.length && loads.length > 0;
+
   return (
-    <div className="rounded border p-3 text-sm">
-      <p className="font-medium">Bulk triage ({selected.size} selected)</p>
+    <div className="rounded border p-3 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
+      <p className="font-medium ds-text">
+        Bulk triage ({selected.size} of {loads.length} selected)
+      </p>
+      <div className="mt-2 flex gap-2">
+        <button
+          type="button"
+          onClick={() => setSelected(new Set(loads.map((l) => l.loadKey)))}
+          disabled={allSelected}
+          className="ds-state rounded border px-2 py-1 text-xs ds-text disabled:opacity-50"
+          style={{ borderColor: "var(--hairline)" }}
+        >
+          Select all
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelected(new Set())}
+          disabled={selected.size === 0}
+          className="ds-state rounded border px-2 py-1 text-xs ds-text disabled:opacity-50"
+          style={{ borderColor: "var(--hairline)" }}
+        >
+          Select none
+        </button>
+      </div>
       <div className="mt-2 flex max-h-40 flex-wrap gap-2 overflow-y-auto">
         {loads.map((l) => (
           <label key={l.loadKey} className="flex items-center gap-1 rounded border px-2 py-1 font-mono">

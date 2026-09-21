@@ -8,8 +8,8 @@ const nextDir = path.join(process.cwd(), ".next");
 function pageSizes(): Array<{ page: string; bytes: number }> {
   const manifestPath = path.join(nextDir, "build-manifest.json");
   if (!existsSync(manifestPath)) {
-    console.log("bundle-budget: no .next/build-manifest.json — run `npm run build` first.");
-    process.exit(0);
+    console.error("bundle-budget: no .next/build-manifest.json — run `npm run build` first. Failing: a silent pass hides regressions.");
+    process.exit(1);
   }
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { pages: Record<string, string[]> };
   const usage = new Map<string, number>();

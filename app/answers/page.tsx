@@ -1,18 +1,51 @@
 import Link from "next/link";
 import NlBox from "@/components/NlBox";
 import ShareButton from "@/components/ShareButton";
+import UpgradeCta from "@/components/UpgradeCta";
 import WeekPicker from "@/components/WeekPicker";
+import { DataTable, ProofStrip } from "@/components/primitives";
 import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
 import { auth } from "@/lib/core/auth";
+import { recordUsage } from "@/lib/core/billing";
 import { getActiveOrg } from "@/lib/core/org";
+import { historyBlocked } from "@/lib/core/guards";
+import { stampFirstAnswer } from "@/lib/core/pilots";
 
-const TOPIC_LABEL: Record<string, string> = {
-  losers: "Losers first",
-  winners: "Winners first",
-  detention: "Detention spotlight",
-  fees: "Fees spotlight",
-  fuel: "Fuel spotlight",
-};
+const TOPICS = [
+  ["losers", "Losers first"],
+  ["winners", "Winners first"],
+  ["detention", "Detention spotlight"],
+  ["fees", "Fees spotlight"],
+  ["fuel", "Fuel spotlight"],
+] as const;
+
+function shiftWeek(week: string, weeks: number): string {
+  const d = new Date(`${week}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + weeks * 7);
+  return d.toISOString().slice(0, 10);
+}
+
+function Delta({ label, value, format }: { label: string; value: number | null; format: (v: number) => string }) {
+  if (value === null || !Number.isFinite(value)) {
+    return (
+      <span className="ds-text-2">
+        {label}: —
+      </span>
+    );
+  }
+  const up = value > 0;
+  const flat = value === 0;
+  return (
+    <span
+      className="ds-text-2"
+      aria-label={`${label}: ${format(value)} ${flat ? "(flat)" : up ? "(up)" : "(down)"} vs last week`}
+      style={flat ? undefined : { color: up ? "var(--success)" : "var(--danger)" }}
+    >
+      <span aria-hidden>{flat ? "■ " : up ? "▲ " : "▼ "}</span>
+      {label}: {up ? "+" : ""}{format(value)}
+    </span>
+  );
+}
 
 export default async function AnswersPage({
   searchParams,
@@ -53,29 +86,80 @@ export default async function AnswersPage({
     );
   }
 
+  // Same paywall as the API: free tier sees 90 days, older weeks unlock.
+  if (await historyBlocked(active.organization.id, anchor)) {
+    return (
+      <main className="mx-auto max-w-2xl space-y-4 p-4 md:p-8">
+        <h1 className="text-xl font-bold ds-text">Lane margins</h1>
+        <WeekPicker current={anchor} />
+        <div className="rounded border p-6 text-center ds-panel" style={{ borderColor: "var(--hairline)" }}>
+          <p className="font-medium ds-text">Week of {anchor} is outside your free 90-day history.</p>
+          <p className="mt-1 text-sm ds-text-2">Team keeps full history — every week you have ever run.</p>
+          <p className="mt-3">
+            <UpgradeCta from="answers_history" label="Unlock full history" />
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   const answer = await getWeeklyAnswer(active.organization.id, active.organization.weekStartsOn, anchor);
+  const prev = await getWeeklyAnswer(active.organization.id, active.organization.weekStartsOn, shiftWeek(anchor, -1)).catch(() => null);
+  // Page views are answers viewed: meter + first-answer stamp like the API.
+  await recordUsage(active.organization.id, "answer_view").catch(() => undefined);
+  await stampFirstAnswer(active.organization.id).catch(() => undefined);
+
   let lanes = answer.lanes;
   if (sp.topic === "losers") lanes = [...lanes].sort((a, b) => a.margin - b.margin);
   if (sp.topic === "winners") lanes = [...lanes].sort((a, b) => b.margin - a.margin);
+  if (sp.topic === "detention") lanes = [...lanes].sort((a, b) => (b.costByKind.detention ?? 0) - (a.costByKind.detention ?? 0));
+  if (sp.topic === "fees") lanes = [...lanes].sort((a, b) => (b.costByKind.fee ?? 0) - (a.costByKind.fee ?? 0));
+  if (sp.topic === "fuel") lanes = [...lanes].sort((a, b) => (b.costByKind.fuel ?? 0) - (a.costByKind.fuel ?? 0));
+
+  const weekLink = (topic?: string) =>
+    `/answers?week=${answer.meta.weekStart}${topic ? `&topic=${topic}` : ""}`;
+  const money = (v: number) => `$${v.toFixed(2)}`;
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">Lane margins</h1>
+        <h1 className="text-xl font-bold ds-text">Lane margins</h1>
         <WeekPicker current={answer.meta.weekStart} />
       </div>
-      <p className="text-sm text-gray-600">
-        <Link href="/help" className="underline">How to read this</Link>
-      </p>
+      <div className="flex flex-wrap items-center gap-3 text-sm">
+        <a href={`/api/answers/export?week=${answer.meta.weekStart}`} className="underline ds-text">
+          Download CSV
+        </a>
+        <ShareButton week={answer.meta.weekStart} />
+        <Link href="/help" className="underline ds-text-2">How to read this</Link>
+      </div>
       <NlBox week={answer.meta.weekStart} />
-      {sp.topic && TOPIC_LABEL[sp.topic] && (
-        <p className="text-sm text-gray-600">{TOPIC_LABEL[sp.topic]}</p>
-      )}
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Lane views">
+        <Link
+          href={weekLink()}
+          aria-current={!sp.topic ? "page" : undefined}
+          className="ds-state rounded border px-2 py-1 text-sm ds-text-2"
+          style={!sp.topic ? { borderColor: "var(--accent)" } : { borderColor: "var(--hairline)" }}
+        >
+          All lanes
+        </Link>
+        {TOPICS.map(([key, label]) => (
+          <Link
+            key={key}
+            href={weekLink(key)}
+            aria-current={sp.topic === key ? "page" : undefined}
+            className="ds-state rounded border px-2 py-1 text-sm ds-text-2"
+            style={sp.topic === key ? { borderColor: "var(--accent)" } : { borderColor: "var(--hairline)" }}
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
 
       {lanes.length === 0 ? (
-        <div className="rounded border p-6 text-center">
-          <p className="font-medium">No loads this week.</p>
-          <p className="mt-1 text-sm text-gray-600">
+        <div className="rounded border p-6 text-center ds-panel" style={{ borderColor: "var(--hairline)" }}>
+          <p className="font-medium ds-text">No loads this week.</p>
+          <p className="mt-1 text-sm ds-text-2">
             <Link href="/upload" className="underline">
               Upload an export
             </Link>{" "}
@@ -84,73 +168,74 @@ export default async function AnswersPage({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
-            <div className="rounded border p-2">Revenue: ${answer.totals.revenue.toFixed(2)}</div>
-            <div className="rounded border p-2">Cost: ${answer.totals.cost.toFixed(2)}</div>
-            <div className="rounded border p-2">Margin: ${answer.totals.margin.toFixed(2)}</div>
-            <div className="rounded border p-2">
-              {answer.totals.marginPct === null ? "—" : `${answer.totals.marginPct}%`} · {answer.totals.loads} loads ·{" "}
-              {answer.meta.currency} · {answer.meta.distanceUnit}
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm" aria-label="Lane margins, worst first">
-              <thead>
-                <tr className="text-left text-gray-500">
-                  <th className="py-1">Lane</th>
-                  <th className="text-right">Loads</th>
-                  <th className="text-right">Revenue</th>
-                  <th className="text-right">Cost</th>
-                  <th className="text-right">Margin</th>
-                  <th className="text-right">Margin %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lanes.map((l) => (
-                  <tr key={l.lane} className="border-t">
-                    <td className="py-1">
-                      <Link
-                        href={`/answers/lane?lane=${encodeURIComponent(l.lane)}&week=${answer.meta.weekStart}`}
-                        className="underline"
-                      >
-                        {l.lane}
-                      </Link>
-                    </td>
-                    <td className="text-right">{l.loads}</td>
-                    <td className="text-right">${l.revenue.toFixed(2)}</td>
-                    <td className="text-right">${l.cost.toFixed(2)}</td>
-                    <td className={`text-right font-medium ${l.margin < 0 ? "text-red-600" : "text-green-700"}`}>
-                      ${l.margin.toFixed(2)}
-                    </td>
-                    <td className="text-right">{l.marginPct === null ? "—" : `${l.marginPct}%`}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ProofStrip
+            items={[
+              { label: "Revenue", value: money(answer.totals.revenue) },
+              { label: "Cost", value: money(answer.totals.cost) },
+              { label: "Margin", value: money(answer.totals.margin) },
+              {
+                label: "Margin %",
+                value: answer.totals.marginPct === null ? "—" : `${answer.totals.marginPct}%`,
+                detail: `${answer.totals.loads} loads · ${answer.meta.currency} · ${answer.meta.distanceUnit}`,
+              },
+            ]}
+          />
+          <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <Delta label="Revenue WoW" value={prev ? answer.totals.revenue - prev.totals.revenue : null} format={money} />
+            <Delta label="Margin WoW" value={prev ? answer.totals.margin - prev.totals.margin : null} format={money} />
+          </p>
+          <DataTable
+            caption={`Lane margins, week of ${answer.meta.weekStart}`}
+            columns={[
+              { label: "Lane" },
+              { label: "Loads", numeric: true },
+              { label: "Revenue", numeric: true },
+              { label: "Cost", numeric: true },
+              { label: "Margin", numeric: true },
+              { label: "Margin %", numeric: true },
+            ]}
+            rows={lanes.map((l) => [
+              <Link
+                key={`lane-${l.lane}`}
+                href={`/answers/lane?lane=${encodeURIComponent(l.lane)}&week=${answer.meta.weekStart}`}
+                className="underline"
+              >
+                {l.lane}
+              </Link>,
+              <span key={`loads-${l.lane}`}>{l.loads}</span>,
+              <span key={`rev-${l.lane}`}>${l.revenue.toFixed(2)}</span>,
+              <span key={`cost-${l.lane}`}>${l.cost.toFixed(2)}</span>,
+              <span
+                key={`margin-${l.lane}`}
+                className="font-medium"
+                style={{ color: l.margin < 0 ? "var(--danger)" : "var(--success)" }}
+                aria-label={`margin ${l.margin < 0 ? "loss" : "profit"} $${l.margin.toFixed(2)}`}
+              >
+                <span aria-hidden>{l.margin < 0 ? "▼ " : "▲ "}</span>${l.margin.toFixed(2)}
+              </span>,
+              <span key={`pct-${l.lane}`}>{l.marginPct === null ? "—" : `${l.marginPct}%`}</span>,
+            ])}
+          />
         </>
       )}
 
-      <section className="rounded border p-4 text-sm">
-        <h2 className="font-medium">How this answer was built</h2>
-        <ul className="mt-1 list-disc pl-5 text-gray-700">
+      <section className="rounded border p-4 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
+        <h2 className="font-medium ds-text">How this answer was built</h2>
+        <ul className="mt-1 list-disc pl-5 ds-text-2">
           {answer.appliedRules.map((r) => (
             <li key={r.id}>
-              <span className="font-mono">{r.id}</span> — {r.sentence}
+              <Link href="/rules" className="font-mono underline" title="Open standing rules">
+                {r.id}
+              </Link>{" "}
+              — {r.sentence}
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-gray-500">
+        <p className="mt-2 ds-text-2">
           Week {answer.meta.weekStart} → {answer.meta.weekEnd} · data as of{" "}
           {answer.meta.dataAsOf ? new Date(answer.meta.dataAsOf).toLocaleString() : "—"} · engine{" "}
           {answer.meta.engineVersion}
         </p>
-        <div className="mt-3 flex flex-wrap gap-3">
-          <a href={`/api/answers/export?week=${answer.meta.weekStart}`} className="underline">
-            Download CSV
-          </a>
-          <ShareButton week={answer.meta.weekStart} />
-        </div>
       </section>
     </main>
   );

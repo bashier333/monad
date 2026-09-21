@@ -11,13 +11,28 @@ import {
 
 describe("workflow engine (R-041–R-049)", () => {
   it("validates alert rules", () => {
-    expect(validateAlertRule({ metric: "margin", op: "<", threshold: 0, channel: "inapp" }).ok).toBe(true);
-    expect(validateAlertRule({ metric: "nope", op: "<", threshold: 0, channel: "inapp" }).ok).toBe(false);
-    expect(validateAlertRule({ metric: "margin", op: "<", threshold: 0, channel: "pigeon" }).ok).toBe(false);
+    const base = { owner: "planner-on-duty", responseAction: "Check the lane and reroute", windowMinutes: 60 };
+    expect(validateAlertRule({ metric: "margin", op: "<", threshold: 0, channel: "inapp", ...base }).ok).toBe(true);
+    expect(validateAlertRule({ metric: "nope", op: "<", threshold: 0, channel: "inapp", ...base }).ok).toBe(false);
+    expect(validateAlertRule({ metric: "margin", op: "<", threshold: 0, channel: "pigeon", ...base }).ok).toBe(false);
+  });
+
+  it("rejects alarms without EEMUA rationalization (MFG-0901)", () => {
+    const full = { metric: "margin", op: "<", threshold: 0, channel: "inapp", owner: "o", responseAction: "a", windowMinutes: 60 };
+    expect(validateAlertRule(full).ok).toBe(true);
+    const { owner, ...noOwner } = full;
+    void owner;
+    expect(validateAlertRule(noOwner).ok).toBe(false);
+    const { responseAction, ...noAction } = full;
+    void responseAction;
+    expect(validateAlertRule(noAction).ok).toBe(false);
+    expect(validateAlertRule({ ...full, windowMinutes: 2 }).ok).toBe(false);
+    expect(validateAlertRule({ ...full, windowMinutes: 20000 }).ok).toBe(false);
+    expect(validateAlertRule({ ...full }).ok).toBe(true);
   });
 
   it("evaluates alert rules against groups", () => {
-    const rule = validateAlertRule({ metric: "margin", op: "<", threshold: 100, channel: "inapp" });
+    const rule = validateAlertRule({ metric: "margin", op: "<", threshold: 100, channel: "inapp", owner: "o", responseAction: "a", windowMinutes: 60 });
     if (!rule.ok) throw new Error("rule");
     const hits = evaluateRule(rule.value, [
       { key: "GOOD", margin: 500, cost: 100 },

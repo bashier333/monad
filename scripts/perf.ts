@@ -1,5 +1,7 @@
 import { computeLaneMargins, type FeeInput, type FuelInput, type LoadInput } from "../lib/packs/freight/margin/engine";
 import { seedAliases } from "../lib/packs/freight/margin/places";
+import { reorderSuggestions } from "../lib/packs/manufacturing/logic/reorder";
+import { fulfillmentRisks } from "../lib/packs/manufacturing/logic/risk";
 
 const N = 100_000;
 
@@ -43,4 +45,32 @@ console.log(`loads=${loads.length} lanes=${r.lanes.length} engine_ms=${Math.roun
 if (ms > 2000) {
   console.error("PERF BUDGET EXCEEDED: engine > 2000ms");
   process.exit(1);
+}
+
+// Manufacturing logic budget (MFG-0200): 10k lots + edges through the
+// reorder and risk functions must stay interactive.
+{
+  const lots = Array.from({ length: 10_000 }, (_, i) => ({
+    id: `lot-${i}`,
+    key: `lot-${i}`,
+    data: { qty_on_hand: 100 + (i % 900), reorder_point: 500, safety_stock: 100, daily_demand: 10 },
+  }));
+  const edges = lots.flatMap((l, i) => [
+    { fromId: l.id, linkKey: "mfg_of_product", toId: `product-${i % 50}` },
+    { fromId: `wh-${i % 20}`, linkKey: "mfg_stocks", toId: l.id },
+  ]);
+  const t1 = performance.now();
+  const suggestions = reorderSuggestions(lots, edges);
+  const shipments = Array.from({ length: 2000 }, (_, i) => ({
+    id: `sh-${i}`,
+    key: `sh-${i}`,
+    data: { status: i % 10 === 0 ? "delayed" : "in_transit", qty: 100, sla_hours: 24 },
+  }));
+  const risks = fulfillmentRisks(shipments, new Map());
+  const mfgMs = performance.now() - t1;
+  console.log(`lots=${lots.length} suggestions=${suggestions.length} risks=${risks.length} mfg_logic_ms=${Math.round(mfgMs)}`);
+  if (mfgMs > 2000) {
+    console.error("PERF BUDGET EXCEEDED: manufacturing logic > 2000ms");
+    process.exit(1);
+  }
 }

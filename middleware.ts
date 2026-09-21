@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { checkRate } from "@/lib/core/ratelimit";
+import { desktopRewrite, desktopBootstrapPath } from "@/lib/core/desktop";
 
 const RULES: Array<{ prefix: string; limit: number; windowMs: number }> = [  { prefix: "/api/auth", limit: 30, windowMs: 60_000 },
   { prefix: "/api/uploads", limit: 20, windowMs: 60_000 },
@@ -10,6 +11,9 @@ const RULES: Array<{ prefix: string; limit: number; windowMs: number }> = [  { p
   { prefix: "/api/search", limit: 60, windowMs: 60_000 },
   { prefix: "/s/", limit: 60, windowMs: 60_000 },
   { prefix: "/api/demo", limit: 10, windowMs: 60_000 },
+  { prefix: "/api/download", limit: 10, windowMs: 60_000 },
+  { prefix: "/api/updates", limit: 10, windowMs: 60_000 },
+  { prefix: "/api/check", limit: 10, windowMs: 60_000 },
   { prefix: "/api/answers/export", limit: 30, windowMs: 60_000 },
 ];
 
@@ -49,6 +53,26 @@ export function middleware(req: Request) {
       status: 503,
       headers: { "Retry-After": "1800", "Content-Type": "text/plain" },
     });
+  }
+
+  // Desktop (exe) mode: no sign-in stage. Any first full-page request without
+  // a session cookie redirects through /api/desktop/bootstrap, which mints
+  // the machine's owner session and sends the user back to their target.
+  // Everything else (API calls, assets, the bootstrap route itself) passes.
+  const bootstrap = desktopBootstrapPath(url.pathname, req.headers.get("accept") ?? "", req.headers.get("cookie") ?? "");
+  if (bootstrap) {
+    const dest = new URL(bootstrap.path, req.url);
+    dest.searchParams.set("next", `${url.pathname}${url.search}`);
+    return NextResponse.redirect(dest);
+  }
+
+  // Desktop (exe) mode hides the marketing site: those URLs render the
+  // workspace home instead. Web deployments never set the flag.
+  const rewrite = desktopRewrite(url.pathname);
+  if (rewrite) {
+    const dest = new URL(rewrite, req.url);
+    dest.search = url.search;
+    return NextResponse.rewrite(dest);
   }
 
   const res = NextResponse.next();

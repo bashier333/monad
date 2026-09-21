@@ -8,27 +8,41 @@ export default function GenerateBriefButton({ pack = "freight" }: { pack?: "frei
 
   async function run() {
     setBusy(true);
-    setMsg("");
-    const res = await fetch("/api/briefs/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pack }),
-    });
-    setBusy(false);
-    if (res.ok) {
-      const body = (await res.json()) as { brief?: { weekStart: string } };
-      window.location.href = `/briefs/${body.brief?.weekStart ?? ""}?pack=${pack}`;
-    } else {
-      setMsg("generation failed");
+    setMsg("Generating — crunching the week, usually under a minute…");
+    try {
+      const res = await fetch("/api/briefs/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pack }),
+      });
+      if (res.ok) {
+        const body = (await res.json()) as { brief?: { weekStart: string } };
+        window.location.href = `/briefs/${body.brief?.weekStart ?? ""}?pack=${pack}`;
+      } else {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setMsg(body.error ?? "generation failed — try again");
+      }
+    } catch {
+      setMsg("generation failed — check your connection and try again");
     }
+    setBusy(false);
   }
 
   return (
     <span>
-      <button onClick={run} disabled={busy} className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50">
+      <button
+        onClick={() => void run()}
+        disabled={busy}
+        className="ds-control rounded px-3 py-1 text-sm font-medium disabled:opacity-50"
+        style={{ background: "var(--accent)", color: "#141413" }}
+      >
         {busy ? "Generating…" : "Generate this week's brief"}
       </button>
-      {msg && <span className="ml-2 text-sm text-red-600">{msg}</span>}
+      {msg && (
+        <span className="ml-2 text-sm ds-text-2" role="status">
+          {msg}
+        </span>
+      )}
     </span>
   );
 }

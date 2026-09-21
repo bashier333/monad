@@ -17,8 +17,8 @@ export default function TrustPage() {
       <section className="rounded border p-4">
         <h2 className="font-medium">Security reports</h2>
         <p className="mt-1 text-gray-700">
-          Found a vulnerability? Email security@example.test with details (PGP on request).
-          We acknowledge within 2 business days and fix criticals within 7.
+          Found a vulnerability? <Link href="/support" className="underline">Tell us through support</Link> with
+          details (PGP on request). We acknowledge within 2 business days and fix criticals within 7.
         </p>
       </section>
       <section className="rounded border p-4">

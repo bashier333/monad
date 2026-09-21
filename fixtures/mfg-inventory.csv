@@ -1,0 +1,6 @@
+Lot,Warehouse,SKU,Name,Category,QtyOnHand,SafetyStock,ReorderPoint,DailyDemand,UnitValue
+lot-central-a,WH Central,SKU-A,Bracket A,fastener,400,50,100,40,2.5
+lot-central-b,WH Central,SKU-B,Bracket B,fastener,900,80,150,55,3.1
+lot-east-a,WH East,SKU-A,Bracket A,fastener,1200,50,100,45,2.5
+lot-east-c,WH East,SKU-C,Hinge C,fastener,60,30,80,12,1.8
+lot-south-b,WH South,SKU-B,Bracket B,fastener,120,80,150,70,3.1

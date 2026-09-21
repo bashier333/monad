@@ -5,7 +5,7 @@ export default defineConfig({
   resolve: { alias: { "@": path.resolve(import.meta.dirname, ".") } },
   test: {
     environment: "node",
-    exclude: ["node_modules", "**/__gen_test__/**"],
+    exclude: ["node_modules", "dist/**", "**/__gen_test__/**"],
     coverage: {
       provider: "v8",
       include: [

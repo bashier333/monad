@@ -1,0 +1,4 @@
+Warehouse,Region,Capacity,GeoLat,GeoLng
+WH Central,midwest,5000,41.881,-87.623
+WH East,east,3200,40.692,-74.168
+WH South,south,4100,29.758,-95.363

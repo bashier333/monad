@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const DOCS = [
+  { href: "/help/ontology", title: "Ontology guide", desc: "Your business model in plain English: tour, glossary, FAQ." },
   { href: "/help", title: "User guides", desc: "Upload, read answers, correct costs." },
   { href: "/pricing", title: "Pricing", desc: "Tiers and billing." },
   { href: "/changelog", title: "Changelog", desc: "Every release in plain English." },

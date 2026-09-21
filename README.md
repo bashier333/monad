@@ -1,4 +1,4 @@
-# Decision Layer app (Phase 0 scaffold)
+# Monad app
 
 ## Quickstart
 
@@ -25,7 +25,7 @@
 
 ## Runbooks
 
-- Backup drill (B-014): `docker compose exec postgres pg_dump -U decision decisionlayer > backup.sql`;
-  restore: `cat backup.sql | docker compose exec -T postgres psql -U decision decisionlayer`.
+- Backup drill (B-014): `docker compose exec postgres pg_dump -U monad monad > backup.sql`;
+  restore: `cat backup.sql | docker compose exec -T postgres psql -U monad monad`.
   Run monthly once pilots are live; record row counts before/after.
 - Incident (B-099): `/api/health` first, then error tracker, then access logs; comms to pilots <1h.

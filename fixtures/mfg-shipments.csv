@@ -1,0 +1,6 @@
+Shipment,Status,Carrier,ETA,Qty,SLAHours,Origin,Customer,DestPlant,Marking
+sh-101,planned,TransLine,2026-09-21T08:00:00Z,300,48,WH Central,Acme Mfg,,
+sh-102,in_transit,FastFreight,2026-09-19T18:00:00Z,450,24,WH East,Brightline,,
+sh-103,delayed,TransLine,2026-09-18T12:00:00Z,500,12,WH South,Coreworks,,confidential
+sh-104,delivered,FastFreight,2026-09-15T10:00:00Z,200,36,WH Central,Acme Mfg,,
+sh-105,delayed,TransLine,2026-09-17T09:00:00Z,150,12,WH East,,Plant Two,

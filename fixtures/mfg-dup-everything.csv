@@ -1,0 +1,6 @@
+﻿Lot,Warehouse,SKU,QtyOnHand,ReorderPoint
+lot-dup-1,WH Central,SKU-A,100,50
+lot-dup-1,WH Central,SKU-A,100,50
+lot-dup-1,WH Central,SKU-A,100,50
+lot-dup-2,WH East,SKU-B,200,80
+lot-dup-2,WH East,SKU-B,200,80

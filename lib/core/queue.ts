@@ -43,6 +43,15 @@ export async function enqueueImport(job: ImportJob, priority = 0): Promise<"queu
   return "queued";
 }
 
+// Named-job handlers (scheduler ticks, sweeps) registered by process
+// entrypoints. A handler returns true when it claimed the job.
+type QueueJobHandler = (name: string, data: unknown) => Promise<boolean>;
+const handlers: QueueJobHandler[] = [];
+
+export function registerQueueHandler(h: QueueJobHandler): void {
+  handlers.push(h);
+}
+
 export async function startImportWorker(): Promise<Worker<ImportJob> | null> {
   const url = redisUrl();
   if (!url) {
@@ -53,6 +62,9 @@ export async function startImportWorker(): Promise<Worker<ImportJob> | null> {
   const worker = new W<ImportJob>(
     "imports",
     async (j) => {
+      for (const h of handlers) {
+        if (await h(j.name, j.data)) return;
+      }
       await processImport(j.data.runId, j.data.requestId);
     },
     { connection: { url }, concurrency: 2 },

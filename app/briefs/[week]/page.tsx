@@ -1,5 +1,7 @@
 import Link from "next/link";
+import BriefCopyButtons from "@/components/BriefCopyButtons";
 import BriefFeedback from "@/components/BriefFeedback";
+import GenerateBriefButton from "@/components/GenerateBriefButton";
 import PrintButton from "@/components/PrintButton";
 import type { BriefContent } from "@/lib/core/brief/content";
 import { auth } from "@/lib/core/auth";
@@ -45,9 +47,10 @@ export default async function BriefPage({
   if (!brief) {
     return (
       <main className="mx-auto max-w-2xl space-y-3 p-8">
-        <p>No brief for week of {week} yet.</p>
+        <p className="ds-text">No brief for week of {week} yet.</p>
+        <GenerateBriefButton pack={pack} />
         <p>
-          <Link href="/briefs" className="underline">
+          <Link href="/briefs" className="underline ds-text-2">
             ← All briefs
           </Link>
         </p>
@@ -56,11 +59,23 @@ export default async function BriefPage({
   }
 
   const c = brief.content as unknown as BriefContent;
+  const laneHref = (lane: string) =>
+    pack === "agency"
+      ? `/answers/project?project=${encodeURIComponent(lane)}&week=${c.weekStart}`
+      : `/answers/lane?lane=${encodeURIComponent(lane)}&week=${c.weekStart}`;
+  const worst = [...(c.losers ?? [])].sort((a, b) => a.margin - b.margin)[0];
+  const tldr = [
+    `Margin $${c.totals.margin.toFixed(2)} on $${c.totals.revenue.toFixed(2)} revenue.`,
+    worst ? `Worst: ${worst.lane} at $${worst.margin.toFixed(2)}.` : "No losing lanes this week.",
+    c.anomalies.length > 0
+      ? `${c.anomalies.length} lane${c.anomalies.length === 1 ? "" : "s"} moved more than expected.`
+      : "Nothing moved more than expected.",
+  ];
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-4 md:p-8">
       {mode === "tv" && <meta httpEquiv="refresh" content="300" />}
-      <p className="print:hidden text-sm">
+      <p className="print:hidden text-sm ds-text-2">
         <Link href="/briefs" className="underline">
           ← All briefs
         </Link>
@@ -72,25 +87,37 @@ export default async function BriefPage({
         <Link href={`/briefs/${week}?pack=${pack}&mode=tv`} className="underline">
           TV mode
         </Link>
+        {mode === "tv" && <span> · refreshes every 5 min</span>}
       </p>
-      <h1 className={`${mode === "monday" ? "text-4xl" : "text-xl"} font-bold`}>
+      <h1 className={`${mode === "monday" ? "text-4xl" : "text-xl"} font-bold ds-text`}>
         Week of {c.weekStart} {pack === "agency" ? "(studio)" : "(fleet)"}
       </h1>
-      <p className={`rounded border p-4 ${mode === "monday" ? "text-2xl" : ""}`}>{c.paragraph}</p>
+
+      <section aria-label="TL;DR" className="rounded border p-4 ds-panel" style={{ borderColor: "var(--hairline)" }}>
+        <h2 className="font-medium ds-text">TL;DR</h2>
+        <ul className="mt-1 list-disc pl-5 text-sm ds-text">
+          {tldr.map((t, i) => (
+            <li key={i}>{t}</li>
+          ))}
+        </ul>
+      </section>
+
+      <p className={`rounded border p-4 ds-panel ds-text ${mode === "monday" ? "text-2xl" : ""}`} style={{ borderColor: "var(--hairline)" }}>{c.paragraph}</p>
 
       <div className="grid grid-cols-3 gap-2 text-sm">
-        <div className="rounded border p-2">Revenue: ${c.totals.revenue.toFixed(2)}</div>
-        <div className="rounded border p-2">Cost: ${c.totals.cost.toFixed(2)}</div>
-        <div className="rounded border p-2">Margin: ${c.totals.margin.toFixed(2)}</div>
+        <div className="rounded border p-2 ds-panel ds-text" style={{ borderColor: "var(--hairline)" }}>Revenue: ${c.totals.revenue.toFixed(2)}</div>
+        <div className="rounded border p-2 ds-panel ds-text" style={{ borderColor: "var(--hairline)" }}>Cost: ${c.totals.cost.toFixed(2)}</div>
+        <div className="rounded border p-2 ds-panel ds-text" style={{ borderColor: "var(--hairline)" }}>Margin: ${c.totals.margin.toFixed(2)}</div>
       </div>
 
       {c.anomalies.length > 0 && (
-        <section className="rounded border p-4 text-sm">
-          <h2 className="font-medium">Moved more than expected</h2>
-          <ul className="mt-1 list-disc pl-5">
+        <section className="rounded border p-4 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
+          <h2 className="font-medium ds-text">Moved more than expected</h2>
+          <ul className="mt-1 list-disc pl-5 ds-text-2">
             {c.anomalies.map((a) => (
               <li key={a.lane}>
-                {a.lane}: {a.direction} {Math.abs(a.swingPts)}pts ({a.causes.join(", ")})
+                <Link href={laneHref(a.lane)} className="underline ds-text">{a.lane}</Link>: {a.direction}{" "}
+                {Math.abs(a.swingPts)}pts ({a.causes.join(", ")})
               </li>
             ))}
           </ul>
@@ -98,11 +125,14 @@ export default async function BriefPage({
       )}
 
       {((c.newSince?.lanes.length ?? 0) + (c.newSince?.trucks.length ?? 0) + (c.newSince?.brokers.length ?? 0)) > 0 && (
-        <section className="rounded border p-4 text-sm">
-          <h2 className="font-medium">New since last week</h2>
-          <ul className="mt-1 list-disc pl-5">
+        <section className="rounded border p-4 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
+          <h2 className="font-medium ds-text">New since last week</h2>
+          <ul className="mt-1 list-disc pl-5 ds-text-2">
             {(c.newSince?.lanes ?? []).map((l) => (
-              <li key={l}>{pack === "agency" ? "Project" : "Lane"}: {l}</li>
+              <li key={l}>
+                {pack === "agency" ? "Project" : "Lane"}:{" "}
+                <Link href={laneHref(l)} className="underline ds-text">{l}</Link>
+              </li>
             ))}
             {(c.newSince?.trucks ?? []).map((t) => (
               <li key={t}>{pack === "agency" ? "Team member" : "Truck"}: {t}</li>
@@ -115,22 +145,22 @@ export default async function BriefPage({
       )}
 
       <section className="grid gap-2 text-sm md:grid-cols-2">
-        <div className="rounded border p-3">
-          <h2 className="font-medium">Winners</h2>
-          <ul className="mt-1">
+        <div className="rounded border p-3 ds-panel" style={{ borderColor: "var(--hairline)" }}>
+          <h2 className="font-medium ds-text">Winners</h2>
+          <ul className="mt-1 ds-text-2">
             {c.winners.map((w) => (
               <li key={w.lane}>
-                {w.lane}: ${w.margin.toFixed(2)}
+                <Link href={laneHref(w.lane)} className="underline ds-text">{w.lane}</Link>: ${w.margin.toFixed(2)}
               </li>
             ))}
           </ul>
         </div>
-        <div className="rounded border p-3">
-          <h2 className="font-medium">Losers</h2>
-          <ul className="mt-1">
+        <div className="rounded border p-3 ds-panel" style={{ borderColor: "var(--hairline)" }}>
+          <h2 className="font-medium ds-text">Losers</h2>
+          <ul className="mt-1 ds-text-2">
             {c.losers.map((l) => (
               <li key={l.lane}>
-                {l.lane}: ${l.margin.toFixed(2)}
+                <Link href={laneHref(l.lane)} className="underline ds-text">{l.lane}</Link>: ${l.margin.toFixed(2)}
               </li>
             ))}
           </ul>
@@ -153,9 +183,10 @@ export default async function BriefPage({
       <div className="print:hidden flex flex-wrap items-center gap-3">
         <BriefFeedback id={brief.id} week={c.weekStart} />
         <PrintButton />
+        <BriefCopyButtons summary={tldr.join(" ")} />
         <Link
           href={pack === "agency" ? `/answers/projects?week=${c.weekStart}` : `/answers?week=${c.weekStart}`}
-          className="text-sm underline"
+          className="text-sm underline ds-text"
         >
           Open the full answer
         </Link>

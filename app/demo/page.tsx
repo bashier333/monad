@@ -37,6 +37,9 @@ export default async function DemoPage() {
     "2026-09-13",
   );
 
+  const losers = result.projects.filter((p) => p.margin < 0);
+  const leaking = losers.reduce((s, p) => s + Math.abs(p.margin), 0);
+
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-4 md:p-8">
       <p className="rounded border border-blue-300 bg-blue-50 p-3 text-sm">
@@ -45,6 +48,10 @@ export default async function DemoPage() {
           Sign in
         </Link>{" "}
         to upload your own.
+      </p>
+      <p className="rounded border p-3 text-sm ds-panel" role="status" style={{ borderColor: "var(--hairline)" }}>
+        <span className="font-medium ds-text">This sample found ${leaking.toFixed(2)} leaking</span>
+        <span className="ds-text-2"> across {losers.length} losing project{losers.length === 1 ? "" : "s"} — before any upload.</span>
       </p>
       <h1 className="text-xl font-bold">Project margins (sample)</h1>
       <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
@@ -74,6 +81,22 @@ export default async function DemoPage() {
           </tbody>
         </table>
       </div>
+      <p className="flex flex-wrap gap-2">
+        <Link
+          href="/api/auth/signin"
+          className="ds-control inline-block rounded px-4 py-2 text-sm font-medium"
+          style={{ background: "var(--accent)", color: "#141413" }}
+        >
+          Start free
+        </Link>
+        <Link
+          href="/pricing"
+          className="ds-control inline-block rounded border px-4 py-2 text-sm ds-text"
+          style={{ borderColor: "var(--hairline)" }}
+        >
+          See pricing
+        </Link>
+      </p>
     </main>
   );
 }

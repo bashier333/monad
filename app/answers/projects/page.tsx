@@ -67,7 +67,7 @@ export default async function AgencyAnswersPage({
     <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Project margins</h1>
-        <WeekPicker current={answer.meta.weekStart} ns="last-week-agency" />
+        <WeekPicker current={answer.meta.weekStart} />
       </div>
       <p className="text-sm text-gray-600">
         <Link href="/help#agency" className="underline">How to read this</Link> ·{" "}

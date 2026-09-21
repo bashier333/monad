@@ -1,4 +1,4 @@
-# Staging Runner — Decision Layer
+# Staging Runner — Monad
 #
 # Provisions a full staging environment locally for the tasks that need it:
 #   P-018  10k-load CSV export streamed without OOM

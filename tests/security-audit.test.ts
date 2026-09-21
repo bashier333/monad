@@ -49,6 +49,7 @@ const NO_LOG_NEEDED = new Set([
   "/hooks/[slug]",
   "/answers/whatif",
   "/rules/preview",
+  "/ontology/actions/preview",
   "/billing/webhook",
 ]);
 
@@ -100,6 +101,12 @@ describe("security audit gates (D1/D2/D9)", () => {
     const legitimatelyUnscoped = new Set([
       "/admin/queue",
       "/packs",
+      "/ontology/export",
+      "/download/exe",
+      "/updates/latest.yml",
+      "/updates/[file]",
+      "/desktop",
+      "/desktop/bootstrap",
     ]);
     const bad: string[] = [];
     for (const f of found) {

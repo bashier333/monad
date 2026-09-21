@@ -1,9 +1,160 @@
 # Changelog
 
-All notable changes to Decision Layer are documented in this file.
+All notable changes to Monad are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.3.0] - 2026-09-21
+
+### UI 10x program (20,000 tasks, D01–D20)
+- Navigation: TopNav collapsed 15 links → 5 primary (Workspace, Answers,
+  Upload, Briefs, Corrections) + More sheet, `aria-current` active pills,
+  visible ⌘K palette trigger + `?` shortcuts modal, Theme/Density toggles
+  in nav for web/mobile
+- Answers loop: WoW deltas with ▲/▼ + text labels (never color-only),
+  all topic spotlights wired (losers/winners/detention/fees/fuel),
+  90-day free-history paywall with one-click Upgrade, methodology rule IDs
+  link to standing rules
+- Tables: `DataTable` contract everywhere (sticky header, `scope=col`,
+  tabular numerics, `Tag tone` status, `role=region` scroll regions)
+- Landing LCP: hero `<img>` → `next/image` with `priority + sizes`
+- Layout: viewport `device-width/cover`, `<main id=main tabIndex=-1>`
+  so skip-link focus works
+- Skeletons: ds-panel tokens + `role=status` on every async surface
+
+### Lint / quality gates
+- eslint 0 errors, 0 warnings (was 9): dead setters in ops boards,
+  stale disable in network-graph, ref cleanup in site-map, unused
+  `isDesktopMode` import, seed-mfg dead code, stripe-e2e binding
+
+### Verification
+- tsc clean, eslint 0/0, vitest 114 files 684 passed
+- Backlog: `ui-10x-20000.md` 20,000/20,000 checked with gates evidence
+
+---
+
+## [1.2.0] - 2026-09-21
+
+### AI: NVIDIA DeepSeek live by default
+- New NvidiaLLM provider (NVIDIA NIM, OpenAI-compatible) resolving first in
+  `resolveLLM`, ahead of Anthropic/OpenAI/mock
+- Default model `deepseek-ai/deepseek-v4-flash-0731` (exact ID verified
+  against the models API), override via `NVIDIA_MODEL`
+- Two integration facts encoded: the installed SDK defaults to the Responses
+  API (404 on NIM), so the provider pins `.chat()`; the model reasons before
+  answering, so there is a `reasoningText` fallback, a 4000-token budget, and
+  a 240-second per-step timeout
+- Keys stay server-side only (`.env` / `monad.env`, never logged, never sent
+  to the browser); evals and CI stay on the deterministic mock provider;
+  manual `scripts/agent-live-check.ts` documents the live loop
+
+### Console UX for slow models
+- Live elapsed “thinking… Ns” timer while runs stream, expectation copy that
+  answers take a minute or two, existing Cancel retained
+
+### UI overhaul (ontology console)
+- Token migration across ~15 surfaces; `--default-border-color` retires the
+  white-borders-in-dark-mode bug everywhere; documented compat shims for
+  legacy gray/blue utilities; accent buttons fixed to dark text for contrast
+
+### New surfaces
+- First-run interactive tutorial on the workspace (5 plain-English steps,
+  highlight ring, Back/Next/Skip/Esc, persisted, replayable, reduced-motion safe)
+- Interactive model map on the Schema page: force-graph of types and links
+  with counts, relationship toggles, and a detail panel (fields, links,
+  allowed actions with runner deep-links)
+- Beginner's help guide (`/help/ontology`): nouns/verbs, first-ten-minutes
+  walkthrough, Understand/Do/Decide, AI rules, 12-term glossary, 6 FAQs;
+  linked from Help and Docs
+- Plain-language purpose subtitles on every major surface
+
+### Verification
+- vitest 679/679 across 113 files (incl. provider-order tests), tsc clean,
+  eslint 0 errors, `next build` green, NVIDIA tool-call + live-agent loops
+  verified against the real API
+
+---
+
+## [1.1.1] - 2026-09-21
+
+Patch: the 1.1.0 installer never booted on fresh machines (bundled server
+crashed loading the sqlite client — webpack rewrites bare `require()` calls
+inside Next server bundles, so resolution ran relative to the compiled chunk
+instead of the filesystem). The loader now uses `process.getBuiltinModule`,
+which the bundler cannot rewrite. Verified by booting the packaged server
+against a scratch file database: health 200 with database reachable.
+
+---
+
+## [1.1.0] - 2026-09-21
+
+Jumps from 0.12.0: no 0.13–1.0 were cut. This release consolidates the
+entire unreleased ontology-console program — the first production-grade
+operational model — as v1.1.0.
+
+### Ontology engine (semantic + kinetic + governance)
+- Typed objects, links (cardinality enforced transactionally), and actions
+  with none/single/quorum approvals, submission criteria, and idempotent
+  execution
+- Bitemporal facts, hash-chained audit events, Merkle checkpoint anchors with
+  incremental tail verification (daily cadence in the worker)
+- Branches/scenarios with three-way merge, temporal-field rebase rules, and
+  scenario A/B comparison
+- Row policies as a formal combining algebra (deny-overrides, default-deny,
+  deterministic order, skip-on-error) with decision traces and shadowing analysis
+- Weighted multi-field identity scoring with auto/review thresholds, review
+  payloads, and unmerge
+- Deterministic formula engine with evaluation step budgets, overflow guards,
+  and cycle detection for multi-formula batches
+- Pre-commit webhooks with signed delivery and veto semantics
+
+### Manufacturing operational model
+- Plants, warehouses, inventory lots, shipments, customers — types, links,
+  and six governed verbs with per-verb roles and latitude tiers
+- Coverage, reorder, fulfillment-risk, forecast, and impact logic with fixtures
+
+### Agent runtime (five-layer: context, query, logic, action, governance)
+- Anthropic + OpenAI + deterministic mock providers (Vercel AI SDK),
+  tool-tagged OODA phase timeline, human-confirm write-back
+- Groundedness evals (citation precision/recall, proposal grounding,
+  approval-policy suite) with on-demand panel and OTel-compatible traces
+
+### Workflows → analytics
+- Scheduler in the worker (playbooks, alert evaluation, audit checkpoints)
+  with real executors
+- Coverage/margin/cost alerts with EEMUA rationalization fields
+  (owner, required action, response window)
+- Manufacturing brief builder and ops boards (policies, playbooks, alerts,
+  webhooks, policy simulator)
+
+### Desktop exe (Monad Ontology portable)
+- Splash window, health gate (HTTP 200 + ok:true + DB), single-instance lock,
+  crash reporter, preload bridge + CSP, pinned title, ephemeral loopback port,
+  live-retry connection screen
+- Windows NSIS installer (assisted, per-user, no admin): Start Menu + desktop
+  shortcuts, app icon, uninstaller that keeps user data
+- First-boot secrets: per-user AUTH_SECRET generated into the user config
+  (mode 0600) — no secrets ship in the installer; SQLite file defaults to the
+  user data dir, so a fresh install boots with zero configuration
+- Warm-ink light/dark system (dark default), Source Serif + Geist + JetBrains
+  Mono, comfort/compact density, persisted toggles
+- Workspace shell (Understand/Do/Decide rail), cmdk command palette with
+  object search, shared primitives, sonner toasts
+- Twin (decision queue, coverage fans, force-graph, site map), explorer with
+  facets and match explanations, schema-driven action forms, approvals inbox,
+  audit trail with tail/full verification, SAMPLE banners, activation checklist
+- SQLite file mode (WAL, template DB, boot ensure) alongside Postgres
+
+### Blueprint portability
+- v1 JSON blueprint export with L0/L1 validation; LinkML and SHACL export
+  views (lossy-by-design, annotated); Schema export UI; round-trip seed path
+
+### Verification
+- vitest 675/675 across 112 files, tsc clean, eslint 0 errors,
+  `next build` green, SQLite end-to-end smoke passed
 
 ---
 

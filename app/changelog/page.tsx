@@ -1,5 +1,34 @@
 const ENTRIES: Array<{ version: string; date: string; notes: string[] }> = [
   {
+    version: "1.2.0",
+    date: "2026-09-21",
+    notes: [
+      "Live AI: DeepSeek answers from your data in the automation console — a human still confirms every action.",
+      "First-run tour, interactive model map, beginner's help guide, and plainer wording on every screen.",
+      "Dark-mode borders and button contrast fixed across the workspace.",
+    ],
+  },
+  {
+    version: "1.1.1",
+    date: "2026-09-21",
+    notes: ["Fixes fresh-install boot: the packaged server now loads its database client correctly."],
+  },
+  {
+    version: "1.1.0",
+    date: "2026-09-21",
+    notes: [
+      "Ontology console: digital twin, agent with human-confirm actions, approvals inbox, audit trail, scenarios, ops boards.",
+      "Desktop exe hardening: splash, health gate, dark mode, command palette, SQLite file mode.",
+      "Governed engine: policy algebra, identity review, audit checkpoints, JSON + LinkML + SHACL blueprint export.",
+      "Windows installer: assisted per-user setup, app icon, first-boot secrets, zero-config local database.",
+    ],
+  },
+  {
+    version: "0.12.0",
+    date: "2026-09-18",
+    notes: ["Pilot checklist with auto-stamps, /pilots page with kill-gate signals, landing page, pricing source of truth."],
+  },
+  {
     version: "0.11.0",
     date: "2026-09-18",
     notes: ["Pilot ops kit: agreement, call agenda, exit interview, kill-gate review docs."],

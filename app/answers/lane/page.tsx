@@ -3,6 +3,7 @@ import BulkFlag from "@/components/BulkFlag";
 import LoadsTable from "@/components/LoadsTable";
 import type { FigureHistory } from "@/components/LoadRow";
 import RecomputeButton from "@/components/RecomputeButton";
+import { ProofStrip } from "@/components/primitives";
 import { getWeeklyAnswer } from "@/lib/packs/freight/service"; import { resolveWeek } from "@/lib/core/answers/service";
 import { laneKey } from "@/lib/packs/freight/margin/places";
 import { auth } from "@/lib/core/auth";
@@ -131,61 +132,63 @@ export default async function LanePage({
     historyByLoad.set(c.targetKey, list);
   }
 
+  const wow = prevLane ? Math.round((lane.margin - prevLane.margin) * 100) / 100 : null;
+
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
-      <p className="text-sm">
+      <p className="text-sm ds-text-2">
         <Link href={`/answers?week=${answer.meta.weekStart}`} className="underline">
           ← All lanes
-        </Link>
+        </Link>{" "}
+        · week of {answer.meta.weekStart}
       </p>
-      <h1 className="text-xl font-bold">{lane.lane}</h1>
-      <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
-        <div className="rounded border p-2">Margin: ${lane.margin.toFixed(2)}</div>
-        <div className="rounded border p-2">{lane.marginPct === null ? "—" : `${lane.marginPct}%`}</div>
-        <div className="rounded border p-2">
-          vs last week:{" "}
-          {prevLane ? (
-            <span className={lane.margin - prevLane.margin < 0 ? "text-red-600" : "text-green-700"}>
-              {lane.margin - prevLane.margin >= 0 ? "+" : ""}$
-              {(Math.round((lane.margin - prevLane.margin) * 100) / 100).toFixed(2)}
-            </span>
-          ) : (
-            "no prior week"
-          )}
-        </div>
-        <div className="rounded border p-2">
-          <a href={`/api/answers/export?week=${answer.meta.weekStart}&lane=${encodeURIComponent(lane.lane)}`} className="underline">
-            Download loads CSV
-          </a>
-        </div>
-      </div>
+      <h1 className="text-xl font-bold ds-text">{lane.lane}</h1>
+      <ProofStrip
+        items={[
+          { label: "Margin", value: `$${lane.margin.toFixed(2)}` },
+          { label: "Margin %", value: lane.marginPct === null ? "—" : `${lane.marginPct}%` },
+          {
+            label: "vs last week",
+            value: wow === null ? "no prior week" : `${wow >= 0 ? "+" : ""}$${wow.toFixed(2)}`,
+          },
+          { label: "Loads", value: String(loads.length) },
+        ]}
+      />
+      <p className="text-sm">
+        <a href={`/api/answers/export?week=${answer.meta.weekStart}&lane=${encodeURIComponent(lane.lane)}`} className="underline ds-text">
+          Download loads CSV
+        </a>
+      </p>
 
       {drivers.length > 0 && (
-        <section className="rounded border p-4 text-sm">
-          <h2 className="font-medium">Why this lane made (or lost) money — top 3 cost drivers</h2>
-          <ol className="mt-1 list-decimal pl-5">
+        <section className="rounded border p-4 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
+          <h2 className="font-medium ds-text">Why this lane made (or lost) money — top 3 cost drivers</h2>
+          <ol className="mt-1 list-decimal pl-5 ds-text-2">
             {drivers.map((d, i) => (
               <li key={i}>
-                {d.label} ${d.amount.toFixed(2)} on load {d.loadKey}
+                {d.label} ${d.amount.toFixed(2)} on load {d.loadKey}{" "}
+                <Link href={`/corrections?target=${encodeURIComponent(d.loadKey)}`} className="underline">
+                  flags
+                </Link>
               </li>
             ))}
           </ol>
         </section>
       )}
 
-      <section className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-sm">
-          <thead>
-              <tr className="text-left text-gray-500">
-              <th className="py-1">Load</th>
-              <th>Date</th>
-              <th>Driver</th>
-              <th>Truck</th>
-              <th>Broker</th>
-              <th className="text-right">Revenue</th>
-              <th className="text-right">Cost</th>
-              <th className="text-right">Margin</th>
-              <th>Lines</th>
+      <section className="overflow-x-auto rounded ds-panel" role="region" aria-label={`Loads on ${lane.lane}`} tabIndex={0}>
+          <table className="ds-table w-full min-w-[720px] text-sm">
+          <thead className="sticky top-0" style={{ background: "var(--panel)" }}>
+              <tr className="text-left">
+              <th scope="col" className="py-1 font-medium ds-text-2">Load</th>
+              <th scope="col" className="font-medium ds-text-2">Date</th>
+              <th scope="col" className="font-medium ds-text-2">Driver</th>
+              <th scope="col" className="font-medium ds-text-2">Truck</th>
+              <th scope="col" className="font-medium ds-text-2">Broker</th>
+              <th scope="col" className="text-right font-medium ds-text-2">Revenue</th>
+              <th scope="col" className="text-right font-medium ds-text-2">Cost</th>
+              <th scope="col" className="text-right font-medium ds-text-2">Margin</th>
+              <th scope="col" className="font-medium ds-text-2">Lines</th>
             </tr>
           </thead>
           <LoadsTable loads={loads} historyByLoad={Object.fromEntries(historyByLoad)} />
@@ -196,9 +199,9 @@ export default async function LanePage({
         <RecomputeButton week={answer.meta.weekStart} />
         <BulkFlag loads={loads.map((l) => ({ loadKey: l.loadKey, kinds: l.costs.map((c) => c.kind) }))} />
         {answer.adjustments.length > 0 && (
-          <details className="rounded border p-3">
-            <summary>Corrections applied this week ({answer.adjustments.length})</summary>
-            <ul className="mt-1 list-disc pl-5 text-gray-700">
+          <details className="rounded border p-3 ds-panel" style={{ borderColor: "var(--hairline)" }}>
+            <summary className="ds-text">Corrections applied this week ({answer.adjustments.length})</summary>
+            <ul className="mt-1 list-disc pl-5 ds-text-2">
               {answer.adjustments.map((a, i) => (
                 <li key={i}>{a.description}</li>
               ))}
@@ -207,12 +210,12 @@ export default async function LanePage({
         )}
       </section>
 
-      <section className="rounded border p-4 text-sm">
-        <h2 className="font-medium">Recent imports touching this lane</h2>
+      <section className="rounded border p-4 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
+        <h2 className="font-medium ds-text">Recent imports touching this lane</h2>
         {runs.length === 0 ? (
-          <p className="mt-1 text-gray-600">None found.</p>
+          <p className="mt-1 ds-text-2">None found.</p>
         ) : (
-          <ul className="mt-1 list-disc pl-5">
+          <ul className="mt-1 list-disc pl-5 ds-text-2">
             {runs.map((r) => (
               <li key={r.id}>
                 <Link href={`/imports/${r.id}`} className="underline">

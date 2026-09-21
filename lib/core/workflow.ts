@@ -11,27 +11,51 @@ export interface AlertRuleInput {
   threshold: number;
   channel: string;
   pack?: string;
+  owner?: string;
+  responseAction?: string;
+  windowMinutes?: number;
 }
 
 export function validateAlertRule(body: AlertRuleInput): { ok: true; value: Required<AlertRuleInput> } | { ok: false; error: string } {
-  if (!["margin", "cost"].includes(body.metric)) return { ok: false, error: "metric must be margin|cost" };
+  if (!["margin", "cost", "coverage"].includes(body.metric)) return { ok: false, error: "metric must be margin|cost|coverage" };
   if (!["<", ">"].includes(body.op)) return { ok: false, error: "op must be < or >" };
   if (!Number.isFinite(body.threshold)) return { ok: false, error: "threshold must be a number" };
   if (!["inapp", "email"].includes(body.channel)) return { ok: false, error: "channel must be inapp|email" };
-  const pack = body.pack === "agency" ? "agency" : "freight";
-  return { ok: true, value: { metric: body.metric, op: body.op, threshold: body.threshold, channel: body.channel, pack } };
+  const pack = body.pack === "agency" ? "agency" : body.pack === "manufacturing" ? "manufacturing" : "freight";
+  if (body.metric === "coverage" && pack !== "manufacturing") {
+    return { ok: false, error: "coverage metric is only valid for the manufacturing pack" };
+  }
+  // EEMUA rationalization: owner + action + window are required so a rule is
+  // an alarm with a documented response, not FYI noise.
+  const owner = String(body.owner ?? "").trim();
+  if (!owner) return { ok: false, error: "owner is required (who responds)" };
+  if (owner.length > 120) return { ok: false, error: "owner must be 120 chars or fewer" };
+  const responseAction = String(body.responseAction ?? "").trim();
+  if (!responseAction) return { ok: false, error: "responseAction is required (what the owner must do)" };
+  if (responseAction.length > 500) return { ok: false, error: "responseAction must be 500 chars or fewer" };
+  const windowMinutes = body.windowMinutes === undefined ? 1440 : Number(body.windowMinutes);
+  if (!Number.isInteger(windowMinutes) || windowMinutes < 5 || windowMinutes > 10080) {
+    return { ok: false, error: "windowMinutes must be an integer between 5 and 10080" };
+  }
+  return { ok: true, value: { metric: body.metric, op: body.op, threshold: body.threshold, channel: body.channel, pack, owner, responseAction, windowMinutes } };
 }
 
 export interface GroupLite {
   key: string;
   margin: number;
   cost: number;
+  coverage?: number;
+}
+
+export function metricValue(metric: string, g: GroupLite): number {
+  if (metric === "coverage") return typeof g.coverage === "number" ? g.coverage : Number.POSITIVE_INFINITY;
+  return metric === "margin" ? g.margin : g.cost;
 }
 
 export function evaluateRule(rule: Required<AlertRuleInput>, groups: GroupLite[]): string[] {
   const hits: string[] = [];
   for (const g of groups) {
-    const value = rule.metric === "margin" ? g.margin : g.cost;
+    const value = metricValue(rule.metric, g);
     if (rule.op === "<" && value < rule.threshold) hits.push(g.key);
     if (rule.op === ">" && value > rule.threshold) hits.push(g.key);
   }
@@ -76,12 +100,23 @@ export async function evaluateAlerts(
   const groups = await getGroups();
   const fired: Array<{ ruleId: string; groups: string[] }> = [];
   for (const r of rules) {
-    const parsed = validateAlertRule({ metric: r.metric, op: r.op, threshold: r.threshold, channel: r.channel, pack });
+    const parsed = validateAlertRule({
+      metric: r.metric,
+      op: r.op,
+      threshold: r.threshold,
+      channel: r.channel,
+      pack,
+      owner: r.owner,
+      responseAction: r.responseAction,
+      windowMinutes: r.windowMinutes,
+    });
     if (!parsed.ok) continue;
     const hits = evaluateRule(parsed.value, groups);
     if (hits.length === 0) continue;
     fired.push({ ruleId: r.id, groups: hits });
-    const label = `${parsed.value.metric} ${parsed.value.op} ${parsed.value.threshold}: ${hits.slice(0, 5).join(", ")}${hits.length > 5 ? ` +${hits.length - 5}` : ""}`;
+    // The alert carries its rationalization: who owns it, what to do, and
+    // the response window — so the notification is actionable, not FYI.
+    const label = `${parsed.value.metric} ${parsed.value.op} ${parsed.value.threshold}: ${hits.slice(0, 5).join(", ")}${hits.length > 5 ? ` +${hits.length - 5}` : ""} — owner ${parsed.value.owner}, respond within ${parsed.value.windowMinutes}m: ${parsed.value.responseAction}`;
     if (parsed.value.channel === "inapp") {
       await notifyOrg(orgId, "alert", label, "/answers");
     } else {

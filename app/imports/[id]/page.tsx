@@ -53,6 +53,13 @@ export default async function ImportPage({ params }: { params: Promise<{ id: str
     theirRunId: string;
   }>;
 
+  const samples = await db.stagedRecord.findMany({
+    where: { runId: run.id, organizationId: active.organization.id },
+    orderBy: { rowNumber: "asc" },
+    take: 3,
+    select: { rowNumber: true, data: true },
+  });
+
   return (
     <main className="mx-auto max-w-4xl space-y-6 p-8">
       <p className="text-sm">
@@ -70,7 +77,7 @@ export default async function ImportPage({ params }: { params: Promise<{ id: str
       </div>
       {run.failureReason && <p className="text-sm text-red-600">Failed: {run.failureReason}</p>}
 
-      {run.status === "NEEDS_REVIEW" && <ImportDecision runId={run.id} note={run.decisionNote} />}
+      {run.status === "NEEDS_REVIEW" && <ImportDecision runId={run.id} note={run.decisionNote} conflictCount={conflicts.length} />}
 
       <MappingReview
         runId={run.id}
@@ -78,6 +85,7 @@ export default async function ImportPage({ params }: { params: Promise<{ id: str
         initialMapping={(run.mapping ?? {}) as Record<string, number>}
         confidence={(run.mappingConfidence ?? {}) as Record<string, number>}
         sourceType={run.sourceType}
+        samples={samples.map((s) => ({ rowNumber: s.rowNumber, data: s.data as Record<string, unknown> }))}
       />
 
       {conflicts.length > 0 && (

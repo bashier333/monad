@@ -2,12 +2,36 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/core/db";
 import { getEnv } from "@/lib/core/env";
 import { logger } from "@/lib/core/logger";
+import { ensureSqlite } from "@/lib/core/sqlite";
+
+// SQLite file setup runs here (once per process) rather than in
+// instrumentation.ts: route handlers are provably server-only, while the
+// instrumentation module graph gets compiled into client chunks by Next 15.
+// Health = server + reachable+writable database, which is exactly what the
+// Electron shell polls before opening the workspace.
+let sqliteReady: boolean | null = null;
 
 export async function GET(req: Request) {
   const requestId = req.headers.get("x-request-id") ?? "none";
   const env = getEnv();
   let database: string = env.DATABASE_URL.includes("localhost") ? "unconfigured-check" : "configured";
   try {
+    if (env.DATABASE_URL.startsWith("file:") && sqliteReady !== true) {
+      const res = await ensureSqlite();
+      if (!res.ok) {
+        logger.warn("health: sqlite setup failed", { requestId, error: res.error });
+        return NextResponse.json(
+          {
+            ok: false,
+            time: new Date().toISOString(),
+            requestId,
+            config: { database: "unreachable", sqliteError: res.error },
+          },
+          { status: 503 }
+        );
+      }
+      sqliteReady = true;
+    }
     await db.$queryRaw`SELECT 1`;
     database = "reachable";
   } catch {

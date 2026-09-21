@@ -426,7 +426,7 @@ async function runPauseResumeTest() {
     });
 
     // Pause: pause collection on the subscription
-    const paused = await stripe.subscriptions.update(sub.id, {
+    await stripe.subscriptions.update(sub.id, {
       pause_collection: { behavior: "mark_uncollectible" },
     });
     const afterPause = await stripe.subscriptions.retrieve(sub.id);

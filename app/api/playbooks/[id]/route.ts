@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runPlaybook } from "@/lib/core/workflow";
+import { buildPlaybookExecutors } from "@/lib/packs/playbook-executors";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
@@ -37,11 +38,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const body = (await req.json().catch(() => ({}))) as { dryRun?: boolean };
   const requestId = req.headers.get("x-request-id") ?? "none";
-  const out = await runPlaybook(id, active.organization.id, requestId, body.dryRun === true, {
-    brief: async () => "brief: wire to /api/briefs/generate from UI (dry-run shows the shape)",
-    notify: async (message: string) => `notify: queued "${message.slice(0, 120)}"`,
-    export: async () => "export: use /api/answers/export with the playbook week",
-  });
+  const out = await runPlaybook(id, active.organization.id, requestId, body.dryRun === true, buildPlaybookExecutors(active.organization.id));
   await logAccess(active.organization.id, session.user.id, "playbook:run", `${id}:${out.status}`);
   return NextResponse.json(out);
 }

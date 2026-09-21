@@ -38,8 +38,17 @@ export default async function BriefsPage({
     where: { organizationId: active.organization.id, pack },
     orderBy: { weekStart: "desc" },
     take: 52,
-    select: { id: true, weekStart: true, createdAt: true },
+    select: { id: true, weekStart: true, createdAt: true, content: true },
   });
+
+  const marginOf = (b: { content: unknown }): string | null => {
+    try {
+      const totals = (b.content as { totals?: { margin?: number } })?.totals;
+      return typeof totals?.margin === "number" ? `$${totals.margin.toFixed(2)}` : null;
+    } catch {
+      return null;
+    }
+  };
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-4 md:p-8">
@@ -60,10 +69,11 @@ export default async function BriefsPage({
       ) : (
         <ul className="space-y-2 text-sm">
           {briefs.map((b) => (
-            <li key={b.id} className="rounded border p-3">
-              <Link href={`/briefs/${b.weekStart}?pack=${pack}`} className="underline">
+            <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded border p-3 ds-panel" style={{ borderColor: "var(--hairline)" }}>
+              <Link href={`/briefs/${b.weekStart}?pack=${pack}`} className="underline ds-text">
                 Week of {b.weekStart}
               </Link>
+              {marginOf(b) && <span className="font-mono text-sm ds-text-2">margin {marginOf(b)}</span>}
             </li>
           ))}
         </ul>

@@ -36,6 +36,272 @@ model Organization {
   accessLogs     AccessLog[]
   pilotChecklist PilotChecklist?
   notifications  Notification[]
+  ontoTypes    OntoType[]
+  ontoLinks    OntoLink[]
+  ontoVersions OntoTypeVersion[]
+  ontoObjects  OntoObject[]
+  ontoEdges    OntoEdge[]
+  ontoAliases  OntoAlias[]
+  ontoFacts    OntoFact[]
+  ontoEvents   OntoEvent[]
+  ontoActions  OntoAction[]
+  ontoApprovals OntoApproval[]
+  ontoActionRuns OntoActionRun[]
+  ontoPolicies OntoPolicy[]
+  ontoBranches OntoBranch[]
+  ontoWebhooks OntoWebhook[]
+}
+
+model OntoBranch {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  baseVersions   Json
+  changes        Json
+  status         String   @default("open")
+  createdById    String   @default("")
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId, status])
+}
+
+model OntoType {
+  id             String            @id @default(cuid())
+  organizationId String
+  key            String
+  label          String
+  plural         String            @default("")
+  description    String            @default("")
+  version        Int               @default(1)
+  status         String            @default("active")
+  deletedAt      DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  properties     OntoProperty[]
+  versions       OntoTypeVersion[]
+
+  @@unique([organizationId, key])
+  @@index([organizationId, status])
+}
+
+model OntoProperty {
+  id             String   @id @default(cuid())
+  organizationId String
+  typeId         String
+  key            String
+  label          String   @default("")
+  kind           String
+  required       Boolean  @default(false)
+  unique         Boolean  @default(false)
+  indexed        Boolean  @default(false)
+  immutable      Boolean  @default(false)
+  config         Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  type           OntoType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+
+  @@unique([typeId, key])
+  @@index([organizationId])
+}
+
+model OntoLink {
+  id             String       @id @default(cuid())
+  organizationId String
+  key            String
+  fromTypeKey    String
+  toTypeKey      String
+  cardinality    String
+  inverseKey     String?
+  required       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+}
+
+model OntoTypeVersion {
+  id             String   @id @default(cuid())
+  organizationId String
+  typeId         String
+  version        Int
+  snapshot       Json
+  note           String   @default("")
+  createdById    String   @default("")
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  type           OntoType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+
+  @@unique([typeId, version])
+  @@index([organizationId])
+}
+
+model OntoObject {
+  id             String   @id @default(cuid())
+  organizationId String
+  typeKey        String
+  key            String
+  data           Json
+  version        Int      @default(1)
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, typeKey, key])
+  @@index([organizationId, typeKey])
+}
+
+model OntoEdge {
+  id             String   @id @default(cuid())
+  organizationId String
+  fromId         String
+  linkKey        String
+  toId           String
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([fromId, linkKey, toId])
+  @@index([organizationId, fromId])
+  @@index([organizationId, toId])
+  @@index([organizationId, linkKey])
+}
+
+model OntoAlias {
+  id             String   @id @default(cuid())
+  organizationId String
+  objectId       String
+  alias          String
+  source         String   @default("manual")
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, alias])
+  @@index([organizationId, objectId])
+}
+
+model OntoFact {
+  id             String    @id @default(cuid())
+  organizationId String
+  objectId       String
+  property       String
+  value          Json
+  validFrom      DateTime
+  validTo        DateTime?
+  txnAt          DateTime  @default(now())
+  sourceRunId    String?
+  reason         String    @default("")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, objectId, property, validFrom])
+  @@index([organizationId, objectId, txnAt])
+}
+
+model OntoEvent {
+  id             String   @id @default(cuid())
+  organizationId String
+  kind           String
+  objectId       String   @default("")
+  actorId        String   @default("")
+  before         Json?
+  after          Json?
+  prevHash       String   @default("")
+  hash           String   @default("")
+  legalHold      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, objectId, createdAt])
+  @@index([organizationId, kind, createdAt])
+}
+
+model OntoAction {
+  id             String   @id @default(cuid())
+  organizationId String
+  key            String
+  label          String
+  targetTypeKey  String
+  inputs         Json
+  effects        Json
+  approvalPolicy String   @default("none")
+  requiredCount  Int      @default(1)
+  enabled        Boolean  @default(true)
+  version        Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+}
+
+model OntoApproval {
+  id             String    @id @default(cuid())
+  organizationId String
+  actionKey      String
+  objectId       String
+  inputs         Json?
+  requestedById  String
+  status         String    @default("pending")
+  approvals      Json?
+  requiredCount  Int       @default(1)
+  expiresAt      DateTime?
+  decidedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([organizationId, objectId])
+}
+
+model OntoWebhook {
+  id             String   @id @default(cuid())
+  organizationId String
+  actionKey      String
+  url            String
+  secret         String   @default("")
+  active         Boolean  @default(true)
+  lastStatus     Int?
+  lastAt         DateTime?
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, actionKey])
+  @@index([organizationId, active])
+}
+
+model OntoActionRun {
+  id             String   @id @default(cuid())
+  organizationId String
+  idempotencyKey String
+  actionKey      String
+  objectId       String
+  status         String   @default("ok")
+  result         Json?
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, actionKey])
+}
+
+model OntoPolicy {
+  id             String   @id @default(cuid())
+  organizationId String
+  typeKey        String
+  effect         String
+  field          String   @default("")
+  op             String   @default("eq")
+  value          Json?
+  priority       Int      @default(100)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, typeKey, active])
 }
 
 model AnswerShare {
@@ -399,6 +665,12 @@ model AlertRule {
   channel   String   @default("inapp")
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+  // EEMUA 191 rationalization: every rule documents who owns it, what the
+  // required operator action is, and the response window in minutes. Rules
+  // without these are FYI noise, not alarms.
+  owner          String @default("")
+  responseAction String @default("")
+  windowMinutes  Int    @default(1440)
 
   @@index([orgId, active])
 }

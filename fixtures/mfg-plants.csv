@@ -1,0 +1,4 @@
+Plant,Region,CapacityUnitsPerDay,Status,GeoLat,GeoLng
+Plant One,midwest,1200,running,41.878,-87.629
+Plant Two,south,800,running,29.760,-95.370
+Plant Three,east,950,maintenance,40.689,-74.175

@@ -6,6 +6,7 @@ export type Action =
   | "correction:propose"
   | "correction:approve"
   | "rule:manage"
+  | "ontology:manage"
   | "org:invite"
   | "billing:manage";
 
@@ -15,6 +16,7 @@ const matrix: Record<Action, Role[]> = {
   "correction:propose": ["OWNER", "DISPATCHER"],
   "correction:approve": ["OWNER"],
   "rule:manage": ["OWNER"],
+  "ontology:manage": ["OWNER"],
   "org:invite": ["OWNER"],
   "billing:manage": ["OWNER"],
 };
