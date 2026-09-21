@@ -65,6 +65,34 @@ export default async function OntologyPage() {
           <Link href="/ontology/ops" className="underline">Ops</Link>
         </p>
       </div>
+      <section aria-label="Guides" className="ds-panel p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold ds-text">Guides</h2>
+          <Link href="/help/ontology" className="text-[13px] font-medium" style={{ color: "var(--accent)" }}>
+            Full guide
+          </Link>
+        </div>
+        <ul className="mt-2 grid gap-2 md:grid-cols-3">
+          <li>
+            <Link href="/ontology/docs/types" className="ds-state block rounded-md border p-3" style={{ borderColor: "var(--hairline)" }}>
+              <span className="text-sm font-medium ds-text">Types</span>
+              <span className="mt-0.5 block text-[13px] ds-text-2">The nouns: what you track and their properties.</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/ontology/docs/links" className="ds-state block rounded-md border p-3" style={{ borderColor: "var(--hairline)" }}>
+              <span className="text-sm font-medium ds-text">Links</span>
+              <span className="mt-0.5 block text-[13px] ds-text-2">How things connect and what that unlocks.</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/ontology/docs/actions" className="ds-state block rounded-md border p-3" style={{ borderColor: "var(--hairline)" }}>
+              <span className="text-sm font-medium ds-text">Actions</span>
+              <span className="mt-0.5 block text-[13px] ds-text-2">The only way to change things, safely.</span>
+            </Link>
+          </li>
+        </ul>
+      </section>
       <section aria-label="Model map">
         <h2 className="font-medium ds-text">How it all fits together</h2>
         <p className="mt-1 text-sm ds-text-2">

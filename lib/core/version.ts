@@ -4,4 +4,4 @@
 // file, package.json, the changelog page ENTRIES, and CHANGELOG.md together,
 // so the website, the app, the exe feed, and the docs can never disagree.
 // Everything user-visible reads APP_VERSION — never a hardcoded string.
-export const APP_VERSION = "1.3.1";
+export const APP_VERSION = "1.3.2";
