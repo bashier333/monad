@@ -53,7 +53,7 @@ export default function PricingCta({ annualAvailable }: { annualAvailable: boole
                 className="ds-state rounded border px-3 py-1 ds-text"
                 style={
                   active
-                    ? { borderColor: "var(--accent)", background: "var(--accent)", color: "#141413", fontWeight: 500 }
+                    ? { borderColor: "var(--accent)", background: "var(--accent)", color: "#ffffff", fontWeight: 500 }
                     : { borderColor: "var(--hairline)" }
                 }
               >
@@ -79,7 +79,7 @@ export default function PricingCta({ annualAvailable }: { annualAvailable: boole
           onClick={() => void checkout()}
           disabled={busy}
           className="ds-control rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
-          style={{ background: "var(--accent)", color: "#141413" }}
+          style={{ background: "var(--accent)", color: "#ffffff" }}
         >
           {busy ? "…" : "Upgrade to Team"}
         </button>

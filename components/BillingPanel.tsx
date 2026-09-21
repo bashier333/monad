@@ -70,7 +70,7 @@ export default function BillingPanel() {
       </p>
       <div className="flex gap-2">
         {s.tier === "free" ? (
-          <button onClick={() => post("/api/billing/checkout")} className="rounded bg-black px-3 py-1 text-white">
+          <button onClick={() => post("/api/billing/checkout")} className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
             Upgrade to Team
           </button>
         ) : (

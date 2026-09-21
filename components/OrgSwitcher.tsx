@@ -55,7 +55,16 @@ export default function OrgSwitcher({ currentId }: { currentId: string }) {
           <button
             key={o.id}
             onClick={() => void switchOrg(o.id)}
-            className={`rounded border px-2 py-1 ${o.id === currentId ? "bg-black text-white" : ""}`}
+            className={`rounded-md border px-2 py-1 ds-text ${o.id === currentId ? "font-medium" : "ds-text-2"}`}
+            style={
+              o.id === currentId
+                ? {
+                    borderColor: "var(--accent)",
+                    background: "color-mix(in srgb, var(--accent) 12%, transparent)",
+                    color: "var(--accent)",
+                  }
+                : { borderColor: "var(--hairline)" }
+            }
           >
             {o.name} ({o.role.toLowerCase()})
           </button>

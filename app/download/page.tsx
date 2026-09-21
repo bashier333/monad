@@ -64,7 +64,7 @@ export default function DownloadPage() {
             >
               Download for Windows
             </a>
-            <p className={`${mono.className} mt-4 text-xs text-stone-500`}>Version {APP_VERSION} · Windows 64-bit · <Link href="/changelog" className="underline">what&apos;s new</Link></p>
+            <p className={`${mono.className} mt-4 text-xs text-stone-500`}>Version {APP_VERSION} · Windows 64-bit (<Link href="/changelog" className="underline">what&apos;s new</Link>)</p>
             <p className="mx-auto mt-3 max-w-[44ch] text-xs leading-relaxed text-stone-500">
               Guided installer for Windows 64-bit — no admin needed, installs for your user account with
               Start Menu and desktop shortcuts. First launch creates its own local database; nothing to configure.

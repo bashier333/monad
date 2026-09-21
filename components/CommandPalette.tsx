@@ -3,6 +3,7 @@
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import SpringIn from "@/components/motion";
 import { getDesktopMode } from "@/components/desktop-flag";
 
 interface Entry {
@@ -169,6 +170,7 @@ export default function CommandPalette() {
       className="ds-panel fixed left-1/2 top-[18%] z-50 w-full max-w-md -translate-x-1/2 rounded-lg p-2 shadow-xl"
       overlayClassName="fixed inset-0 z-50 bg-black/30"
     >
+      <SpringIn scaleFrom={0.98} y={-6}>
       <Command.Input
         value={q}
         onValueChange={setQ}
@@ -222,6 +224,7 @@ export default function CommandPalette() {
         <span><kbd>⏎</kbd> open</span>
         <span><kbd>esc</kbd> close</span>
       </div>
+      </SpringIn>
     </Command.Dialog>
   );
 }

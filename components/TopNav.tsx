@@ -55,10 +55,15 @@ export default function TopNav() {
   const openPalette = () => window.dispatchEvent(new CustomEvent("monad:open-palette"));
 
   return (
-    <nav className="border-b" aria-label="Primary" style={{ borderColor: "var(--hairline)" }}>
-      <div className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-2 text-sm md:px-8">
-        <Link href="/workspace" className="mr-1 shrink-0 font-bold ds-text">
-          Monad
+    <nav
+      aria-label="Primary"
+      className="sticky top-0 z-40 border-b backdrop-blur"
+      style={{ borderColor: "var(--hairline)", background: "color-mix(in srgb, var(--panel) 88%, transparent)" }}
+    >
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-1 px-4 text-sm md:px-8">
+        <Link href="/workspace" className="mr-2 flex shrink-0 items-center gap-2">
+          <span aria-hidden className="inline-block h-5 w-5 rounded-[5px]" style={{ background: "var(--accent)" }} />
+          <span className="font-semibold tracking-tight ds-text">Monad</span>
         </Link>
         {PRIMARY.map(([label, href]) => {
           const active = isActive(pathname, href);
@@ -67,17 +72,47 @@ export default function TopNav() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className="ds-state shrink-0 rounded px-2 py-1 ds-text-2"
-              style={active ? { background: "var(--accent)", color: "#141413", fontWeight: 500 } : undefined}
+              className="ds-state hidden shrink-0 rounded-md px-2.5 py-1.5 sm:block"
+              style={
+                active
+                  ? {
+                      background: "color-mix(in srgb, var(--accent) 12%, transparent)",
+                      color: "var(--accent)",
+                      fontWeight: 600,
+                    }
+                  : undefined
+              }
             >
-              {label}
+              <span className={active ? "" : "ds-text-2"}>{label}</span>
             </Link>
           );
         })}
-        <details className="relative shrink-0">
-          <summary className="ds-state cursor-pointer list-none rounded px-2 py-1 ds-text-2">More</summary>
+        <details className="relative shrink-0 sm:hidden">
+          <summary className="ds-state cursor-pointer list-none rounded-md px-2.5 py-1.5 ds-text-2">
+            Menu
+          </summary>
           <div
-            className="absolute left-0 z-40 mt-1 flex min-w-44 flex-col rounded p-1 ds-panel"
+            className="absolute left-0 z-40 mt-1 flex min-w-44 flex-col rounded-lg p-1 ds-panel"
+            style={{ borderColor: "var(--hairline)", background: "var(--panel)" }}
+          >
+            {[...PRIMARY, ...MORE].map(([label, href]) => (
+              <Link
+                key={href}
+                href={href}
+                aria-current={isActive(pathname, href) ? "page" : undefined}
+                className="ds-state rounded-md px-2 py-1.5 ds-text"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </details>
+        <details className="relative hidden shrink-0 sm:block">
+          <summary className="ds-state cursor-pointer list-none rounded-md px-2.5 py-1.5 ds-text-2">
+            More
+          </summary>
+          <div
+            className="absolute left-0 z-40 mt-1 flex min-w-44 flex-col rounded-lg p-1 ds-panel"
             style={{ borderColor: "var(--hairline)", background: "var(--panel)" }}
           >
             {MORE.map(([label, href]) => (
@@ -85,7 +120,7 @@ export default function TopNav() {
                 key={href}
                 href={href}
                 aria-current={isActive(pathname, href) ? "page" : undefined}
-                className="ds-state rounded px-2 py-1.5 ds-text"
+                className="ds-state rounded-md px-2 py-1.5 ds-text"
               >
                 {label}
               </Link>

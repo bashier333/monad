@@ -101,7 +101,7 @@ export default function OrgSettingsForm({
         <input type="checkbox" checked={predictOptOut} onChange={(e) => setPredictOptOut(e.target.checked)} />
         Turn off forecasts
       </label>
-      <button type="submit" className="rounded bg-black px-3 py-1 text-white">
+      <button type="submit" className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
         Save
       </button>
       <LocaleSuggest setWeek={setWeekStartsOn} setTz={setTimezone} />

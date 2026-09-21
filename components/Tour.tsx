@@ -111,7 +111,7 @@ export default function Tour({ steps }: { steps: TourStep[] }) {
               type="button"
               onClick={() => setIndex(index + 1)}
               className="rounded px-3 py-1.5 text-sm font-medium"
-              style={{ background: "var(--accent)", color: "#141413" }}
+              style={{ background: "var(--accent)", color: "#ffffff" }}
             >
               Next
             </button>
@@ -120,7 +120,7 @@ export default function Tour({ steps }: { steps: TourStep[] }) {
               type="button"
               onClick={() => close(true)}
               className="rounded px-3 py-1.5 text-sm font-medium"
-              style={{ background: "var(--accent)", color: "#141413" }}
+              style={{ background: "var(--accent)", color: "#ffffff" }}
             >
               Done
             </button>

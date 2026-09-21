@@ -35,6 +35,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="monad-theme-init" strategy="beforeInteractive">
           {THEME_BOOTSTRAP}
         </Script>
+        <noscript>
+          <style>{`[data-motion] { opacity: 1 !important; transform: none !important; }`}</style>
+        </noscript>
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:bg-white focus:p-2 focus:underline">
           Skip to content
         </a>

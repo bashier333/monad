@@ -68,7 +68,7 @@ export default function RuleForm({ week, pack = "freight" }: { week: string; pac
         <button type="button" onClick={doPreview} className="rounded border px-3 py-1">
           Preview on this week
         </button>
-        <button type="submit" className="rounded bg-black px-3 py-1 text-white">
+        <button type="submit" className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
           Save rule
         </button>
       </div>

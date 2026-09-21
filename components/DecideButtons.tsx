@@ -60,7 +60,7 @@ export default function DecideButtons({ id, status }: { id: string; status: stri
       <button
         onClick={() => void post({ approve: true }, "applied")}
         disabled={working}
-        className="rounded px-2 py-1 text-xs font-medium text-[#141413] disabled:opacity-50"
+        className="rounded px-2 py-1 text-xs font-medium text-white disabled:opacity-50"
         style={{ background: "var(--accent)" }}
       >
         Apply

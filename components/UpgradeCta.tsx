@@ -11,7 +11,7 @@ export default function UpgradeCta({ from, label = "Upgrade to Team" }: { from: 
       href="/pricing"
       onClick={() => trackFunnel("upgrade_clicked", { from })}
       className="ds-control inline-block rounded px-4 py-2 text-sm font-medium"
-      style={{ background: "var(--accent)", color: "#141413" }}
+      style={{ background: "var(--accent)", color: "#ffffff" }}
     >
       {label}
     </Link>

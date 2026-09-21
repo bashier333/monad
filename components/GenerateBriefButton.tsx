@@ -34,7 +34,7 @@ export default function GenerateBriefButton({ pack = "freight" }: { pack?: "frei
         onClick={() => void run()}
         disabled={busy}
         className="ds-control rounded px-3 py-1 text-sm font-medium disabled:opacity-50"
-        style={{ background: "var(--accent)", color: "#141413" }}
+        style={{ background: "var(--accent)", color: "#ffffff" }}
       >
         {busy ? "Generating…" : "Generate this week's brief"}
       </button>

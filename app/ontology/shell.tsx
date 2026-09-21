@@ -242,15 +242,23 @@ function NavLink({
       className="ds-state flex items-center justify-between rounded px-2 py-1.5"
       style={
         active
-          ? { background: "var(--accent)", color: "#141413", fontWeight: 500 }
+          ? {
+              background: "color-mix(in srgb, var(--accent) 12%, transparent)",
+              color: "var(--accent)",
+              fontWeight: 600,
+            }
           : { color: "var(--fg)" }
       }
     >
       <span>{label}</span>
       {badge !== undefined && badge > 0 && (
         <span
-          className="rounded px-1.5 text-xs"
-          style={active ? { background: "#141413", color: "#faf9f5" } : { background: "var(--fg)", color: "var(--ground)" }}
+          className="rounded-md px-1.5 text-xs font-medium"
+          style={
+            active
+              ? { background: "var(--accent)", color: "#ffffff" }
+              : { background: "var(--panel-2)", color: "var(--fg-2)" }
+          }
         >
           {badge}
         </span>

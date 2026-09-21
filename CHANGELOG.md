@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1] - 2026-09-21
+
+- Enterprise-clean redesign: neutral tokens, blue accent, dashboard cards
+- Spring motion throughout with reduced-motion support
+- GitHub sign-in plus branded sign-in page
+
+---
+
 ## [1.3.0] - 2026-09-21
 
 ### UI 10x program (20,000 tasks, D01–D20)

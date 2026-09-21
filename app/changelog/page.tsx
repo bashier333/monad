@@ -1,5 +1,14 @@
 const ENTRIES: Array<{ version: string; date: string; notes: string[] }> = [
   {
+    version: "1.3.1",
+    date: "2026-09-21",
+    notes: [
+      "Enterprise-clean redesign: neutral tokens, blue accent, dashboard cards",
+      "Spring motion throughout with reduced-motion support",
+      "GitHub sign-in plus branded sign-in page",
+    ],
+  },
+  {
     version: "1.3.0",
     date: "2026-09-21",
     notes: [

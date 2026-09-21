@@ -111,9 +111,9 @@ export default async function WorkspacePage() {
       <Tour steps={TOUR_STEPS} />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="font-serif text-xl font-bold ds-text">Workspace</h1>
+          <h1 className="text-xl font-semibold tracking-tight ds-text">Workspace</h1>
           <p className="mt-1 text-sm ds-text-2">
-            One screen for your whole operation: health first, then the tools. New here? Take the tour.
+            Health first, then the tools. New here? Take the tour.
           </p>
         </div>
         <ReplayTourButton />
@@ -122,14 +122,14 @@ export default async function WorkspacePage() {
       {pql && (
         <p className="rounded p-3 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
           <span className="font-medium ds-text">Adoption {pql.score}/100</span>
-          <span className="ds-text-2"> — {pql.pql ? "qualified: this workspace is driving decisions." : "not yet qualified."} {pql.reasons.join(" · ")}</span>
+          <span className="ds-text-2">. {pql.pql ? "Qualified: this workspace is driving decisions." : "Not yet qualified."} {pql.reasons.join(" ")} </span>
         </p>
       )}
 
       {sample && (
         <p role="status" className="rounded p-3 text-sm ds-panel" style={{ borderColor: "var(--warn)" }}>
           <span className="font-medium" style={{ color: "var(--warn)" }}>SAMPLE DATA</span>
-          <span className="ds-text-2"> — every number below comes from seeded fixtures, not your operation. Import a real feed to replace it.</span>
+          <span className="ds-text-2">. Every number below comes from seeded fixtures, not your operation. Import a real feed to replace it.</span>
         </p>
       )}
 
@@ -142,15 +142,22 @@ export default async function WorkspacePage() {
           name="q"
           placeholder="Search lots, shipments, plants…"
           autoComplete="off"
-          className="w-full rounded border px-3 py-2 text-sm ds-text"
-          style={{ borderColor: "var(--hairline)", background: "var(--ground)" }}
+          className="w-full rounded-md border px-3 py-2 text-sm ds-text"
+          style={{ borderColor: "var(--hairline)", background: "var(--panel)" }}
         />
-        <button type="submit" className="whitespace-nowrap rounded px-4 py-2 text-sm text-[#141413]" style={{ background: "var(--accent)" }}>
+        <button type="submit" className="whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium text-white" style={{ background: "var(--accent)" }}>
           Search
         </button>
       </form>
 
-      <section aria-label="Proof" data-tour="proof">
+      <section aria-label="Proof" data-tour="proof" className="ds-panel p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold ds-text">Operation health</h2>
+          <Link href="/ontology/twin" className="text-[13px] font-medium" style={{ color: "var(--accent)" }}>
+            Open twin
+          </Link>
+        </div>
+        <div className="mt-3">
         <ProofStrip
           items={[
             { label: "Lots below reorder", value: overview ? String(overview.atRiskLots) : "—", href: "/ontology/twin" },
@@ -164,6 +171,7 @@ export default async function WorkspacePage() {
             },
           ]}
         />
+        </div>
         {overview === null && (
           <p className="mt-2 rounded border border-dashed p-4 text-sm ds-text-2" style={{ borderColor: "var(--hairline)" }}>
             No manufacturing model yet. Seed the pack from the Twin page to populate these cards.
@@ -171,9 +179,9 @@ export default async function WorkspacePage() {
         )}
       </section>
 
-      <section aria-label="Activation">
-        <h2 className="font-medium ds-text">Getting started</h2>
-        <ul className="mt-2 divide-y rounded ds-panel" style={{ borderColor: "var(--hairline)" }}>
+      <section aria-label="Activation" className="ds-panel p-4">
+        <h2 className="text-[15px] font-semibold ds-text">Getting started</h2>
+        <ul className="mt-2 divide-y text-sm" style={{ borderColor: "var(--hairline)" }}>
           {checklist.map((c) => (
             <li key={c.label} className="flex items-center justify-between gap-3 p-3 text-sm">
               <span className="ds-text">
@@ -191,8 +199,8 @@ export default async function WorkspacePage() {
         </ul>
       </section>
 
-      <section aria-label="Pipeline">
-        <h2 className="font-medium ds-text">Feeds in → model → consumers</h2>
+      <section aria-label="Pipeline" className="ds-panel p-4">
+        <h2 className="text-[15px] font-semibold ds-text">Feeds in → model → consumers</h2>
         {feeds.length === 0 ? (
           <p className="mt-2 rounded border border-dashed p-4 text-sm ds-text-2" style={{ borderColor: "var(--hairline)" }}>
             No feeds imported yet. The twin reads versioned objects, never raw files — import a feed to start the bridge.
@@ -213,9 +221,9 @@ export default async function WorkspacePage() {
         )}
       </section>
 
-      <section aria-label="Modules" data-tour="modules">
-        <h2 className="font-medium ds-text">Modules</h2>
-        <ul className="mt-2 grid gap-2 md:grid-cols-3">
+      <section aria-label="Modules" data-tour="modules" className="ds-panel p-4">
+        <h2 className="text-[15px] font-semibold ds-text">Modules</h2>
+        <ul className="mt-3 grid gap-2 md:grid-cols-3">
           {MODULES.map((m) => (
             <li key={m.href}>
               <Link href={m.href} className="ds-state block h-full rounded ds-panel p-3">
@@ -234,8 +242,8 @@ export default async function WorkspacePage() {
         </Link>
       </footer>
 
-      <section aria-label="Recent activity">
-        <h2 className="font-medium ds-text">Recent actions</h2>
+      <section aria-label="Recent activity" className="ds-panel p-4">
+        <h2 className="text-[15px] font-semibold ds-text">Recent actions</h2>
         {runs.length === 0 ? (
           <p className="mt-2 rounded border border-dashed p-4 text-sm ds-text-2" style={{ borderColor: "var(--hairline)" }}>
             Nothing executed yet. Propose an action from Automations or run one from Actions.

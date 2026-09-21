@@ -58,7 +58,7 @@ export default function InviteForm() {
           <option value="VIEWER">Viewer</option>
           <option value="DISPATCHER">Dispatcher</option>
         </select>
-        <button type="submit" className="rounded bg-black px-3 py-1 text-white">
+        <button type="submit" className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
           Invite
         </button>
       </form>

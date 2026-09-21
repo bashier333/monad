@@ -44,8 +44,8 @@ export default function ImportProgress({ runId, week }: { runId: string; week: s
       <p>
         {s.status} — {s.progress}%{eta}
       </p>
-      <div className="mt-1 h-2 rounded bg-gray-200">
-        <div className="h-2 rounded bg-black" style={{ width: `${Math.min(100, s.progress)}%` }} />
+      <div className="mt-1 h-2 rounded-full" style={{ background: "var(--panel-2)" }}>
+        <div className="h-2 rounded-full" style={{ width: `${Math.min(100, s.progress)}%`, background: "var(--accent)" }} />
       </div>
       {s.status === "COMPLETED" && (
         <p className="mt-1">

@@ -51,7 +51,7 @@ export default function ImportDecision({
           onClick={() => void decide("merge")}
           disabled={state === "working"}
           className="ds-control rounded px-3 py-1 text-sm font-medium disabled:opacity-50"
-          style={{ background: "var(--accent)", color: "#141413" }}
+          style={{ background: "var(--accent)", color: "#ffffff" }}
         >
           Merge as new
         </button>

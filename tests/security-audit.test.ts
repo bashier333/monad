@@ -133,7 +133,7 @@ describe("security audit gates (D1/D2/D9)", () => {
     const bad: string[] = [];
     for (const f of sources(COMPONENTS)) {
       const src = readFileSync(f, "utf8");
-      for (const secret of ["AUTH_SECRET", "STRIPE_SECRET_KEY", "AUTH_GOOGLE_SECRET", "AUTH_RESEND_KEY", "DATABASE_URL"]) {
+      for (const secret of ["AUTH_SECRET", "STRIPE_SECRET_KEY", "AUTH_GOOGLE_SECRET", "AUTH_GITHUB_SECRET", "AUTH_RESEND_KEY", "DATABASE_URL"]) {
         if (src.includes(secret)) bad.push(`${path.relative(process.cwd(), f)}: ${secret}`);
       }
     }

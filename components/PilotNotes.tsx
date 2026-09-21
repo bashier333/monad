@@ -26,7 +26,7 @@ export default function PilotNotes({ initial }: { initial: string }) {
         placeholder="Every stall, confusion, and workaround from concierge onboarding goes here…"
         className="w-full rounded border p-2"
       />
-      <button type="submit" className="rounded bg-black px-3 py-1 text-white">
+      <button type="submit" className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
         Save notes
       </button>
       {msg && <span className="ml-2">{msg}</span>}

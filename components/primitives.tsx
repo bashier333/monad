@@ -42,14 +42,14 @@ export function EmptyState({
   );
 }
 
-export function StatCards({ stats }: { stats: Array<{ label: string; value: string; tone?: "good" | "bad" | "neutral" }> }) {
+export function StatCards({ stats }: { stats: Array<{ label: string; value: string; detail?: string; tone?: "good" | "bad" | "neutral" }> }) {
   return (
-    <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
       {stats.map((s) => (
-        <div key={s.label} className="ds-panel rounded p-3">
-          <p className="text-xs ds-text-2">{s.label}</p>
+        <div key={s.label} className="ds-panel p-4">
+          <p className="text-[13px] ds-text-2">{s.label}</p>
           <p
-            className="font-mono text-lg font-semibold tabular-nums"
+            className="mt-1 font-mono text-[22px] font-semibold tabular-nums leading-tight"
             style={{
               color:
                 s.tone === "bad" ? "var(--danger)" : s.tone === "good" ? "var(--success)" : "var(--fg)",
@@ -59,6 +59,11 @@ export function StatCards({ stats }: { stats: Array<{ label: string; value: stri
             <span aria-hidden>{s.tone === "bad" ? "▼ " : s.tone === "good" ? "▲ " : ""}</span>
             {s.value}
           </p>
+          {s.detail ? (
+            <p className="mt-2 border-t pt-2 text-xs ds-text-2" style={{ borderColor: "var(--hairline)" }}>
+              {s.detail}
+            </p>
+          ) : null}
         </div>
       ))}
     </div>
@@ -72,8 +77,8 @@ export function Tag({ k, v, tone = "neutral" }: { k: string; v: string; tone?: "
     tone === "good" ? "var(--success)" : tone === "bad" ? "var(--danger)" : tone === "info" ? "var(--info)" : "var(--fg-2)";
   return (
     <span
-      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-xs"
-      style={{ border: "1px solid var(--hairline)", color }}
+      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-xs"
+      style={{ border: "1px solid var(--hairline)", background: "var(--panel-2)", color }}
     >
       <span className="ds-text-2">{k}</span>
       <span className="ds-text">{v}</span>
@@ -105,7 +110,7 @@ export function DataTable({
               <th
                 key={i}
                 scope={c.scope ?? "col"}
-                className={`px-2 font-medium ds-text-2 ${c.numeric ? "text-right font-mono tabular-nums" : ""}`}
+                className={`px-3 py-2 text-[11px] font-medium uppercase tracking-[0.06em] ds-text-2 ${c.numeric ? "text-right font-mono tabular-nums" : ""}`}
               >
                 {c.label}
               </th>
@@ -118,7 +123,7 @@ export function DataTable({
               {r.map((cell, j) => (
                 <td
                   key={j}
-                  className={`max-w-64 truncate px-2 ds-text ${columns[j]?.numeric ? "text-right font-mono tabular-nums" : ""}`}
+                  className={`max-w-64 truncate px-3 ds-text ${columns[j]?.numeric ? "text-right font-mono tabular-nums" : ""}`}
                   title={typeof cell === "string" ? cell : undefined}
                 >
                   {cell}
@@ -188,17 +193,21 @@ export function ProofStrip({ items }: { items: Array<{ label: string; value: str
       {items.map((it) => {
         const body = (
           <>
-            <dt className="text-xs ds-text-2">{it.label}</dt>
-            <dd className="font-mono text-xl font-semibold tabular-nums ds-text">{it.value}</dd>
-            {it.detail ? <dd className="mt-0.5 text-xs ds-text-2">{it.detail}</dd> : null}
+            <dt className="text-[13px] ds-text-2">{it.label}</dt>
+            <dd className="mt-1 font-mono text-xl font-semibold tabular-nums ds-text">{it.value}</dd>
+            {it.detail ? (
+              <dd className="mt-2 border-t pt-2 text-xs ds-text-2" style={{ borderColor: "var(--hairline)" }}>
+                {it.detail}
+              </dd>
+            ) : null}
           </>
         );
         return it.href ? (
-          <Link key={it.label} href={it.href} className="ds-state ds-panel rounded p-3">
+          <Link key={it.label} href={it.href} className="ds-state ds-panel block p-4">
             {body}
           </Link>
         ) : (
-          <div key={it.label} className="ds-panel rounded p-3">
+          <div key={it.label} className="ds-panel p-4">
             {body}
           </div>
         );

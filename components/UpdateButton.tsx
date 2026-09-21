@@ -111,7 +111,7 @@ export default function UpdateButton() {
             <button
               type="button"
               onClick={() => void restart()}
-              className="rounded px-2 py-1 text-[#141413]"
+              className="rounded px-2 py-1 text-white"
               style={{ background: "var(--accent)" }}
             >
               Restart to install{status.version ? ` v${status.version}` : ""}

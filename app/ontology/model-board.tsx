@@ -72,11 +72,11 @@ export default function ModelBoard({
     if (!el || data.nodes.length === 0) return;
     const cs = getComputedStyle(document.documentElement);
     const v = (name: string, fallback: string) => cs.getPropertyValue(name).trim() || fallback;
-    const ground = v("--ground", "#faf9f5");
-    const fg = v("--fg", "#141413");
-    const hairline = v("--hairline", "#dedcd1");
-    const accent = v("--accent", "#d97757");
-    const fg2 = v("--fg-2", "#5e5d59");
+    const ground = v("--ground", "#f6f7f9");
+    const fg = v("--fg", "#101828");
+    const hairline = v("--hairline", "#e4e7ec");
+    const accent = v("--accent", "#1570ef");
+    const fg2 = v("--fg-2", "#475467");
     const selectedId = selected;
     const fgGraph = new ForceGraph<BoardNode & { x?: number; y?: number }, BoardEdge>(el)
       .graphData(data)

@@ -114,7 +114,7 @@ export default function UploadForm() {
         type="submit"
         disabled={!file || state === "busy"}
         className="ds-control rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
-        style={{ background: "var(--accent)", color: "#141413" }}
+        style={{ background: "var(--accent)", color: "#ffffff" }}
       >
         {state === "busy" ? "Uploading…" : "Upload & process"}
       </button>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import ObjectPicker, { type PickedObject } from "@/components/ObjectPicker";
+import SpringIn from "@/components/motion";
 import { stableKey } from "@/lib/idempotency";
 
 interface FieldSpec {
@@ -367,7 +368,7 @@ export default function ActionRunner({ actions }: { actions: ActionDef[] }) {
         <button
           onClick={() => requestExecute(approvalId)}
           disabled={busy || !objectId}
-          className="rounded px-4 py-2 text-sm text-[#141413] disabled:opacity-50"
+          className="rounded px-4 py-2 text-sm text-white disabled:opacity-50"
           style={{ background: "var(--accent)" }}
         >
           {phase.state === "approved" ? "Execute with approval" : "Execute"}
@@ -379,6 +380,7 @@ export default function ActionRunner({ actions }: { actions: ActionDef[] }) {
         )}
       </div>
       {confirmOpen && (
+        <SpringIn y={8}>
         <div className="rounded border border-amber-600 p-3 text-sm" role="dialog" aria-label="Confirm write">
           <p className="font-medium">
             Confirm {def?.label ?? actionKey} on {confirmTarget || "…"}
@@ -402,7 +404,7 @@ export default function ActionRunner({ actions }: { actions: ActionDef[] }) {
             <button
               onClick={() => requestExecute(approvalId)}
               disabled={busy || !confirmReady}
-              className="rounded px-4 py-2 text-sm text-[#141413] disabled:opacity-50"
+              className="rounded px-4 py-2 text-sm text-white disabled:opacity-50"
               style={{ background: "var(--accent)" }}
             >
               Confirm & execute
@@ -412,6 +414,7 @@ export default function ActionRunner({ actions }: { actions: ActionDef[] }) {
             </button>
           </div>
         </div>
+        </SpringIn>
       )}
       {keyPreview && (
         <p className="font-mono text-xs ds-text-2" title="Same action + object + inputs always reuse this key: retries replay the original receipt instead of writing twice.">

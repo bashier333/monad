@@ -40,11 +40,11 @@ export default function DemoTour({ pack = "freight" }: { pack?: "freight" | "age
           </button>
         )}
         {step < STEPS.length - 1 ? (
-          <button onClick={() => setStep(step + 1)} className="rounded bg-black px-2 py-1 text-white">
+          <button onClick={() => setStep(step + 1)} className="rounded-md font-medium px-2 py-1 text-white" style={{ background: "var(--accent)" }}>
             Next ({step + 1}/{STEPS.length})
           </button>
         ) : (
-          <button onClick={done} className="rounded bg-black px-2 py-1 text-white">
+          <button onClick={done} className="rounded-md font-medium px-2 py-1 text-white" style={{ background: "var(--accent)" }}>
             Got it
           </button>
         )}

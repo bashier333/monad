@@ -89,7 +89,7 @@ export default function NlBox({
         <button
           type="submit"
           className="ds-control shrink-0 rounded px-4 py-2 text-sm font-medium"
-          style={{ background: "var(--accent)", color: "#141413" }}
+          style={{ background: "var(--accent)", color: "#ffffff" }}
         >
           Ask
         </button>

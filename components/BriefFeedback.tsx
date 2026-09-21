@@ -87,7 +87,7 @@ export default function BriefFeedback({ id, week }: { id: string; week: string }
             onClick={() => void vote(false)}
             disabled={busy}
             className="ds-control shrink-0 rounded px-3 py-1 font-medium disabled:opacity-50"
-            style={{ background: "var(--accent)", color: "#141413" }}
+            style={{ background: "var(--accent)", color: "#ffffff" }}
           >
             Send
           </button>

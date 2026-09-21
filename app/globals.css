@@ -5,8 +5,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ---------------------------------------------------------------------------
-   Design tokens: warm ink console. Light is the website default. Dark is the
-   desktop (exe) default; toggling writes .dark onto <html>.
+   Design tokens: enterprise-clean console. Light is the default; dark follows
+   the same hierarchy. One blue accent everywhere. Shape lock: cards 10px,
+   controls 6px. Status is never color-only.
 --------------------------------------------------------------------------- */
 
 :root {
@@ -14,33 +15,33 @@
   /* Tailwind v4 uses this for every bare `border` / `divide` utility, so one
      line retires the white-border-in-dark-mode class of bug everywhere. */
   --default-border-color: var(--hairline);
-  --ground: #faf9f5;
-  --panel: #f0eee6;
-  --panel-2: #e8e6dc;
-  --hairline: #dedcd1;
-  --fg: #141413;
-  --fg-2: #5e5d59;
-  --accent: #d97757;
+  --ground: #f6f7f9;
+  --panel: #ffffff;
+  --panel-2: #f2f4f7;
+  --hairline: #e4e7ec;
+  --fg: #101828;
+  --fg-2: #475467;
+  --accent: #1570ef;
 
-  --info: #2d72d2;
-  --success: #238551;
-  --warn: #c87619;
-  --danger: #cd4246;
+  --info: #1570ef;
+  --success: #12805c;
+  --warn: #b54708;
+  --danger: #d92d20;
 }
 
 .dark {
-  --ground: #141413;
-  --panel: #1f1e1d;
-  --panel-2: #262624;
-  --hairline: #3d3d3a;
-  --fg: #faf9f5;
-  --fg-2: #9c9a92;
-  --accent: #d97757;
+  --ground: #101828;
+  --panel: #12161d;
+  --panel-2: #1a2029;
+  --hairline: #232b36;
+  --fg: #f6f7f9;
+  --fg-2: #98a2b3;
+  --accent: #1570ef;
 
-  --info: #4b89dc;
-  --success: #3f9b6f;
-  --warn: #dc8f33;
-  --danger: #de5c5c;
+  --info: #53b1fd;
+  --success: #47cd89;
+  --warn: #fec84b;
+  --danger: #f97066;
 }
 
 body {
@@ -58,16 +59,18 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Elevated surface: hairline, no shadow+border mix. Panels are one tone up on
-   the panel stack; never a double border + shadow. */
+/* Elevated surface: hairline border, 10px radius, no shadow+border mix.
+   Panels sit on white; panel-2 is the quiet fill behind them. */
 .ds-panel {
   background: var(--panel);
   border: 1px solid var(--hairline);
+  border-radius: 10px;
 }
 
 .ds-panel-2 {
   background: var(--panel-2);
   border: 1px solid var(--hairline);
+  border-radius: 10px;
 }
 
 .ds-hairline {
@@ -88,7 +91,9 @@ body {
   outline-offset: 2px;
 }
 
-/* State layers: hover +8%, press/active +10% overlays of on-text. M3 math. */
+/* State layers: hover +8%, press/active +10% overlays of on-text. M3 math.
+   Tactile press: buttons and links push back instantly on pointer-down
+   (100ms), so the press itself is the feedback, not the release. */
 .ds-state {
   transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1);
 }
@@ -97,6 +102,17 @@ body {
 }
 .ds-state:active {
   background-color: color-mix(in srgb, var(--fg) 10%, transparent);
+}
+button:active,
+a:active {
+  transform: scale(0.98);
+  transition: transform 100ms ease-out, background-color 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  button:active,
+  a:active {
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

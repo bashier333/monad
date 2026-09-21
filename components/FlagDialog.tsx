@@ -122,7 +122,7 @@ export default function FlagDialog({
             type="submit"
             disabled={busy}
             className="ds-control rounded px-2 py-1 font-medium disabled:opacity-50"
-            style={{ background: "var(--accent)", color: "#141413" }}
+            style={{ background: "var(--accent)", color: "#ffffff" }}
           >
             {busy ? "…" : "Submit flag"}
           </button>

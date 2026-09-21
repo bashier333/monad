@@ -72,7 +72,7 @@ export default function Bell() {
         {unread > 0 && (
           <span
             className="ml-1 rounded px-1 text-xs font-medium"
-            style={{ background: "var(--accent)", color: "#141413" }}
+            style={{ background: "var(--accent)", color: "#ffffff" }}
           >
             {unread}
           </span>

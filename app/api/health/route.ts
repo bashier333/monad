@@ -47,6 +47,7 @@ export async function GET(req: Request) {
     config: {
       database,
       googleOAuth: env.AUTH_GOOGLE_ID !== "" && env.AUTH_GOOGLE_SECRET !== "",
+      githubOAuth: env.AUTH_GITHUB_ID !== "" && env.AUTH_GITHUB_SECRET !== "",
       emailLogin: env.AUTH_RESEND_KEY !== "",
       analytics: (process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "") !== "",
       errorTracking: env.SENTRY_DSN !== "",

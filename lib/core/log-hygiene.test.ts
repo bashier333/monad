@@ -53,7 +53,7 @@ describe("log hygiene (S-551–S-556)", () => {
       const text = readFileSync(f, "utf8");
       const calls = text.match(/logger\.(info|warn|error)\([^;]*\)/g) ?? [];
       for (const c of calls) {
-        if (/AUTH_SECRET|STRIPE_SECRET|GOOGLE_SECRET|RESEND_KEY|DATABASE_URL|hookSecret/.test(c)) {
+        if (/AUTH_SECRET|STRIPE_SECRET|GOOGLE_SECRET|GITHUB_SECRET|RESEND_KEY|DATABASE_URL|hookSecret/.test(c)) {
           bad.push(`${path.relative(process.cwd(), f)}: ${c.slice(0, 80)}`);
         }
       }

@@ -6,6 +6,8 @@ const schema = z.object({
   AUTH_URL: z.string().default("http://localhost:3000"),
   AUTH_GOOGLE_ID: z.string().default(""),
   AUTH_GOOGLE_SECRET: z.string().default(""),
+  AUTH_GITHUB_ID: z.string().default(""),
+  AUTH_GITHUB_SECRET: z.string().default(""),
   AUTH_RESEND_KEY: z.string().default(""),
   EMAIL_FROM: z.string().default("login@example.com"),
   STRIPE_SECRET_KEY: z.string().default(""),

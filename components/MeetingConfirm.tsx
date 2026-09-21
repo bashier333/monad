@@ -19,7 +19,7 @@ export default function MeetingConfirm({ confirmedAt }: { confirmedAt: string | 
 
   if (done) return <span className="text-sm text-green-700">Confirmed ✓ — the answer made the Monday meeting.</span>;
   return (
-    <button onClick={confirm} disabled={busy} className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50">
+    <button onClick={confirm} disabled={busy} className="rounded-md font-medium px-3 py-1 text-sm text-white disabled:opacity-50">
       {busy ? "…" : "Confirm: we used this answer in our Monday meeting"}
     </button>
   );

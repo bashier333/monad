@@ -140,7 +140,7 @@ export default function MappingReview({ runId, headers, initialMapping, confiden
           onClick={() => void save(true)}
           disabled={saving}
           className="ds-control rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
-          style={{ background: "var(--accent)", color: "#141413" }}
+          style={{ background: "var(--accent)", color: "#ffffff" }}
         >
           {saving ? "Confirming…" : "Confirm & see answer"}
         </button>

@@ -23,7 +23,7 @@ export default function NetworkGraph({ graph }: { graph: TwinGraph }) {
   function themeColors() {
     const cs = getComputedStyle(document.documentElement);
     const v = (name: string, fallback: string) => cs.getPropertyValue(name).trim() || fallback;
-    return { ground: v("--ground", "#faf9f5"), hairline: v("--hairline", "#dedcd1"), fg: v("--fg", "#141413") };
+    return { ground: v("--ground", "#f6f7f9"), hairline: v("--hairline", "#e4e7ec"), fg: v("--fg", "#101828") };
   }
 
   useEffect(() => {

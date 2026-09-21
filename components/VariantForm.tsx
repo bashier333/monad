@@ -24,7 +24,7 @@ export default function VariantForm({ week, pack = "freight" }: { week: string; 
         ))}
       </select>
       <input value={key} onChange={(e) => setKey(e.target.value)} placeholder="name, date, or 'all'" className="rounded border p-1" />
-      <button type="submit" className="rounded bg-black px-3 py-1 text-white">
+      <button type="submit" className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
         View
       </button>
     </form>

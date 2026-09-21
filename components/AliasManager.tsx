@@ -48,7 +48,7 @@ export default function AliasManager() {
       <form onSubmit={save} className="mt-2 flex flex-wrap gap-2">
         <input value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="alias, e.g. Big D" className="rounded border p-1" />
         <input value={canonical} onChange={(e) => setCanonical(e.target.value)} placeholder="canonical, e.g. Dallas TX" className="rounded border p-1" />
-        <button type="submit" className="rounded bg-black px-3 py-1 text-white">
+        <button type="submit" className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
           Save alias
         </button>
       </form>

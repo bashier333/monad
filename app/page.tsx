@@ -3,122 +3,152 @@ import Image from "next/image";
 import Link from "next/link";
 import { Space_Grotesk } from "next/font/google";
 import Reveal from "./reveal";
-import { APP_VERSION } from "@/lib/core/version";
 
-// World: light manifesto instrument. Stone-50 ground, hairline borders,
-// tabular numerals, one signal emerald. Surfaces 16px, controls full-pill.
-// Deliberately light-only (colorScheme pinned): dark mode never restyles
-// the landing — the app behind it is the themed surface.
+// Landing: enterprise-clean. Split hero (copy left, asset right), one idea
+// per section, single blue accent, no version stamps, no em-dashes.
 const sans = Space_Grotesk({ subsets: ["latin"], display: "swap", weight: ["500", "600", "700"] });
 
 export const metadata: Metadata = {
   title: "Monad - National AI Infrastructure",
   description:
-    "National AI infrastructure built for every operational strategic execution. Our platforms drive instantaneous, AI-enabled operational decisions.",
+    "One live model of the business. Fragmented records become linked objects that people and agents read the same way.",
 };
 
 export default function MonadPage() {
   return (
-    <main className={`${sans.className} bg-stone-50 text-stone-900`} style={{ colorScheme: "light" }}>
+    <main className={`${sans.className}`} style={{ background: "var(--ground)", color: "var(--fg)" }}>
       <style>{`
-        ::selection { background: #047857; color: #ffffff; }
-        :focus-visible { outline: 2px solid #047857; outline-offset: 3px; border-radius: 6px; }
-        .rv { opacity: 0; transform: translateY(26px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
-        .rv.in { opacity: 1; transform: none; }
-        @media (prefers-reduced-motion: reduce) {
-          .rv { opacity: 1; transform: none; transition: none; }
-        }
+        ::selection { background: var(--accent); color: #ffffff; }
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
       `}</style>
-      <noscript>
-        <style>{`.rv { opacity: 1 !important; transform: none !important; }`}</style>
-      </noscript>
 
-      <header className="border-b border-stone-200">
+      <header className="sticky top-0 z-40 border-b backdrop-blur" style={{ borderColor: "var(--hairline)", background: "color-mix(in srgb, var(--panel) 88%, transparent)" }}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 md:px-8">
-          <Link href="/" className="text-[17px] font-bold tracking-tight">
+          <Link href="/" className="flex items-center gap-2 text-[17px] font-bold tracking-tight">
+            <span aria-hidden className="inline-block h-5 w-5 rounded-[5px]" style={{ background: "var(--accent)" }} />
             Monad
           </Link>
-          <nav className="hidden items-center gap-7 text-[15px] text-stone-600 md:flex" aria-label="Page">
-            <Link href="/platforms/ontology" className="transition-colors hover:text-stone-900">
+          <nav className="hidden items-center gap-7 text-[15px] md:flex" aria-label="Page">
+            <Link href="/platforms/ontology" className="transition-colors ds-text-2 hover:opacity-80">
               Ontology
             </Link>
-            <Link href="/model" className="transition-colors hover:text-stone-900">
-              Dashboard
+            <Link href="/model" className="transition-colors ds-text-2 hover:opacity-80">
+              Model
+            </Link>
+            <Link href="/pricing" className="transition-colors ds-text-2 hover:opacity-80">
+              Pricing
+            </Link>
+            <Link
+              href="/download"
+              className="rounded-md px-4 py-2 font-semibold text-white"
+              style={{ background: "var(--accent)" }}
+            >
+              Download
             </Link>
           </nav>
         </div>
       </header>
 
       <section className="relative overflow-hidden">
-        <div className="mx-auto max-w-7xl px-4 pb-16 pt-16 text-center min-h-[100dvh] md:px-8 md:pt-24">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-14 md:grid-cols-2 md:px-8 md:pb-24 md:pt-20">
           <Reveal>
-            <h1 className="mx-auto max-w-[24ch] text-balance text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl">
-              National AI Infrastructure Built for Every Operational Strategic Execution
+            <h1 className="max-w-[20ch] text-balance text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl">
+              One live model of the business
             </h1>
-            <p className="mx-auto mt-6 max-w-[52ch] text-[17px] leading-relaxed text-stone-600">
-              One live model of the business. Fragmented records become linked objects that people and agents read
-              the same way.
+            <p className="mt-5 max-w-[44ch] text-[17px] leading-relaxed ds-text-2">
+              Fragmented records become linked objects that people and agents read the same way.
+            </p>
+            <p className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/demo"
+                className="rounded-md px-5 py-2.5 text-[15px] font-semibold text-white"
+                style={{ background: "var(--accent)" }}
+              >
+                See the live demo
+              </Link>
+              <Link
+                href="/docs"
+                className="rounded-md border px-5 py-2.5 text-[15px] font-semibold ds-text"
+                style={{ borderColor: "var(--hairline)" }}
+              >
+                Read the docs
+              </Link>
             </p>
           </Reveal>
-          <Reveal delay={140} className="mx-auto mt-12 max-w-5xl">
+          <Reveal delay={140}>
             <Image
               src="/images/monad-skyline.jpg"
               width={1920}
               height={1280}
               alt="City skyline at dusk from above"
               priority
-              sizes="(max-width: 768px) 100vw, 1024px"
-              className="w-full rounded-2xl border border-stone-200 object-cover"
+              sizes="(max-width: 768px) 100vw, 640px"
+              className="w-full rounded-[10px] border object-cover"
+              style={{ borderColor: "var(--hairline)" }}
             />
           </Reveal>
         </div>
       </section>
 
-      <section id="software" className="border-t border-stone-200">
+      <section id="software" className="border-t" style={{ borderColor: "var(--hairline)" }}>
         <div className="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
           <Reveal>
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Our software</h2>
-            <p className="mt-4 max-w-[62ch] text-[16px] leading-relaxed text-stone-600">
-              Our platforms drive instantaneous, AI-enabled operational decisions across vital Western public and
-              private sector institutions, linking industrial supply chains directly to tactical frontline units.
+            <h2 className="max-w-[24ch] text-3xl font-bold tracking-tight md:text-4xl">
+              Decisions, with receipts
+            </h2>
+            <p className="mt-4 max-w-[60ch] text-[16px] leading-relaxed ds-text-2">
+              Every answer links to its source rows. Every correction becomes a rule. Every action is approved and audited.
             </p>
           </Reveal>
-          <Reveal delay={120} className="mt-10">
-            <Link
-              href="/platforms/ontology"
-              className="group block rounded-2xl border border-stone-200 bg-white p-6 transition-colors hover:border-stone-400 md:p-8"
-            >
-              <div className="flex items-center justify-between gap-4">
+          <div className="mt-10 grid gap-4 md:grid-cols-5">
+            <Reveal delay={80} className="md:col-span-3">
+              <Link
+                href="/platforms/ontology"
+                className="ds-state group block h-full p-6 md:p-8"
+                style={{ background: "var(--panel)", border: "1px solid var(--hairline)", borderRadius: 10 }}
+              >
                 <p className="text-xl font-bold">Ontology</p>
-                <span
-                  aria-hidden="true"
-                  className="text-stone-400 transition-all duration-200 group-hover:translate-x-1 group-hover:text-emerald-700"
-                >
-                  &rarr;
-                </span>
-              </div>
-              <p className="mt-2 max-w-[58ch] text-[15px] leading-relaxed text-stone-600">
-                The foundational hub driving joint human and machine decision-making.
-              </p>
-            </Link>
-          </Reveal>
+                <p className="mt-2 max-w-[52ch] text-[15px] leading-relaxed ds-text-2">
+                  Objects, links, and governed actions in one model. Humans and agents work from the same world.
+                </p>
+                <p className="mt-4 text-[15px] font-semibold" style={{ color: "var(--accent)" }}>
+                  <span aria-hidden className="transition-all duration-200 group-hover:ml-1">→</span> Explore the ontology
+                </p>
+              </Link>
+            </Reveal>
+            <Reveal delay={160} className="md:col-span-2">
+              <Link
+                href="/model"
+                className="ds-state group block h-full p-6 md:p-8"
+                style={{ background: "var(--panel-2)", border: "1px solid var(--hairline)", borderRadius: 10 }}
+              >
+                <p className="text-xl font-bold">Model</p>
+                <p className="mt-2 text-[15px] leading-relaxed ds-text-2">
+                  Live source status and the checks running on your data right now.
+                </p>
+                <p className="mt-4 text-[15px] font-semibold" style={{ color: "var(--accent)" }}>
+                  <span aria-hidden className="transition-all duration-200 group-hover:ml-1">→</span> Open the model
+                </p>
+              </Link>
+            </Reveal>
+          </div>
         </div>
       </section>
 
-      <footer className="border-t border-stone-200">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm text-stone-500 md:px-8">
-          <p>Monad v{APP_VERSION}. One model. One line.</p>
-          <p className="flex gap-5">
-            <Link href="/download" className="transition-colors hover:text-stone-900">
+      <footer className="border-t" style={{ borderColor: "var(--hairline)" }}>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm ds-text-2 md:px-8">
+          <p>Monad. One model. One line.</p>
+          <p className="flex flex-wrap gap-5">
+            <Link href="/download" className="transition-opacity hover:opacity-80">
               Download
             </Link>
-            <Link href="/platforms/ontology" className="transition-colors hover:text-stone-900">
+            <Link href="/platforms/ontology" className="transition-opacity hover:opacity-80">
               Ontology
             </Link>
-            <Link href="/model" className="transition-colors hover:text-stone-900">
-              Dashboard
+            <Link href="/status" className="transition-opacity hover:opacity-80">
+              Status
             </Link>
-            <Link href="/changelog" className="transition-colors hover:text-stone-900">
+            <Link href="/changelog" className="transition-opacity hover:opacity-80">
               Changelog
             </Link>
           </p>
