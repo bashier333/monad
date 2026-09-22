@@ -34,13 +34,43 @@ export default function SignInForm({
 }) {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [clientError, setClientError] = useState<string | null>(null);
   const nothing = !flags.github && !flags.google && !flags.email;
+
+  async function startOAuth(provider: "github" | "google") {
+    setBusy(provider);
+    setClientError(null);
+    try {
+      // On success this navigates away to the provider. Anything that
+      // resolves back here (a returned error, or a throw) means the
+      // handshake never started — surface it instead of looping silently.
+      const res = (await signIn(provider, { callbackUrl })) as unknown as
+        | { error?: string; url?: string | null }
+        | undefined;
+      if (res?.error) {
+        setClientError(ERRORS[res.error] ?? `Could not start ${provider} sign-in (${res.error}).`);
+      } else if (res && res.url == null) {
+        setClientError(`Could not reach the sign-in server. Check your connection and try again.`);
+      }
+    } catch (e) {
+      setClientError(
+        `Could not start ${provider} sign-in in this browser (${e instanceof Error ? e.message : "network error"}). Try incognito / another browser.`,
+      );
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
     <div className="space-y-3">
       {error ? (
         <p role="alert" className="rounded-md border p-3 text-sm" style={{ borderColor: "var(--danger)", color: "var(--danger)" }}>
           {ERRORS[error] ?? "Sign-in failed. Try again."}
+        </p>
+      ) : null}
+      {clientError ? (
+        <p role="alert" className="rounded-md border p-3 text-sm" style={{ borderColor: "var(--danger)", color: "var(--danger)" }}>
+          {clientError}
         </p>
       ) : null}
       {nothing ? (
@@ -53,8 +83,7 @@ export default function SignInForm({
           type="button"
           disabled={busy !== null}
           onClick={() => {
-            setBusy("github");
-            void signIn("github", { callbackUrl }).finally(() => setBusy(null));
+            void startOAuth("github");
           }}
           className="flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
           style={{ background: "#24292f" }}
@@ -68,8 +97,7 @@ export default function SignInForm({
           type="button"
           disabled={busy !== null}
           onClick={() => {
-            setBusy("google");
-            void signIn("google", { callbackUrl }).finally(() => setBusy(null));
+            void startOAuth("google");
           }}
           className="ds-state flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium ds-text disabled:opacity-50"
           style={{ borderColor: "var(--hairline)", background: "var(--panel)" }}
