@@ -28,7 +28,10 @@ function pickFreePort() {
 
 function standaloneDir() {
   // Same relative layout in dev and packaged (no asar): electron/main.cjs
-  // sits next to .next/standalone/server.js.
+  // sits next to .next/standalone/server.js. asar must stay off in
+  // package.json: the child below runs with ELECTRON_RUN_AS_NODE (plain
+  // node, no asar support), so server.js and its tree must be real files.
+  // Installer speed comes from packaging excludes, not archiving.
   return path.join(__dirname, "..", ".next", "standalone");
 }
 
