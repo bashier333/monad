@@ -6,7 +6,7 @@ import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 import { requireJson } from "@/lib/core/json-guard";
 import { requireWritable } from "@/lib/core/guards";
-import { createLink } from "@/lib/core/ontology/registry";
+import { createLink, deleteLink } from "@/lib/core/ontology/registry";
 
 async function context() {
   const session = await auth();
@@ -60,11 +60,14 @@ export async function DELETE(req: Request) {
   if (blocked) return blocked;
   const { searchParams } = new URL(req.url);
   const key = searchParams.get("key") ?? "";
-  const found = await db.ontoLink.findUnique({
-    where: { organizationId_key: { organizationId: active.organization.id, key } },
-  });
-  if (!found) return NextResponse.json({ error: "not found" }, { status: 404 });
-  await db.ontoLink.delete({ where: { id: found.id } });
+  const res = await deleteLink(active.organization.id, userId, key);
+  if (!res.ok) {
+    const missing = res.problems[0]?.message.includes("not found") ?? false;
+    return NextResponse.json(
+      { error: missing ? "not found" : "in use", problems: res.problems },
+      { status: missing ? 404 : 409 },
+    );
+  }
   await logAccess(active.organization.id, userId, "ontology:link:delete", key);
   return NextResponse.json({ deleted: key });
 }

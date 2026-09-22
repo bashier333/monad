@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Bell from "@/components/Bell";
-import ThemeToggle from "@/components/ThemeToggle";
 import DensityToggle from "@/components/DensityToggle";
 import { ShortcutsModal } from "@/components/ShortcutsModal";
 
@@ -148,7 +147,6 @@ export default function TopNav() {
           >
             ?
           </button>
-          <ThemeToggle />
           <DensityToggle />
           <Bell />
         </span>

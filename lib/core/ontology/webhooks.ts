@@ -4,11 +4,69 @@ import { recordEvent } from "@/lib/core/ontology/facts";
 
 // Outbound pre-commit webhooks: before an action writes back, the owning
 // system (ERP, WMS, planner) gets a signed call and can veto by failing.
-// Delivery failure blocks the write. Demo-grade transport note: any
-// http/https URL is allowed, including localhost for local echo testing.
-// Production hardening is an egress allowlist, not implemented here.
+// Delivery failure blocks the write. Egress control: validateWebhookUrl is
+// the syntax/protocol gate; checkEgressAllowed is the destination gate
+// (allowlist + loopback policy), enforced on every delivery.
 export const WEBHOOK_TIMEOUT_MS = 5000;
 export const WEBHOOK_MAX_URL_LENGTH = 500;
+
+export interface EgressPolicy {
+  allowlist: string[];
+  allowLoopback: boolean;
+  strict: boolean;
+}
+
+// WEBHOOK_EGRESS_ALLOWLIST: comma-separated hosts ("erp.example.com,
+// hooks.internal"). Exact match or subdomain suffix. Enforcement turns on
+// when the allowlist is non-empty OR NODE_ENV=production (empty allowlist
+// in production = deny-all with a clear error). Outside production with no
+// allowlist, egress stays permissive for dev/test ergonomics.
+// WEBHOOK_ALLOW_LOOPBACK=1 permits localhost/127/::1 explicitly (default on
+// outside production, off inside).
+export function egressPolicy(env: Record<string, string | undefined> = process.env): EgressPolicy {
+  const allowlist = (env.WEBHOOK_EGRESS_ALLOWLIST ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  const production = env.NODE_ENV === "production";
+  const loopbackDefault = production ? "0" : "1";
+  return {
+    allowlist,
+    allowLoopback: (env.WEBHOOK_ALLOW_LOOPBACK ?? loopbackDefault) === "1",
+    strict: production || allowlist.length > 0,
+  };
+}
+
+function isLoopback(host: string): boolean {
+  const h = host.toLowerCase();
+  return h === "localhost" || h === "127.0.0.1" || h === "::1" || h === "[::1]" || h.endsWith(".localhost");
+}
+
+export function checkEgressAllowed(
+  url: string,
+  policy: EgressPolicy = egressPolicy(),
+): { ok: true } | { ok: false; error: string } {
+  let host: string;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    return { ok: false, error: "url is not parseable" };
+  }
+  if (isLoopback(host)) {
+    return policy.allowLoopback
+      ? { ok: true }
+      : { ok: false, error: "loopback webhooks are disabled (set WEBHOOK_ALLOW_LOOPBACK=1 to permit)" };
+  }
+  if (!policy.strict) return { ok: true };
+  const h = host.toLowerCase();
+  const listed = policy.allowlist.some((a) => h === a || h.endsWith(`.${a}`));
+  if (!listed) {
+    return policy.allowlist.length === 0
+      ? { ok: false, error: "egress allowlist is empty — set WEBHOOK_EGRESS_ALLOWLIST in production" }
+      : { ok: false, error: `webhook host ${host} is not allowlisted` };
+  }
+  return { ok: true };
+}
 
 export function signWebhook(secret: string, body: string): string {
   return createHmac("sha256", secret).update(body).digest("hex");
@@ -63,10 +121,13 @@ export async function deliverWebhook(
   secret: string,
   payload: WebhookPayload,
   fetchImpl: FetchImpl = fetch as unknown as FetchImpl,
-  timeoutMs = WEBHOOK_TIMEOUT_MS
+  timeoutMs = WEBHOOK_TIMEOUT_MS,
+  egress: EgressPolicy = egressPolicy(),
 ): Promise<{ ok: true; status: number } | { ok: false; error: string }> {
   const valid = validateWebhookUrl(url);
   if (!valid.ok) return valid;
+  const allowed = checkEgressAllowed(url, egress);
+  if (!allowed.ok) return allowed;
   const body = JSON.stringify(payload);
   try {
     const res = await fetchImpl(url, {

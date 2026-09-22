@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatMoney, isLocale, SUPPORTED_LOCALES, t } from "@/lib/core/i18n";
+import { formatDate, formatMoney, isLocale, localeKeys, SUPPORTED_LOCALES, t } from "@/lib/core/i18n";
 
 describe("i18n foundation (R-081/R-082)", () => {
   it("translates key strings, falls back to en", () => {
@@ -18,5 +18,13 @@ describe("i18n foundation (R-081/R-082)", () => {
     expect(formatDate("2026-09-07", "es")).not.toBe("2026-09-07");
     expect(isLocale("es")).toBe(true);
     expect(isLocale("fr")).toBe(false);
+  });
+
+  it("keeps locale key sets in parity (no silent fallback drift)", () => {
+    const keys = localeKeys();
+    for (const loc of ["es", "de"] as const) {
+      const missing = keys.en.filter((k) => !keys[loc].includes(k));
+      expect(missing, `${loc} missing: ${missing.join(", ")}`).toEqual([]);
+    }
   });
 });

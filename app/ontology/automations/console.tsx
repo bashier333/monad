@@ -334,7 +334,7 @@ export default function AgentConsole() {
         <button
           type="submit"
           disabled={running}
-          className="whitespace-nowrap rounded px-4 py-2 text-sm text-[#141413] disabled:opacity-50"
+          className="whitespace-nowrap rounded px-4 py-2 text-sm text-white disabled:opacity-50"
           style={{ background: "var(--accent)" }}
         >
           {running ? "Running…" : "Run"}
@@ -442,7 +442,7 @@ export default function AgentConsole() {
                     <button
                       onClick={() => void confirm(i, p)}
                       disabled={st.state === "confirming" || !wideReady}
-                      className="rounded px-3 py-1.5 text-[#141413] disabled:opacity-50"
+                      className="rounded px-3 py-1.5 text-white disabled:opacity-50"
                       style={{ background: "var(--accent)" }}
                     >
                       {st.state === "confirming" ? "Confirming…" : "Confirm & execute"}

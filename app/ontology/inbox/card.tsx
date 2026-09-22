@@ -116,7 +116,7 @@ export default function ApprovalCard({ approval }: { approval: ApprovalItem }) {
           onClick={() => void decide(true)}
           disabled={state === "working"}
           title="Approve (A)"
-          className="ds-control rounded px-2 py-1 text-xs font-medium text-[#141413] disabled:opacity-50"
+          className="ds-control rounded px-2 py-1 text-xs font-medium text-white disabled:opacity-50"
           style={{ background: "var(--accent)" }}
         >
           Approve (A)

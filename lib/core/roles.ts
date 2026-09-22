@@ -8,7 +8,9 @@ export type Action =
   | "rule:manage"
   | "ontology:manage"
   | "org:invite"
-  | "billing:manage";
+  | "billing:manage"
+  | "board:view"
+  | "board:manage";
 
 const matrix: Record<Action, Role[]> = {
   "answer:view": ["OWNER", "DISPATCHER", "VIEWER"],
@@ -19,6 +21,8 @@ const matrix: Record<Action, Role[]> = {
   "ontology:manage": ["OWNER"],
   "org:invite": ["OWNER"],
   "billing:manage": ["OWNER"],
+  "board:view": ["OWNER", "DISPATCHER", "VIEWER"],
+  "board:manage": ["OWNER", "DISPATCHER"],
 };
 
 export function can(role: Role, action: Action): boolean {

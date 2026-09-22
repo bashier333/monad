@@ -46,6 +46,16 @@ export function t(locale: string, key: string): string {
   return STRINGS[loc][key] ?? STRINGS.en[key] ?? key;
 }
 
+// Key inventory for the parity gate: every locale must carry the full
+// English key set (missing keys fall back silently, which hides drift).
+export function localeKeys(): Record<Locale, string[]> {
+  return {
+    en: Object.keys(STRINGS.en),
+    es: Object.keys(STRINGS.es),
+    de: Object.keys(STRINGS.de),
+  };
+}
+
 export function formatMoney(n: number, locale: string, currency = "USD"): string {
   try {
     return new Intl.NumberFormat(locale, { style: "currency", currency }).format(n);

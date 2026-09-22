@@ -3,6 +3,7 @@ import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function GET() {
   const session = await auth();
@@ -25,6 +26,8 @@ export async function POST(req: Request) {
   const active = await getActiveOrg(session.user.id);
   if (!active) return NextResponse.json({ error: "no organization" }, { status: 400 });
 
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json().catch(() => ({}))) as { id?: string; all?: boolean };
   if (body.all === true) {
     await db.notification.updateMany({

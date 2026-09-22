@@ -56,7 +56,7 @@ export default function RevisionRow({ load, history }: { load: AgencyLoadMargin;
         ))}
       {open &&
         history.map((h, i) => (
-          <tr key={`h${i}`} className="border-t bg-amber-50 text-xs">
+          <tr key={`h${i}`} className="border-t text-xs ds-panel-2" style={{ borderColor: "var(--hairline)" }}>
             <td />
             <td colSpan={6}>
               Correction [{h.status}]: {h.field} → {h.newValue || "—"} — {h.reason} (

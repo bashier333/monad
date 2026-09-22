@@ -48,7 +48,7 @@ ver = ver.replace(`"${cur}"`, `"${next}"`);
 writeFileSync(verPath, ver);
 
 // 3. changelog page ENTRIES (content notes; version+date always)
-const clPage = join(ROOT, "app", "changelog", "page.tsx");
+const clPage = join(ROOT, "app", "(marketing)", "changelog", "page.tsx");
 let page = readFileSync(clPage, "utf8");
 const entry =
   `  {\n    version: "${next}",\n    date: "${date}",\n` +

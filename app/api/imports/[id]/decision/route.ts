@@ -7,6 +7,7 @@ import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 import { requireWritable } from "@/lib/core/guards";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,6 +29,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (blocked) return blocked;
 
   const requestId = req.headers.get("x-request-id") ?? "none";
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json()) as { decision?: string };
   const decision = parseDecision(body.decision);
   if (!decision) {

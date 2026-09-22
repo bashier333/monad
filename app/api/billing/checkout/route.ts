@@ -6,6 +6,7 @@ import { auth } from "@/lib/core/auth";
 import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -19,6 +20,8 @@ export async function POST(req: Request) {
   }
 
   const stripe = getStripe();
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body0 = (await req.json().catch(() => ({}))) as { annual?: boolean; trialDays?: number; couponId?: string; taxExempt?: boolean };
   // Annual = a separate annual price ID (Stripe has no billing-cycle switch
   // on one price). Unset env means annual checkout isn't offered yet — the

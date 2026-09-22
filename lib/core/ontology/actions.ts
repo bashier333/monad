@@ -92,6 +92,13 @@ export function quorumReached(approvals: string[], requiredCount: number): boole
   return new Set(approvals).size >= requiredCount;
 }
 
+// Auto-execution gate: the single choke point any future auto-runner must
+// call. Only approval-free, enabled actions are eligible — quorum/single
+// actions always wait for a human. Surfaced live on every preview response.
+export function canAutoExecute(approvalPolicy: string, enabled: boolean): boolean {
+  return enabled && approvalPolicy === "none";
+}
+
 export function isExpired(expiresAt: string | null | undefined, now = new Date()): boolean {
   if (!expiresAt) return false;
   return new Date(expiresAt).getTime() <= now.getTime();

@@ -145,22 +145,10 @@ export default function CommandPalette() {
     router.push(href);
   }
 
-  function toggleTheme() {
-    try {
-      const dark = !document.documentElement.classList.contains("dark");
-      localStorage.setItem("monad-theme", dark ? "dark" : "light");
-      document.documentElement.classList.toggle("dark", dark);
-    } catch {
-      /* storage unavailable */
-    }
-    close(false);
-  }
+  // Dark-only product: no theme toggle exists. Density lives in TopNav.
 
   const visible = ENTRIES.filter((e) => !desktop || e.desktop);
-  const commands: Entry[] = [
-    ...visible,
-    { id: "cmd-theme", title: "Toggle light / dark theme", layer: "System", keywords: ["theme", "dark", "light", "appearance"], run: toggleTheme, shortcut: "", desktop: true },
-  ];
+  const commands: Entry[] = [...visible];
 
   return (
     <Command.Dialog

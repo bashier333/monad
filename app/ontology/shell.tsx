@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getDesktopMode } from "@/components/desktop-flag";
-import ThemeToggle from "@/components/ThemeToggle";
 import DensityToggle from "@/components/DensityToggle";
 
 interface RailItem {
@@ -178,7 +177,6 @@ export default function OntologyShell({ children }: { children: React.ReactNode 
         </div>
       ))}
       <div className="mt-auto flex flex-wrap gap-2 px-1 pt-3">
-        <ThemeToggle />
         <DensityToggle />
       </div>
     </nav>

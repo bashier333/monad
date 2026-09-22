@@ -8,6 +8,8 @@ import { reorderSuggestions } from "@/lib/packs/manufacturing/logic/reorder";
 import { fulfillmentRisks } from "@/lib/packs/manufacturing/logic/risk";
 import { demandForecast } from "@/lib/packs/manufacturing/logic/forecast";
 import { previewManufacturingAction } from "@/lib/packs/manufacturing/actions";
+import { executeStoredFunction } from "@/lib/core/ontology/functions-store";
+import { allNativeHandlers } from "@/lib/packs/function-handlers";
 
 function num(v: unknown): number | null {
   if (v === undefined || v === null || v === "") return null;
@@ -91,9 +93,23 @@ async function logicExecutor(organizationId: string, actorId: string, ctx: Agent
   const points = history
     .filter((h) => typeof h.weekStart === "string" && num(h.demand) !== null)
     .map((h) => ({ weekStart: h.weekStart!, demand: num(h.demand)! }));
-  const forecast = demandForecast(points);
-  if (!forecast) return { summary: "demand forecast needs at least two weeks of history", citedIds: [], result: null };
-  return { summary: `demand forecast ${forecast.point} (slope ${forecast.slope})`, citedIds: [], result: forecast };
+  if (fn === "demand_forecast") {
+    const forecast = demandForecast(points);
+    if (!forecast) return { summary: "demand forecast needs at least two weeks of history", citedIds: [], result: null };
+    return { summary: `demand forecast ${forecast.point} (slope ${forecast.slope})`, citedIds: [], result: forecast };
+  }
+  // Registry fallback: any other fn resolves through the org's function
+  // registry (formula/aggregation/composite execute in-process; native runs
+  // the pack handler). Unknown keys error exactly like before.
+  try {
+    const res = await executeStoredFunction(organizationId, fn, (args ?? {}) as Record<string, unknown>, {
+      nativeHandlers: allNativeHandlers,
+    });
+    if (!res.ok) return { summary: `logic rejected: ${res.error}`, citedIds: [], result: null };
+    return { summary: `registry function ${fn} ok`, citedIds: [], result: res.value };
+  } catch {
+    return { summary: `logic rejected: unknown function ${fn}`, citedIds: [], result: null };
+  }
 }
 
 async function actionExecutor(organizationId: string, actorId: string, ctx: AgentContext, input: unknown): Promise<ToolReport> {

@@ -11,9 +11,12 @@ export interface TourStep {
 const STORAGE_KEY = "monad-tour-v1";
 
 // Guided first-run tour: a highlight ring on the real UI plus a docked card,
-// never a modal that blocks. Steps target [data-tour] elements; if a target
-// is missing the step renders centered instead of failing. Progress persists
-// in localStorage; Esc or Skip ends it. No animation (reduced-motion safe).
+// never a modal that blocks. The overlay is click-through (pointer-events
+// none except the card itself): the page stays fully usable during the tour,
+// so a missed card can never trap anyone. Steps target [data-tour]
+// elements; if a target is missing the step renders centered instead of
+// failing. Progress persists in localStorage; Esc or Skip ends it.
+// No animation (reduced-motion safe).
 export default function Tour({ steps }: { steps: TourStep[] }) {
   const [index, setIndex] = useState<number | null>(null);
   const [rect, setRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
@@ -80,7 +83,7 @@ export default function Tour({ steps }: { steps: TourStep[] }) {
   const last = index === steps.length - 1;
 
   return (
-    <div role="dialog" aria-label={`Tour: ${step.title}`} className="fixed inset-0 z-50">
+    <div role="dialog" aria-label={`Tour: ${step.title}`} className="pointer-events-none fixed inset-0 z-50">
       {rect && (
         <div
           aria-hidden
@@ -94,7 +97,7 @@ export default function Tour({ steps }: { steps: TourStep[] }) {
           }}
         />
       )}
-      <div className="absolute inset-x-0 bottom-4 mx-auto w-[calc(100%-2rem)] max-w-md rounded-lg ds-panel p-4 shadow-xl">
+      <div className="pointer-events-auto absolute inset-x-0 bottom-4 mx-auto w-[calc(100%-2rem)] max-w-md rounded-lg ds-panel p-4 shadow-xl">
         <p className="text-xs ds-text-2" aria-live="polite">
           Step {index + 1} of {steps.length}
         </p>

@@ -7,6 +7,7 @@ import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -14,6 +15,8 @@ export async function POST(req: Request) {
   const active = await getActiveOrg(session.user.id);
   if (!active) return NextResponse.json({ error: "no organization" }, { status: 400 });
 
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json()) as { week?: string; pack?: string };
   let anchor: string;
   try {
@@ -50,6 +53,8 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  const guardedJson2 = requireJson(req);
+  if (!guardedJson2.ok) return guardedJson2.response;
   const body = (await req.json().catch(() => ({}))) as { token?: string };
   if (!body.token) return NextResponse.json({ error: "token required" }, { status: 400 });
   const share = await db.answerShare.findFirst({

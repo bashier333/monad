@@ -81,7 +81,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
             href={t.key === "all" ? "/ontology/inbox" : `/ontology/inbox?tab=${t.key}`}
             aria-current={show === t.key ? "page" : undefined}
             className="rounded px-2 py-1 ds-state"
-            style={show === t.key ? { background: "var(--accent)", color: "#141413", fontWeight: 500 } : { color: "var(--fg-2)" }}
+            style={show === t.key ? { background: "var(--accent)", color: "#ffffff", fontWeight: 500 } : { color: "var(--fg-2)" }}
           >
             {t.label}
           </Link>

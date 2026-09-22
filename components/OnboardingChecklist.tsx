@@ -32,7 +32,7 @@ export default function OnboardingChecklist({
   const done = STEPS.filter((s) => state[s.key]).length;
   if (done === STEPS.length) return null;
   return (
-    <section className="rounded border border-blue-300 bg-blue-50 p-4 text-sm">
+    <section className="rounded border p-4 text-sm ds-panel" style={{ borderColor: "var(--info)" }}>
       <h2 className="font-medium">
         Getting started ({done}/{STEPS.length})
       </h2>

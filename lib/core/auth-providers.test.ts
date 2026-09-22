@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { configuredProviders } from "./auth-providers";
+import { configuredProviders, resolvePostLoginRedirect } from "./auth-providers";
 
 const base = {
   AUTH_GITHUB_ID: "",
@@ -31,5 +31,23 @@ describe("configuredProviders", () => {
       AUTH_RESEND_KEY: "key",
     });
     expect(flags).toEqual({ github: false, google: true, email: true });
+  });
+});
+
+describe("resolvePostLoginRedirect", () => {
+  const baseUrl = "http://localhost:3020";
+  it("sends bare-origin callbacks to the workspace, never the landing page", () => {
+    expect(resolvePostLoginRedirect(baseUrl, baseUrl)).toBe(`${baseUrl}/workspace`);
+    expect(resolvePostLoginRedirect(`${baseUrl}/`, baseUrl)).toBe(`${baseUrl}/workspace`);
+    expect(resolvePostLoginRedirect("/", baseUrl)).toBe(`${baseUrl}/workspace`);
+  });
+
+  it("passes relative and same-origin targets through", () => {
+    expect(resolvePostLoginRedirect("/upload", baseUrl)).toBe(`${baseUrl}/upload`);
+    expect(resolvePostLoginRedirect(`${baseUrl}/briefs`, baseUrl)).toBe(`${baseUrl}/briefs`);
+  });
+
+  it("falls back to the workspace for cross-origin targets", () => {
+    expect(resolvePostLoginRedirect("https://evil.example/x", baseUrl)).toBe(`${baseUrl}/workspace`);
   });
 });

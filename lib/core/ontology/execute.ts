@@ -3,14 +3,14 @@ import type { Prisma } from "@prisma/client";
 import { applySetEffects, dryRunSet, quorumReached, type ActionEffect } from "@/lib/core/ontology/actions";
 import { createEdgeInstance } from "@/lib/core/ontology/edges";
 import { recordEvent } from "@/lib/core/ontology/facts";
+import { runPreCommitWebhooks } from "@/lib/core/ontology/webhooks";
 import { createObject, naturalKeyFor } from "@/lib/core/ontology/objects";
 
 function json(value: unknown): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
 }
 
-export function resolveRef(value: unknown, inputs: Record<string, unknown> | undefined): { ok: boolean; value: unknown } {
-  if (typeof value === "string" && value.startsWith("$inputs.")) {
+export function resolveRef(value: unknown, inputs: Record<string, unknown> | undefined): { ok: boolean; value: unknown } {  if (typeof value === "string" && value.startsWith("$inputs.")) {
     const key = value.slice("$inputs.".length);
     if (!inputs || !(key in inputs)) return { ok: false, value: null };
     return { ok: true, value: inputs[key] };
@@ -27,12 +27,24 @@ export function resolveRef(value: unknown, inputs: Record<string, unknown> | und
 // effect (value null), so optional inputs like carrier or reorderPoint simply
 // do not apply; required inputs are validated before execution, and the caller
 // fails when nothing resolves. Missing ref names are reported for diagnostics.
+// $fn.<key> references resolve from pre-computed function values (function-
+// backed actions): the caller runs the function executor first and passes the
+// results as fnValues. Without fnValues, $fn refs report missing — never null.
 export function resolveEffect(
   e: ActionEffect,
-  inputs: Record<string, unknown> | undefined
+  inputs: Record<string, unknown> | undefined,
+  fnValues?: Record<string, unknown>,
 ): { value: ActionEffect | null; missing: string[] } {
   const missing: string[] = [];
   const ref = (v: unknown): { provided: boolean; value: unknown } => {
+    if (typeof v === "string" && v.startsWith("$fn.")) {
+      const key = v.slice("$fn.".length);
+      if (fnValues && key in fnValues && fnValues[key] !== undefined && fnValues[key] !== null && fnValues[key] !== "") {
+        return { provided: true, value: fnValues[key] };
+      }
+      missing.push(v);
+      return { provided: false, value: null };
+    }
     if (typeof v === "string" && v.startsWith("$inputs.")) {
       const r = resolveRef(v, inputs);
       if (!r.ok) {
@@ -180,7 +192,7 @@ export async function decideApproval(
 export async function executeAction(
   organizationId: string,
   actorId: string,
-  input: { actionKey: string; objectId: string; inputs?: unknown; idempotencyKey: string; approvalId?: string }
+  input: { actionKey: string; objectId: string; inputs?: unknown; idempotencyKey: string; approvalId?: string; fnValues?: Record<string, unknown> }
 ) {
   if (!input.idempotencyKey) return { ok: false as const, error: "idempotencyKey is required" };
   const prior = await db.ontoActionRun.findUnique({
@@ -205,10 +217,20 @@ export async function executeAction(
     }
   }
   const rawEffects = (action.effects as unknown[] as ActionEffect[]);
+  // Pre-commit webhooks veto before anything writes. No hook configured
+  // means pass-through; a failing hook blocks with its reason (fail-closed).
+  const gate = await runPreCommitWebhooks(
+    organizationId,
+    action.key,
+    object.id,
+    actorId,
+    (input.inputs as Record<string, unknown>) ?? {},
+  );
+  if (!gate.ok) return { ok: false as const, error: gate.error ?? "pre-commit webhook blocked the write" };
   const resolved: ActionEffect[] = [];
   const unresolved: string[] = [];
   for (const e of rawEffects) {
-    const r = resolveEffect(e, (input.inputs as Record<string, unknown>) ?? undefined);
+    const r = resolveEffect(e, (input.inputs as Record<string, unknown>) ?? undefined, input.fnValues);
     unresolved.push(...r.missing);
     if (r.value) resolved.push(r.value);
   }
@@ -276,4 +298,68 @@ export async function executeAction(
     });
     return { ok: true as const, value: raced!, replayed: true };
   }
+}
+
+export async function findUnusedActions(organizationId: string): Promise<string[]> {
+  const [actions, runs] = await Promise.all([
+    db.ontoAction.findMany({ where: { organizationId, enabled: true }, select: { key: true } }),
+    db.ontoActionRun.groupBy({ by: ["actionKey"], where: { organizationId } }),
+  ]);
+  const used = new Set(runs.map((r) => r.actionKey));
+  return actions.map((a) => a.key).filter((k) => !used.has(k));
+}
+
+export type UndoStrategy = "compensating-action" | "revert" | "audit-restore";
+
+export interface UndoPlan {
+  strategy: UndoStrategy;
+  actionKey?: string;
+  steps: string[];
+}
+
+const COMPENSATING: Record<string, { actionKey?: string; steps: string[] }> = {
+  mfg_transfer_stock: {
+    actionKey: "mfg_transfer_stock",
+    steps: ["re-run mfg_transfer_stock with source and target swapped for the moved qty"],
+  },
+  mfg_create_shipment: {
+    actionKey: "mfg_reroute_shipment",
+    steps: ["reroute the created shipment to a holding destination, then cancel it"],
+  },
+  mfg_reroute_shipment: {
+    actionKey: "mfg_reroute_shipment",
+    steps: ["reroute back to the original destination recorded in the audit before-image"],
+  },
+  mfg_record_production: {
+    steps: ["record a correcting fact with the delta (append-only; production facts are never edited)"],
+  },
+  mfg_adjust_safety_stock: {
+    steps: ["re-apply mfg_adjust_safety_stock with the prior value from the audit before-image"],
+  },
+  mfg_resolve_delay: {
+    steps: ["re-open the delay by flagging the shipment figure again with reason"],
+  },
+};
+
+// Every executed action names its way back. Corrections revert in bulk,
+// manufacturing compensates by re-running, and everything else restores
+// from the hash-chained before-image — nothing is ever deleted.
+export function describeUndo(actionKey: string): UndoPlan {
+  const comp = COMPENSATING[actionKey];
+  if (comp) {
+    return { strategy: "compensating-action", actionKey: comp.actionKey, steps: comp.steps };
+  }
+  if (actionKey.startsWith("correct") || actionKey === "revert_user" || actionKey.includes("rule")) {
+    return {
+      strategy: "revert",
+      steps: ["use revert_user (corrections) or disable the standing rule, then recompute affected weeks"],
+    };
+  }
+  return {
+    strategy: "audit-restore",
+    steps: [
+      "read the action.executed audit event for this run",
+      "restore the before-image through update_object (versioned, itself audited)",
+    ],
+  };
 }

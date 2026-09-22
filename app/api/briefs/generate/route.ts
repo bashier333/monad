@@ -17,6 +17,7 @@ import { requireWritable } from "@/lib/core/guards";
 import { recordEvent } from "@/lib/core/events-db";
 import { fatigueGuard, learnedThresholdOverrides } from "@/lib/core/workflow";
 import { appOrigin, escapeHtml } from "@/lib/core/security";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -32,6 +33,8 @@ export async function POST(req: Request) {
   const requestId = req.headers.get("x-request-id") ?? "none";
   const blocked = await requireWritable(active.organization.id);
   if (blocked) return blocked;
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json().catch(() => ({}))) as { week?: string; pack?: string };
   let anchor: string;
   try {

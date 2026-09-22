@@ -6,7 +6,6 @@ import NavGate from "@/app/nav-gate";
 import VitalsReporter from "@/components/VitalsReporter";
 import CommandPalette from "@/components/CommandPalette";
 import { Toaster } from "sonner";
-import { isDesktopMode } from "@/lib/core/desktop";
 import "./globals.css";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
@@ -22,18 +21,20 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  colorScheme: "dark light",
+  colorScheme: "dark",
 };
 
-const THEME_BOOTSTRAP = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("monad-theme");if(t==="dark")d.classList.add("dark");else if(t==="light")d.classList.remove("dark");var n=localStorage.getItem("monad-density");if(n==="compact")d.setAttribute("data-density","compact");}catch(e){}})();`;
+// Dark-only product: the .dark class is server-rendered unconditionally.
+// The bootstrap keeps only the density preference; the old monad-theme
+// light preference is ignored on purpose.
+const DENSITY_BOOTSTRAP = `(function(){try{var n=localStorage.getItem("monad-density");if(n==="compact")document.documentElement.setAttribute("data-density","compact");}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const desktop = isDesktopMode();
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable}${desktop ? " dark" : ""}`} suppressHydrationWarning>
+    <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable} dark`} suppressHydrationWarning>
       <body>
-        <Script id="monad-theme-init" strategy="beforeInteractive">
-          {THEME_BOOTSTRAP}
+        <Script id="monad-density-init" strategy="beforeInteractive">
+          {DENSITY_BOOTSTRAP}
         </Script>
         <noscript>
           <style>{`[data-motion] { opacity: 1 !important; transform: none !important; }`}</style>

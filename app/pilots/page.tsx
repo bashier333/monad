@@ -7,7 +7,10 @@ import { getActiveOrg } from "@/lib/core/org";
 
 function Criterion({ done, label, detail }: { done: boolean; label: string; detail: string }) {
   return (
-    <div className={`rounded border p-3 text-sm ${done ? "border-green-400 bg-green-50" : ""}`}>
+    <div
+      className="rounded border p-3 text-sm ds-panel"
+      style={done ? { borderColor: "var(--success)" } : { borderColor: "var(--hairline)" }}
+    >
       <p className="font-medium">
         {done ? "✓ " : "○ "} {label}
       </p>

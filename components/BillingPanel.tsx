@@ -56,7 +56,7 @@ export default function BillingPanel() {
         )}
       </p>
       {s.status === "canceled" && (
-        <p className="rounded border border-amber-400 bg-amber-50 p-2">
+        <p className="rounded border p-2 ds-panel" style={{ borderColor: "var(--warn)" }}>
           Subscription canceled — your data is kept for 90 days.{" "}
           <a href="/api/org/data" className="underline">
             Export everything now

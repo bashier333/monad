@@ -27,7 +27,7 @@ export interface RunAgentOpts {
 function toolDefs() {
   return [
     { name: "ontology_query", description: "List objects of a type or traverse the graph from an object id.", schema: TOOL_SCHEMAS.ontology_query },
-    { name: "ontology_logic", description: "Run deterministic logic: coverage_days, reorder_suggestion, fulfillment_risk, demand_forecast.", schema: TOOL_SCHEMAS.ontology_logic },
+    { name: "ontology_logic", description: "Run deterministic logic: coverage_days, reorder_suggestion, fulfillment_risk, demand_forecast, or any function in the org registry (margin_rollup, revenue_match, ...).", schema: TOOL_SCHEMAS.ontology_logic },
     { name: "ontology_action", description: "Propose a governed manufacturing action (validates only, never executes).", schema: TOOL_SCHEMAS.ontology_action },
   ];
 }

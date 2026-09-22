@@ -1,0 +1,3 @@
+_key,_date,table,op
+pg-1,2026-09-01,shipments,upsert
+pg-2,2026-09-02,shipments,upsert

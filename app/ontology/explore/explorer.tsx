@@ -253,7 +253,7 @@ function ExplorerInner() {
             <p className="mt-3">
               <Link
                 href={`/ontology/actions?object=${encodeURIComponent(picked.id)}`}
-                className="rounded px-3 py-1.5 text-[#141413]"
+                className="rounded px-3 py-1.5 text-white"
                 style={{ background: "var(--accent)" }}
               >
                 Apply action to {picked.key}
@@ -314,7 +314,7 @@ function FacetChip({ active, label, onClick }: { active: boolean; label: string;
       className="rounded px-2 py-1 text-xs ds-state"
       style={
         active
-          ? { background: "var(--accent)", color: "#141413", fontWeight: 500 }
+          ? { background: "var(--accent)", color: "#ffffff", fontWeight: 500 }
           : { border: "1px solid var(--hairline)", color: "var(--fg-2)" }
       }
     >

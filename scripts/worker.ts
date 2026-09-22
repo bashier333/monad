@@ -40,7 +40,22 @@ async function tickOnce(): Promise<void> {
     const ran = res.playbooks.filter((p) => p.status === "ok").length;
     console.log(`worker: scheduler tick ok (playbooks ${ran}/${res.playbooks.length}, alerts ${res.alerts.length} packs)`);
   }
+  await automationTickOnce().catch((e) => {
+    console.log("worker: automation tick failed", e instanceof Error ? e.message : String(e));
+  });
   await checkpointOnce();
+}
+
+async function automationTickOnce(): Promise<void> {
+  const { db } = await import("../lib/core/db");
+  const { runAutomationTickForOrg } = await import("./automation-wiring");
+  const orgs = await db.organization.findMany({ select: { id: true } });
+  let fired = 0;
+  for (const o of orgs) {
+    const records = await runAutomationTickForOrg(o.id, "ops").catch(() => []);
+    fired += records.filter((r) => r.status === "ok").length;
+  }
+  if (fired > 0) console.log(`worker: automation tick fired ${fired} ok runs`);
 }
 
 async function handleNamedJob(name: string): Promise<boolean> {

@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json()) as { orgId?: string };
   if (!body.orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
   const membership = await db.membership.findFirst({

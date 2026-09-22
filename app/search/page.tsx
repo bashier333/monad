@@ -69,7 +69,7 @@ export default function SearchPage() {
             </option>
           ))}
         </select>
-        <button className="rounded bg-black px-4 py-2 text-sm text-white" disabled={busy}>
+        <button className="rounded-md font-medium px-4 py-2 text-sm text-white" style={{ background: "var(--accent)" }} disabled={busy}>
           {busy ? "…" : "Search"}
         </button>
       </form>

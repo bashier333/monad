@@ -11,16 +11,16 @@
 --------------------------------------------------------------------------- */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
   /* Tailwind v4 uses this for every bare `border` / `divide` utility, so one
      line retires the white-border-in-dark-mode class of bug everywhere. */
   --default-border-color: var(--hairline);
-  --ground: #f6f7f9;
+  --ground: #ffffff;
   --panel: #ffffff;
-  --panel-2: #f2f4f7;
-  --hairline: #e4e7ec;
-  --fg: #101828;
-  --fg-2: #475467;
+  --panel-2: #f4f4f5;
+  --hairline: #e4e4e7;
+  --fg: #09090b;
+  --fg-2: #52525b;
   --accent: #1570ef;
 
   --info: #1570ef;
@@ -30,12 +30,12 @@
 }
 
 .dark {
-  --ground: #101828;
-  --panel: #12161d;
-  --panel-2: #1a2029;
-  --hairline: #232b36;
-  --fg: #f6f7f9;
-  --fg-2: #98a2b3;
+  --ground: #000000;
+  --panel: #0a0a0a;
+  --panel-2: #141414;
+  --hairline: #262626;
+  --fg: #fafafa;
+  --fg-2: #a1a1aa;
   --accent: #1570ef;
 
   --info: #53b1fd;

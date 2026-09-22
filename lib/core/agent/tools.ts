@@ -2,8 +2,17 @@ import { z } from "zod";
 import type { AgentContext } from "@/lib/core/agent/context";
 
 // Agent tool contracts. The function tool reaches deterministic logic only
-// (never rule-fabrication); the action tool can only propose — every proposal
-// carries its cited objects and waits for human confirmation.
+// (never rule-fabrication): the four builtins plus any function in the
+// org's registry (lib/core/ontology/functions.ts). The action tool can only
+// propose — every proposal carries its cited objects and waits for human
+// confirmation.
+export const BUILTIN_LOGIC_FNS = [
+  "coverage_days",
+  "reorder_suggestion",
+  "fulfillment_risk",
+  "demand_forecast",
+] as const;
+
 export const TOOL_SCHEMAS = {
   ontology_query: z.object({
     op: z.enum(["list", "traverse"]),
@@ -12,7 +21,7 @@ export const TOOL_SCHEMAS = {
     depth: z.number().int().min(0).max(4).optional(),
   }),
   ontology_logic: z.object({
-    fn: z.enum(["coverage_days", "reorder_suggestion", "fulfillment_risk", "demand_forecast"]),
+    fn: z.string().min(1).max(64),
     args: z.record(z.unknown()).default({}),
   }),
   ontology_action: z.object({

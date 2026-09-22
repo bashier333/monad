@@ -5,6 +5,7 @@ import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function GET() {
   const session = await auth();
@@ -29,6 +30,8 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json()) as { name?: string; steps?: unknown; schedule?: string; fromStarter?: number };
   let name = String(body.name ?? "").slice(0, 80);
   let steps = body.steps;

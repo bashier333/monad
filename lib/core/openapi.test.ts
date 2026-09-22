@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import path from "path";
 import { describe, expect, it } from "vitest";
 
-const SPEC = path.join(process.cwd(), "docs", "openapi.json");
+const SPEC = path.join(process.cwd(), "(marketing)", "docs", "openapi.json");
 
 describe("API v2 OpenAPI spec (R-022)", () => {
   it("spec exists and covers /v2 routes", () => {

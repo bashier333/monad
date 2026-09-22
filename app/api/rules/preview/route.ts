@@ -5,7 +5,9 @@ import { normalizePlace, laneKey } from "@/lib/packs/freight/margin/places";
 import { FREIGHT_FIELD_KINDS } from "@/lib/packs/freight/margin/rules";
 import { auth } from "@/lib/core/auth";
 import { getActiveOrg } from "@/lib/core/org";
+import { logAccess } from "@/lib/core/access";
 import { requireCan } from "@/lib/core/roles";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -18,6 +20,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json()) as { rule?: RuleInput; week?: string; pack?: string };
   if (!body.rule?.costKind || !body.rule?.matchField || !body.rule?.matchValue) {
     return NextResponse.json({ error: "rule with costKind, matchField, matchValue is required" }, { status: 400 });
@@ -62,6 +66,7 @@ export async function POST(req: Request) {
   const totalMoved = Math.round(laneDeltas.reduce((s, d) => s + Math.abs(d.delta), 0) * 100) / 100;
   const weeklyCost = withRule.totals.cost;
   const sample = withRule.adjustments.slice(0, 10).map((a) => a.description);
+  await logAccess(active.organization.id, session.user.id, "rules:preview", anchor);
 
   return NextResponse.json({
     affectedLoads: affectedLoads.length,

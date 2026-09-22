@@ -6,6 +6,7 @@ import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 import { appOrigin, hashEmail, parseInviteRole, validateInviteEmail } from "@/lib/core/security";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function GET() {
   const session = await auth();
@@ -34,6 +35,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json()) as { email?: string; role?: "DISPATCHER" | "VIEWER" };
   const parsed = validateInviteEmail(body.email);
   if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
@@ -72,6 +75,8 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  const guardedJson2 = requireJson(req);
+  if (!guardedJson2.ok) return guardedJson2.response;
   const body = (await req.json().catch(() => ({}))) as { email?: string };
   const email = String(body.email ?? "").trim().toLowerCase();
   if (!email) return NextResponse.json({ error: "email required" }, { status: 400 });

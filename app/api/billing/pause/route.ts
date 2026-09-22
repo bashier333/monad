@@ -5,6 +5,7 @@ import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -22,6 +23,8 @@ export async function POST(req: Request) {
   const sub = await db.subscription.findUnique({ where: { organizationId: active.organization.id } });
   if (!sub?.stripeSubId) return NextResponse.json({ error: "no active subscription to pause" }, { status: 409 });
 
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json().catch(() => ({}))) as { resume?: boolean };
   if (body.resume === true) {
     await stripe.subscriptions.update(sub.stripeSubId, { pause_collection: "" });

@@ -31,7 +31,7 @@ export default function DemoTour({ pack = "freight" }: { pack?: "freight" | "age
     setDismissed(true);
   };
   return (
-    <div className="rounded border border-blue-300 bg-blue-50 p-3 text-sm">
+    <div className="rounded border p-3 text-sm ds-panel" style={{ borderColor: "var(--info)" }}>
       <p>{STEPS[step]}</p>
       <div className="mt-2 flex gap-2">
         {step > 0 && (

@@ -50,6 +50,13 @@ model Organization {
   ontoPolicies OntoPolicy[]
   ontoBranches OntoBranch[]
   ontoWebhooks OntoWebhook[]
+  syncRuns       SyncRun[]
+  connectorStates ConnectorState[]
+  ontoFunctions  OntoFunction[]
+  ontoFunctionVersions OntoFunctionVersion[]
+  boards Board[]
+  boardVersions BoardVersion[]
+  automations Automation[]
 }
 
 model OntoBranch {
@@ -612,6 +619,81 @@ model ColumnMapping {
   @@unique([organizationId, sourceType, fingerprint])
 }
 
+model SyncRun {
+  id              String       @id @default(cuid())
+  organizationId  String
+  connectorKey    String
+  status          String       @default("COMPLETED")
+  progress        Int          @default(100)
+  rowsPulled      Int          @default(0)
+  rowsUpserted    Int          @default(0)
+  rowsQuarantined Int          @default(0)
+  cursor          String?
+  degraded        Boolean      @default(false)
+  degradedSources Json?
+  failureReason   String?
+  startedAt       DateTime     @default(now())
+  finishedAt      DateTime?
+  triggeredById   String       @default("")
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, connectorKey, startedAt])
+  @@index([organizationId, startedAt])
+}
+
+model ConnectorState {
+  id             String       @id @default(cuid())
+  organizationId String
+  connectorKey   String
+  cursor         String?
+  mapping        Json?
+  nextRunAt      DateTime?
+  lastPulledAt   DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, connectorKey])
+}
+
+model OntoFunction {
+  id             String   @id @default(cuid())
+  organizationId String
+  key            String
+  label          String
+  targetTypeKey  String?
+  pure           Boolean  @default(true)
+  budgetMs       Int      @default(5000)
+  kind           String
+  code           Json
+  version        Int      @default(1)
+  enabled        Boolean  @default(true)
+  lastExecutedAt DateTime?
+  createdById    String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  versions       OntoFunctionVersion[]
+
+  @@unique([organizationId, key])
+  @@index([organizationId, enabled])
+}
+
+model OntoFunctionVersion {
+  id             String   @id @default(cuid())
+  organizationId String
+  functionId     String
+  version        Int
+  snapshot       Json
+  note           String   @default("")
+  createdById    String   @default("")
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  fn             OntoFunction @relation(fields: [functionId], references: [id], onDelete: Cascade)
+
+  @@unique([functionId, version])
+}
+
 model EventLog {
   id        String   @id @default(cuid())
   type      String
@@ -707,4 +789,66 @@ model OrgDeletion {
   createdAt   DateTime @default(now())
 
   @@index([purgeAt])
+}
+
+model Board {
+  id             String   @id @default(cuid())
+  organizationId String
+  ownerId        String
+  name           String   @default("My board")
+  layout         Json
+  widgets        Json
+  version        Int      @default(1)
+  status         String   @default("draft")
+  shareToken     String?  @unique
+  isFavorite     Boolean  @default(false)
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  versions       BoardVersion[]
+
+  @@index([organizationId, ownerId, updatedAt])
+  @@index([organizationId, updatedAt])
+}
+
+model BoardVersion {
+  id             String   @id @default(cuid())
+  organizationId String
+  boardId        String
+  version        Int
+  snapshot       Json
+  note           String   @default("")
+  createdById    String   @default("")
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  board          Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@unique([boardId, version])
+  @@index([organizationId])
+}
+
+model Automation {
+  id             String   @id @default(cuid())
+  organizationId String
+  key            String
+  name           String
+  trigger        Json
+  effects        Json
+  maxRetries     Int      @default(3)
+  backoff        String   @default("exponential")
+  paused         Boolean  @default(false)
+  mutedUntilMs   BigInt?
+  expiresAtMs    BigInt?
+  throttlePerHour Int?
+  dependsOn      Json?
+  enabled        Boolean  @default(true)
+  lastFiredAt    DateTime?
+  createdById    String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@index([organizationId, enabled])
 }

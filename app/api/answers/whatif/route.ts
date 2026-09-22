@@ -5,7 +5,9 @@ import { resolveWeek } from "@/lib/core/answers/service";
 import { weekBounds } from "@/lib/core/dates";
 import { auth } from "@/lib/core/auth";
 import { getActiveOrg } from "@/lib/core/org";
+import { logAccess } from "@/lib/core/access";
 import { requireCan } from "@/lib/core/roles";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -18,6 +20,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json()) as { week?: string; pack?: string; group?: string; costDelta?: number };
   const pack = body.pack === "agency" ? "agency" : "freight";
   let anchor: string;
@@ -40,12 +44,13 @@ export async function POST(req: Request) {
       getAgencyCorrections(active.organization.id),
     ]);
     const base = buildAgencyAnswer(inputs, corrections, start, end);
-    const target = base.projects.find((p) => p.project === body.group);
+  const target = base.projects.find((p) => p.project === body.group);
     if (!target) return NextResponse.json({ error: `no project named ${body.group} this week` }, { status: 404 });
-    const newCost = Math.round((target.cost + body.costDelta!) * 100) / 100;
-    const newMargin = Math.round((target.revenue - newCost) * 100) / 100;
-    return NextResponse.json({
-      group: target.project,
+  const newCost = Math.round((target.cost + body.costDelta!) * 100) / 100;
+  const newMargin = Math.round((target.revenue - newCost) * 100) / 100;
+  await logAccess(active.organization.id, session.user.id, "answers:whatif", body.group ?? "");
+  return NextResponse.json({
+    group: target.project,
       before: { cost: target.cost, margin: target.margin },
       after: { cost: newCost, margin: newMargin },
       delta: { cost: body.costDelta, margin: Math.round((newMargin - target.margin) * 100) / 100 },
@@ -62,6 +67,7 @@ export async function POST(req: Request) {
   if (!target) return NextResponse.json({ error: `no lane named ${body.group} this week` }, { status: 404 });
   const newCost = Math.round((target.cost + body.costDelta!) * 100) / 100;
   const newMargin = Math.round((target.revenue - newCost) * 100) / 100;
+  await logAccess(active.organization.id, session.user.id, "answers:whatif", body.group ?? "");
   return NextResponse.json({
     group: target.lane,
     before: { cost: target.cost, margin: target.margin },

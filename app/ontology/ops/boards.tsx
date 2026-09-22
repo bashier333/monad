@@ -219,7 +219,7 @@ export default function OpsBoards({
                     {!p.enabled && " · disabled"}
                   </span>
                 </span>
-                <button onClick={() => void runPlaybook(p.id)} className="rounded px-3 py-1.5 text-[#141413]"
+                <button onClick={() => void runPlaybook(p.id)} className="rounded px-3 py-1.5 text-white"
           style={{ background: "var(--accent)" }}>
                   Run now
                 </button>
@@ -278,7 +278,7 @@ export default function OpsBoards({
             Window (min)
             <input value={alertForm.windowMinutes} onChange={(e) => setAlertForm((f) => ({ ...f, windowMinutes: e.target.value }))} type="number" min={5} max={10080} className="ml-2 w-24 rounded border px-2 py-1.5" />
           </label>
-          <button type="submit" className="rounded px-3 py-1.5 text-[#141413]"
+          <button type="submit" className="rounded px-3 py-1.5 text-white"
           style={{ background: "var(--accent)" }}>
             Create rule
           </button>
@@ -344,7 +344,7 @@ export default function OpsBoards({
               className="ml-2 w-44 rounded border px-2 py-1.5 font-mono text-xs"
             />
           </label>
-          <button type="submit" className="rounded px-3 py-1.5 text-[#141413]"
+          <button type="submit" className="rounded px-3 py-1.5 text-white"
           style={{ background: "var(--accent)" }}>
             Save webhook
           </button>

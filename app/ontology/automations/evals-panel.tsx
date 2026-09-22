@@ -48,7 +48,7 @@ export default function EvalsPanel() {
         <button
           onClick={() => void run()}
           disabled={busy}
-          className="rounded px-3 py-1.5 text-sm text-[#141413] disabled:opacity-50"
+          className="rounded px-3 py-1.5 text-sm text-white disabled:opacity-50"
           style={{ background: "var(--accent)" }}
         >
           {busy ? "Running…" : "Run evals"}

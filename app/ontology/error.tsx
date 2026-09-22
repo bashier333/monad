@@ -10,7 +10,7 @@ export default function OntologyError({ error, reset }: { error: Error & { diges
       <div className="flex gap-3 text-sm">
         <button
           onClick={reset}
-          className="rounded px-4 py-2 text-[#141413]"
+          className="rounded px-4 py-2 text-white"
           style={{ background: "var(--accent)" }}
         >
           Try again

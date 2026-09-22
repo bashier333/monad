@@ -5,6 +5,7 @@ import { db } from "@/lib/core/db";
 import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -16,6 +17,8 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json()) as { eventId?: string };
   if (!body.eventId) return NextResponse.json({ error: "eventId required" }, { status: 400 });
   const row = await db.eventLog.findFirst({ where: { id: body.eventId, orgId: active.organization.id } });

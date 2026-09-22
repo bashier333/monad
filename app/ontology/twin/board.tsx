@@ -117,7 +117,7 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
                   </span>
                   <Link
                     href={`/ontology/actions?action=mfg_resolve_delay&object=${encodeURIComponent(r.shipmentId)}`}
-                    className="rounded px-3 py-1.5 text-[#141413]"
+                    className="rounded px-3 py-1.5 text-white"
                     style={{ background: "var(--accent)" }}
                   >
                     Resolve
@@ -153,7 +153,7 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
               {l.belowReorderPoint && (
                 <Link
                   href={`/ontology/actions?action=mfg_transfer_stock&object=${encodeURIComponent(l.id)}`}
-                  className="rounded px-3 py-1.5 text-[#141413]"
+                  className="rounded px-3 py-1.5 text-white"
                   style={{ background: "var(--accent)" }}
                 >
                   Transfer
@@ -187,7 +187,7 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
                 </span>
                 <Link
                   href={`/ontology/actions?action=mfg_transfer_stock&object=${encodeURIComponent(r.lotId)}`}
-                  className="rounded px-3 py-1.5 text-[#141413]"
+                  className="rounded px-3 py-1.5 text-white"
                   style={{ background: "var(--accent)" }}
                 >
                   Transfer

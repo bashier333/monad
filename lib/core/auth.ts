@@ -5,6 +5,7 @@ import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
 import { db } from "@/lib/core/db";
 import { getEnv } from "@/lib/core/env";
+import { resolvePostLoginRedirect } from "@/lib/core/auth-providers";
 
 const env = getEnv();
 
@@ -13,6 +14,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   pages: { signIn: "/signin" },
   session: { strategy: "database", maxAge: 30 * 24 * 60 * 60, updateAge: 24 * 60 * 60 },
+  callbacks: {
+    async redirect({ url, baseUrl }) {
+      return resolvePostLoginRedirect(url, baseUrl);
+    },
+  },
   providers: [
     GitHub({ clientId: env.AUTH_GITHUB_ID, clientSecret: env.AUTH_GITHUB_SECRET }),
     Google({ clientId: env.AUTH_GOOGLE_ID, clientSecret: env.AUTH_GOOGLE_SECRET }),

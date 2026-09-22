@@ -5,6 +5,7 @@ import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireCan } from "@/lib/core/roles";
 import { logAccess } from "@/lib/core/access";
+import { requireJson } from "@/lib/core/json-guard";
 
 export async function GET() {
   const session = await auth();
@@ -30,6 +31,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  const guardedJson1 = requireJson(req);
+  if (!guardedJson1.ok) return guardedJson1.response;
   const body = (await req.json()) as { name?: string; scopes?: unknown; tier?: string };
   const name = String(body.name ?? "api key").slice(0, 80);
   const scopes = parseScopes(body.scopes);
@@ -55,6 +58,8 @@ export async function DELETE(req: Request) {
   } catch {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
+  const guardedJson2 = requireJson(req);
+  if (!guardedJson2.ok) return guardedJson2.response;
   const body = (await req.json().catch(() => ({}))) as { id?: string };
   if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
   const key = await db.apiKey.findFirst({ where: { id: body.id, orgId: active.organization.id } });

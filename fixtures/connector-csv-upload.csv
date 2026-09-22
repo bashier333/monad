@@ -1,0 +1,4 @@
+LoadID,PickupDate,Origin,Destination,Miles,Revenue
+C1001,2026-09-01,Dallas TX,Houston TX,240,610
+C1002,2026-09-02,Fort Worth TX,El Paso TX,620,1480
+C1003,2026-09-03,Dallas TX,Atlanta GA,780,1720

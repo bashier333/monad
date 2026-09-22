@@ -30,7 +30,7 @@ export default function DangerZone({ slug }: { slug: string }) {
         <p className="text-gray-600">Type your org slug ({slug}) to confirm. Members keep access; data does not come back.</p>
         <div className="mt-2 flex gap-2">
           <input value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder={slug} className="rounded border p-1" />
-          <button onClick={wipe} className="rounded bg-red-600 px-3 py-1 text-white">
+          <button onClick={wipe} className="rounded px-3 py-1 text-white" style={{ background: "var(--danger)" }}>
             Delete everything
           </button>
         </div>

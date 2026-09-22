@@ -92,6 +92,7 @@ describe("security audit gates (D1/D2/D9)", () => {
     const publicRoutes = new Set([
       "/health",
       "/share/[token]",
+      "/boards/shared/[token]",
       "/auth/[...nextauth]",
       "/email/unsubscribe",
       "/debug-error",

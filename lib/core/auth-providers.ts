@@ -15,3 +15,15 @@ export function configuredProviders(env: Pick<Env, "AUTH_GITHUB_ID" | "AUTH_GITH
     email: env.AUTH_RESEND_KEY !== "",
   };
 }
+
+// Post-login landing rule (used by the Auth.js redirect callback): a
+// bare-origin callback means "no destination given" and must land members
+// on the workspace — never the landing page, which reads as a failed
+// sign-in. Relative and same-origin targets pass through; cross-origin
+// targets fall back to the workspace (open-redirect safe).
+export function resolvePostLoginRedirect(url: string, baseUrl: string): string {
+  if (url === baseUrl || url === `${baseUrl}/` || url === "/") return `${baseUrl}/workspace`;
+  if (url.startsWith("/")) return `${baseUrl}${url}`;
+  if (url.startsWith(baseUrl)) return url;
+  return `${baseUrl}/workspace`;
+}
