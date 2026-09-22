@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+coverage
+var
+*.db
+*.db-journal
+*.tsbuildinfo
+.next
+out
+electron/dist
+*.log
