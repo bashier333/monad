@@ -1,6 +1,6 @@
 -- Function registry: versioned deterministic logic (formula / aggregation /
-// composite / native-reference) that agents, boards and actions resolve
-// through one executor instead of hardcoded call sites.
+-- composite / native-reference) that agents, boards and actions resolve
+-- through one executor instead of hardcoded call sites.
 CREATE TABLE "OntoFunction" (
   "id" TEXT NOT NULL,
   "organizationId" TEXT NOT NULL,
