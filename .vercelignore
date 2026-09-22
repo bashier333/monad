@@ -6,7 +6,6 @@ var
 *.db
 *.db-journal
 *.tsbuildinfo
-.next
 out
 electron/dist
 *.log
