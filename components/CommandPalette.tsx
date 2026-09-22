@@ -28,6 +28,7 @@ interface ObjectHit {
 // where they would render with no chrome.
 const ENTRIES: Entry[] = [
   { id: "go-workspace", title: "Go: workspace", layer: "Understand", keywords: ["workspace", "home"], href: "/workspace", desktop: true },
+  { id: "go-board", title: "Go: operations board", layer: "Understand", keywords: ["board", "operations", "company", "overview", "map"], href: "/ontology/board", desktop: true },
   { id: "go-twin", title: "Go: digital twin", layer: "Understand", keywords: ["twin", "manufacturing", "coverage", "risk"], href: "/ontology/twin", desktop: true },
   { id: "go-explore", title: "Go: explore objects", layer: "Understand", keywords: ["explore", "search", "graph", "find"], href: "/ontology/explore", desktop: true },
   { id: "go-schema", title: "Go: ontology schema", layer: "Understand", keywords: ["schema", "types", "links", "studio"], href: "/ontology", desktop: true },

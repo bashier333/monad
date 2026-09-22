@@ -15,6 +15,7 @@ import {
   Inbox,
   LayoutDashboard,
   LifeBuoy,
+  Map,
   Network,
   Package,
   Play,
@@ -65,6 +66,7 @@ const SECTIONS: RailSection[] = [
   {
     title: "Ontology",
     items: [
+      { href: "/ontology/board", label: "Board", icon: Map },
       { href: "/ontology/twin", label: "Twin", icon: Network },
       { href: "/ontology/explore", label: "Explore", icon: Compass },
       { href: "/ontology", label: "Schema", icon: Database },

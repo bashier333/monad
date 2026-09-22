@@ -6,6 +6,11 @@ export const TYPE_COLORS: Record<string, string> = {
   customer: "#b45309",
   shipment: "#6d28d9",
   lot: "#64748b",
+  // Operations-board packs share the same canvas. Freight places and agency
+  // clients/projects reuse this map so every pack renders without new code.
+  place: "#0e7490",
+  client: "#b45309",
+  project: "#1d4ed8",
 };
 
 export function colorForType(type: string): string {
