@@ -5,6 +5,7 @@ import { resolveWeek } from "@/lib/core/answers/service";
 import { twinOverview, twinGraph } from "@/lib/packs/manufacturing/service";
 import { agencyBoard, freightBoard } from "@/lib/packs/board";
 import { db } from "@/lib/core/db";
+import { EmptyState } from "@/components/primitives";
 import BoardView from "./view";
 
 export const metadata = { title: "Operations board - Monad" };
@@ -19,12 +20,12 @@ export default async function BoardPage({
   if (!session?.user?.id) {
     return (
       <main className="mx-auto max-w-2xl p-8">
-        <p>
-          <Link href="/api/auth/signin" className="underline">
-            Sign in
-          </Link>{" "}
-          to open the operations board.
-        </p>
+        <EmptyState
+          title="Sign in to open the operations board"
+          body="Trucks, factories, routes, and shipments appear here once you are signed in."
+          actionHref="/api/auth/signin"
+          actionLabel="Sign in"
+        />
       </main>
     );
   }
@@ -32,7 +33,12 @@ export default async function BoardPage({
   if (!active) {
     return (
       <main className="mx-auto max-w-2xl p-8">
-        <p>No organization yet.</p>
+        <EmptyState
+          title="No organization yet"
+          body="Create or join an organization and the board fills with its operation."
+          actionHref="/settings"
+          actionLabel="Open settings"
+        />
       </main>
     );
   }

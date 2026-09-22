@@ -101,6 +101,9 @@ function loadFavorites(): string[] {
 }
 
 function isActive(pathname: string, href: string): boolean {
+  // Schema is a sibling, not a parent: /ontology/board must not light up
+  // /ontology. Other sections (answers, briefs) own their sub-pages.
+  if (href === "/ontology" || href === "/workspace") return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
