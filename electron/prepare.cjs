@@ -53,6 +53,37 @@ if (process.env.SQLITE_TEMPLATE) {
   }
 }
 
+// Private-testing AI key: every download ships the operator's NVIDIA key so
+// the exe works out of the box with no setup. ONLY NVIDIA_* lines are
+// extracted from the local (gitignored, never committed) monad.env —
+// AUTH_SECRET, DATABASE_URL, resend keys and everything else stay out of
+// the installer. Anyone holding the exe can read this key: private builds
+// only, never a public release.
+{
+  const src = path.join(root, "monad.env");
+  const dest = path.join(standalone, "monad.env.shipped");
+  try {
+    const kept = fs
+      .readFileSync(src, "utf8")
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => /^NVIDIA_[A-Z_]+=/i.test(l));
+    if (kept.length > 0) {
+      fs.writeFileSync(dest, `# Shipped AI key for private testing builds. Do not publish this installer.\n${kept.join("\n")}\n`);
+      console.log(`prepare: packaged AI key (${kept.length} NVIDIA_* lines, nothing else)`);
+    } else {
+      try {
+        fs.rmSync(dest, { force: true });
+      } catch {
+        /* already absent */
+      }
+      console.log("prepare: no NVIDIA_* lines in monad.env — exe ships without AI key");
+    }
+  } catch {
+    console.log("prepare: monad.env unreadable — exe ships without AI key");
+  }
+}
+
 // Generated SQLite Prisma client: db.ts requires it from a standalone-
 // relative path at runtime, so it must physically live inside the
 // standalone tree (Next's file tracing does not follow that require).

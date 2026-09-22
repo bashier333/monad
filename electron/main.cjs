@@ -131,9 +131,11 @@ function loadEnvFile() {
 
 function ensureUserEnv() {
   // First-boot secrets + zero-config database, both in the per-user data
-  // dir (always writable — unlike Program Files). This is what makes a
-  // fresh install boot with no setup and no shipped secrets: nothing
-  // sensitive is ever baked into the installer.
+  // dir (always writable — unlike Program Files). AUTH_SECRET and the
+  // database stay per-user and are never baked in. The one exception is the
+  // operator's NVIDIA key for private testing builds (seeded from
+  // monad.env.shipped, NVIDIA_* only) — anyone holding such an installer
+  // can read it, so those builds stay private.
   const { app } = require("electron");
   const userDir = app.getPath("userData");
   const p = path.join(userDir, "monad.env");
@@ -152,6 +154,54 @@ function ensureUserEnv() {
   if (!process.env.DATABASE_URL) {
     process.env.DATABASE_URL = `file:${path.join(userDir, "monad.db")}`;
     console.log("MONAD: DATABASE_URL not set — using per-user SQLite file.");
+  }
+  seedShippedAiKey(p);
+}
+
+function seedShippedAiKey(userEnvPath) {
+  // Private-testing builds ship monad.env.shipped (NVIDIA_* only, written by
+  // prepare.cjs from the operator's local monad.env). First boot copies any
+  // missing NVIDIA_* keys into the per-user config so every download works
+  // with zero setup. Existing user values always win — never overwritten.
+  // The standalone tree sits at <resources>/app/.next/standalone.
+  const shipped = path.join(__dirname, "..", ".next", "standalone", "monad.env.shipped");
+  let wanted = [];
+  try {
+    wanted = fs
+      .readFileSync(shipped, "utf8")
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => /^NVIDIA_[A-Z_]+=./i.test(l));
+  } catch {
+    return;
+  }
+  if (wanted.length === 0) return;
+  let current = "";
+  try {
+    current = fs.readFileSync(userEnvPath, "utf8");
+  } catch {
+    current = "";
+  }
+  const missing = wanted.filter((l) => {
+    const k = l.slice(0, l.indexOf("="));
+    if (k in process.env) return false;
+    return !new RegExp(`^${k}=.+`, "m").test(current);
+  });
+  if (missing.length === 0) return;
+  for (const l of missing) {
+    const k = l.slice(0, l.indexOf("="));
+    let v = l.slice(l.indexOf("=") + 1).trim();
+    if (v.length >= 2 && ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'")))) {
+      v = v.slice(1, -1);
+    }
+    process.env[k] = v;
+  }
+  try {
+    const prefix = current.length > 0 && !current.endsWith("\n") ? "\n" : "";
+    fs.writeFileSync(userEnvPath, `${current}${prefix}# Shipped AI key (private testing build).\n${missing.join("\n")}\n`, { mode: 0o600 });
+    console.log(`MONAD: seeded ${missing.length} shipped AI key(s) into user config`);
+  } catch (e) {
+    console.log(`MONAD: AI key lives for this session only (${e instanceof Error ? e.message : String(e)})`);
   }
 }
 
