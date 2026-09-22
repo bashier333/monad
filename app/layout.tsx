@@ -43,13 +43,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Suspense fallback={null}>
-          <NavGate />
+          <NavGate>{children}</NavGate>
         </Suspense>
         <VitalsReporter />
         <CommandPalette />
-        <main id="main" tabIndex={-1}>
-          {children}
-        </main>
         <Toaster position="bottom-right" richColors closeButton />
       </body>
     </html>

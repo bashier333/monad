@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Bot, FileText, Upload, UserPlus } from "lucide-react";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
@@ -25,9 +26,8 @@ const TOUR_STEPS = [
     body: "Lots below reorder, delayed shipments, waiting approvals, and whether the audit trail verifies. If a number surprises you, click through — every figure links to its evidence.",
   },
   {
-    target: '[data-tour="modules"]',
-    title: "Nine tools, one model",
-    body: "Twin shows decisions, Automations asks the AI (which never acts without your confirmation), Actions change things with approval, and Audit proves what happened. Start with Twin.",
+    title: "Everything lives in the sidebar",
+    body: "Twin shows decisions, Automations asks the AI (which never acts without your confirmation), Actions change things with approval, and Audit proves what happened. The sidebar is always one click away. Start with Twin.",
   },
   {
     title: "One keystroke away",
@@ -43,17 +43,6 @@ async function gate() {
   return { gate: "ok" as const, orgId: active.organization.id };
 }
 
-const MODULES = [
-  { href: "/ontology/twin", label: "Twin", desc: "Coverage, risks, and network" },
-  { href: "/ontology/automations", label: "Automations", desc: "Ask the model, confirm actions" },
-  { href: "/ontology/explore", label: "Explore", desc: "Search objects and traverse links" },
-  { href: "/ontology/actions", label: "Actions", desc: "Run governed actions with approval" },
-  { href: "/ontology/scenarios", label: "Scenarios", desc: "Stage what-if branches and merge" },
-  { href: "/ontology/inbox", label: "Inbox", desc: "Approve actions and corrections" },
-  { href: "/ontology/audit", label: "Audit", desc: "Hash-chained event trail" },
-  { href: "/ontology/ops", label: "Ops", desc: "Policies, playbooks, and alerts" },
-  { href: "/ontology", label: "Schema", desc: "Types, links, and versions" },
-];
 
 export default async function WorkspacePage() {
   const g = await gate();
@@ -150,6 +139,35 @@ export default async function WorkspacePage() {
         </button>
       </form>
 
+      <section aria-label="Quick actions">
+        <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <li>
+            <Link href="/upload" className="ds-state flex items-center gap-2.5 rounded-[10px] border p-3" style={{ borderColor: "var(--hairline)", background: "var(--panel)" }}>
+              <Upload size={16} aria-hidden style={{ color: "var(--accent)" }} />
+              <span className="text-sm font-medium ds-text">Upload a feed</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/ontology/automations" className="ds-state flex items-center gap-2.5 rounded-[10px] border p-3" style={{ borderColor: "var(--hairline)", background: "var(--panel)" }}>
+              <Bot size={16} aria-hidden style={{ color: "var(--accent)" }} />
+              <span className="text-sm font-medium ds-text">Ask the model</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/briefs" className="ds-state flex items-center gap-2.5 rounded-[10px] border p-3" style={{ borderColor: "var(--hairline)", background: "var(--panel)" }}>
+              <FileText size={16} aria-hidden style={{ color: "var(--accent)" }} />
+              <span className="text-sm font-medium ds-text">Read the brief</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/settings" className="ds-state flex items-center gap-2.5 rounded-[10px] border p-3" style={{ borderColor: "var(--hairline)", background: "var(--panel)" }}>
+              <UserPlus size={16} aria-hidden style={{ color: "var(--accent)" }} />
+              <span className="text-sm font-medium ds-text">Invite the team</span>
+            </Link>
+          </li>
+        </ul>
+      </section>
+
       <section aria-label="Proof" data-tour="proof" className="ds-panel p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-[15px] font-semibold ds-text">Operation health</h2>
@@ -179,26 +197,13 @@ export default async function WorkspacePage() {
         )}
       </section>
 
-      <section aria-label="Activation" className="ds-panel p-4">
-        <h2 className="text-[15px] font-semibold ds-text">Getting started</h2>
-        <ul className="mt-2 divide-y text-sm" style={{ borderColor: "var(--hairline)" }}>
-          {checklist.map((c) => (
-            <li key={c.label} className="flex items-center justify-between gap-3 p-3 text-sm">
-              <span className="ds-text">
-                <span aria-hidden>{c.done ? "✓ " : "○ "}</span>
-                {c.label}
-                <span className="sr-only">{c.done ? " (done)" : " (not done)"}</span>
-              </span>
-              {!c.done && (
-                <Link href={c.href} className="underline ds-text-2">
-                  Do it
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
 
+
+
+
+
+      <div className="grid items-start gap-4 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
       <section aria-label="Pipeline" className="ds-panel p-4">
         <h2 className="text-[15px] font-semibold ds-text">Feeds in → model → consumers</h2>
         {feeds.length === 0 ? (
@@ -221,27 +226,6 @@ export default async function WorkspacePage() {
         )}
       </section>
 
-      <section aria-label="Modules" data-tour="modules" className="ds-panel p-4">
-        <h2 className="text-[15px] font-semibold ds-text">Modules</h2>
-        <ul className="mt-3 grid gap-2 md:grid-cols-3">
-          {MODULES.map((m) => (
-            <li key={m.href}>
-              <Link href={m.href} className="ds-state block h-full rounded ds-panel p-3">
-                <span className="font-medium ds-text">{m.label}</span>
-                <span className="mt-1 block text-sm ds-text-2">{m.desc}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <footer className="flex flex-wrap items-center justify-between gap-2 border-t pt-3" style={{ borderColor: "var(--hairline)" }}>
-        <UpdateButton />
-        <Link href="/help/ontology" className="text-xs underline ds-text-2">
-          New here? Read the guide
-        </Link>
-      </footer>
-
       <section aria-label="Recent activity" className="ds-panel p-4">
         <h2 className="text-[15px] font-semibold ds-text">Recent actions</h2>
         {runs.length === 0 ? (
@@ -263,6 +247,40 @@ export default async function WorkspacePage() {
           </ul>
         )}
       </section>
+        </div>
+        <div className="space-y-4">
+      <section aria-label="Activation" className="ds-panel p-4">
+        <h2 className="text-[15px] font-semibold ds-text">Getting started</h2>
+        <ul className="mt-2 divide-y text-sm" style={{ borderColor: "var(--hairline)" }}>
+          {checklist.map((c) => (
+            <li key={c.label} className="flex items-center justify-between gap-3 p-3 text-sm">
+              <span className="ds-text">
+                <span aria-hidden>{c.done ? "✓ " : "○ "}</span>
+                {c.label}
+                <span className="sr-only">{c.done ? " (done)" : " (not done)"}</span>
+              </span>
+              {!c.done && (
+                <Link href={c.href} className="underline ds-text-2">
+                  Do it
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+          <section aria-label="System status" className="ds-panel p-4">
+            <h2 className="text-[15px] font-semibold ds-text">System</h2>
+            <div className="mt-2">
+              <UpdateButton />
+            </div>
+            <p className="mt-2 text-[13px] ds-text-2">
+              <Link href="/help/ontology" className="underline">Read the guide</Link> or press Ctrl+K to jump anywhere.
+            </p>
+          </section>
+        </div>
+      </div>
+
     </main>
   );
 }

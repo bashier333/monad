@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import TopNav from "@/components/TopNav";
+import AppShell from "@/components/AppShell";
 import BillingBanner from "@/components/BillingBanner";
 import { getDesktopMode } from "@/components/desktop-flag";
 
-// Marketing routes render without the product nav bar; every app route keeps
-// it. In desktop (exe) mode the ontology sidebar replaces TopNav everywhere.
-// Web-only routes (freight surfaces with no exe equivalent) deep-link back
-// to /workspace inside the exe instead of rendering chromeless.
+// Marketing routes render without product chrome. Every app route renders
+// inside one shared sidebar shell on web and exe alike, so navigation never
+// forks by platform. Web-only routes (freight surfaces with no exe
+// equivalent) deep-link back to /workspace inside the exe.
 const HIDDEN = ["/", "/platforms", "/download", "/model"];
 const WEB_ONLY = ["/dashboard", "/answers", "/upload", "/corrections", "/rules", "/briefs", "/search", "/packs", "/activity"];
 
-export default function NavGate() {
+export default function NavGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [desktop, setDesktop] = useState(false);
@@ -34,12 +34,13 @@ export default function NavGate() {
     }
   }, [desktop, pathname, router]);
 
-  if (desktop) return null;
-  if (HIDDEN.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
+  if (HIDDEN.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return <>{children}</>;
   return (
-    <>
+    <AppShell>
       <BillingBanner />
-      <TopNav />
-    </>
+      <div id="main" tabIndex={-1}>
+        {children}
+      </div>
+    </AppShell>
   );
 }

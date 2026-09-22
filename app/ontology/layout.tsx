@@ -1,7 +1,6 @@
-import OntologyShell from "@/app/ontology/shell";
-
-// Wraps every /ontology/* surface in the exe-only workspace shell.
-// Web mode renders children unchanged.
+// All routes render inside the shared AppShell (see components/AppShell and
+// app/nav-gate). This wrapper stays as a passthrough so /ontology/* keeps a
+// stable layout boundary without a second sidebar.
 export default function OntologyLayout({ children }: { children: React.ReactNode }) {
-  return <OntologyShell>{children}</OntologyShell>;
+  return <>{children}</>;
 }
