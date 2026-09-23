@@ -27,6 +27,8 @@ for (const url of candidates) {
   const res = spawnSync("npx", ["prisma", "migrate", "deploy"], {
     stdio: "inherit",
     shell: true,
+    // Never let a hanging database wedge the build: 2 minutes, then move on.
+    timeout: 120000,
     env: { ...process.env, DATABASE_URL: url },
   });
   if (res.status === 0) process.exit(0);
