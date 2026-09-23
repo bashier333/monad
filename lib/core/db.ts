@@ -57,6 +57,21 @@ function loadSqliteClient(): AnyClient {
   return new mod.PrismaClient(url ? { datasourceUrl: url } : {});
 }
 
+// Serverless functions share one database through a pooler (PgBouncer on
+// Vercel Postgres). Two rules keep that from falling over: never use
+// prepared statements (poolers in transaction mode reject them with
+// "prepared statement does not exist", surfacing as random query failures),
+// and keep each instance's pool tiny (a fresh pool per cold start otherwise
+// exhausts the database connection limit and every gated page crashes).
+// Idempotent: existing params are respected, SQLite URLs pass through.
+export function serverlessDatasourceUrl(url: string | undefined): string | undefined {
+  if (!url || isSqliteUrl(url)) return url;
+  let out = url;
+  if (!/[?&]pgbouncer=true/i.test(out)) out += `${out.includes("?") ? "&" : "?"}pgbouncer=true`;
+  if (!/[?&]connection_limit=/i.test(out)) out += `${out.includes("?") ? "&" : "?"}connection_limit=1`;
+  return out;
+}
+
 function createClient(): AnyClient {
   if (isSqliteUrl(process.env.DATABASE_URL)) {
     try {
@@ -67,7 +82,7 @@ function createClient(): AnyClient {
       );
     }
   }
-  return new PrismaClient();
+  return new PrismaClient({ datasourceUrl: serverlessDatasourceUrl(process.env.DATABASE_URL) });
 }
 
 const globalForPrisma = globalThis as unknown as { prisma?: AnyClient };
