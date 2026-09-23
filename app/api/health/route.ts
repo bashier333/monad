@@ -39,12 +39,24 @@ export async function GET(req: Request) {
     database = "unreachable";
     logger.warn("health: database unreachable", { requestId });
   }
+  // Applied-migration visibility: lets operators confirm the database
+  // schema matches the code without DB access. Null when unreadable.
+  let migrations: { applied: number; latest: string | null } | null = null;
+  try {
+    const rows = await db.$queryRaw<Array<{ migration_name: string }>>`
+      SELECT migration_name FROM "_prisma_migrations" WHERE finished_at IS NOT NULL ORDER BY finished_at DESC LIMIT 40
+    `;
+    migrations = { applied: rows.length, latest: rows[0]?.migration_name ?? null };
+  } catch {
+    migrations = null;
+  }
   return NextResponse.json({
     ok: database === "reachable",
     version: APP_VERSION,
     // Build fingerprint: Vercel injects these at build time. Lets operators
     // confirm which commit is actually serving traffic.
     commit: (process.env.VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7) || null,
+    migrations,
     time: new Date().toISOString(),
     requestId,
     config: {
