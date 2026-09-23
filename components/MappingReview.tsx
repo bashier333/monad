@@ -16,6 +16,9 @@ interface Props {
   confidence: Record<string, number>;
   sourceType: string;
   samples: Array<{ rowNumber: number; data: Record<string, unknown> }>;
+  // Where to land after mapping is confirmed. The board is the payoff: the
+  // company's data becomes something you can see and move.
+  landingHref?: string;
 }
 
 function confidenceTone(c: number | undefined): { label: string; color: string } {
@@ -26,7 +29,7 @@ function confidenceTone(c: number | undefined): { label: string; color: string }
   return { label: pct, color: "var(--danger)" };
 }
 
-export default function MappingReview({ runId, headers, initialMapping, confidence, sourceType, samples }: Props) {
+export default function MappingReview({ runId, headers, initialMapping, confidence, sourceType, samples, landingHref = "/ontology/board" }: Props) {
   const [mapping, setMapping] = useState<Record<string, number | null>>({ ...initialMapping });
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -60,9 +63,9 @@ export default function MappingReview({ runId, headers, initialMapping, confiden
     setSaved(res.ok);
     if (res.ok && thenGoToAnswers) {
       trackFunnel("mapping_confirmed", { runId });
-      // Re-trigger the answer for the run week and land on it: mapping is
-      // the last step before the numbers exist.
-      router.push(isAgencySource(sourceType) ? "/answers/projects" : "/answers");
+      // Re-trigger the answer for the run week and land on the board:
+      // mapping is the last step before the company becomes visible.
+      router.push(landingHref);
     }
   }
 

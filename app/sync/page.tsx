@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/lib/core/auth";
 import { getActiveOrg } from "@/lib/core/org";
 import { freshnessBadge, listConnectors, prismaConnectorStore } from "@/lib/core/ingest/connector";
+import SyncNowButton from "@/components/SyncNowButton";
 import "@/lib/core/ingest/connectors";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,7 @@ export default async function SyncPage() {
             <p className="font-semibold">{c.label}</p>
             <p className="mt-1 font-mono text-[12px] ds-text-2">{c.key} · {c.kind}</p>
             <p className="mt-2 text-[13px]">{freshnessBadge(lastByKey.get(c.key) ?? null, now, c.freshnessSlaMs)}</p>
+            <SyncNowButton connectorKey={c.key} />
           </div>
         ))}
       </section>

@@ -51,6 +51,37 @@ export function toGraphData(
   return { nodes: out, links };
 }
 
+// Connection tracing: everything upstream of a node (following links
+// backwards to its suppliers) and everything downstream (following links
+// forward to its consumers). Powers click-to-trace on the board — the moment
+// a company sees one shipment's full lineage, the board clicks.
+export function traceConnections(
+  links: GraphLink[],
+  startId: string
+): { upstream: string[]; downstream: string[] } {
+  const into = new Map<string, string[]>();
+  const outOf = new Map<string, string[]>();
+  for (const l of links) {
+    if (!outOf.has(l.source)) outOf.set(l.source, []);
+    outOf.get(l.source)!.push(l.target);
+    if (!into.has(l.target)) into.set(l.target, []);
+    into.get(l.target)!.push(l.source);
+  }
+  const walk = (adj: Map<string, string[]>) => {
+    const seen = new Set<string>([startId]);
+    const queue = [...(adj.get(startId) ?? [])];
+    while (queue.length > 0) {
+      const id = queue.pop()!;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      queue.push(...(adj.get(id) ?? []));
+    }
+    seen.delete(startId);
+    return [...seen].sort();
+  };
+  return { upstream: walk(into), downstream: walk(outOf) };
+}
+
 export interface MapPoint {
   id: string;
   label: string;

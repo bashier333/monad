@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { colorForType, toGraphData, toMapPoints } from "@/lib/packs/manufacturing/graph-view";
+import { colorForType, toGraphData, toMapPoints, traceConnections } from "@/lib/packs/manufacturing/graph-view";
 import type { TwinGraphNode } from "@/lib/packs/manufacturing/service";
 
 const NODES: TwinGraphNode[] = [
@@ -29,6 +29,34 @@ describe("graph view mapping (MFG-0601)", () => {
 
   it("handles an empty network", () => {
     expect(toGraphData([], [])).toEqual({ nodes: [], links: [] });
+  });
+});
+
+describe("connection tracing", () => {
+  const links = [
+    { source: "supplier", target: "plant", label: "supplies" },
+    { source: "plant", target: "warehouse", label: "ships" },
+    { source: "warehouse", target: "customer", label: "delivers" },
+    { source: "plant", target: "customer", label: "direct" },
+  ];
+  it("walks upstream and downstream through the chain", () => {
+    expect(traceConnections(links, "plant")).toEqual({
+      upstream: ["supplier"],
+      downstream: ["customer", "warehouse"],
+    });
+    expect(traceConnections(links, "supplier")).toEqual({ upstream: [], downstream: ["customer", "plant", "warehouse"] });
+  });
+
+  it("returns empty sets for unknown or isolated nodes", () => {
+    expect(traceConnections(links, "ghost")).toEqual({ upstream: [], downstream: [] });
+    expect(traceConnections([], "plant")).toEqual({ upstream: [], downstream: [] });
+  });
+
+  it("survives cycles without looping forever", () => {
+    const cyclic = [...links, { source: "customer", target: "supplier", label: "returns" }];
+    const t = traceConnections(cyclic, "plant");
+    expect(t.upstream).toContain("customer");
+    expect(t.downstream).toContain("supplier");
   });
 });
 

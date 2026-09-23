@@ -14,7 +14,7 @@ import { FREE_LIMITS, monthlyUploads } from "@/lib/core/billing";
 // Upload first, context after: the form sits above the fold, one Try-sample
 // beside it, business selectors and checklists below. History filters
 // server-side via ?q= so no client JS is needed for search.
-export default async function UploadPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function UploadPage({ searchParams }: { searchParams: Promise<{ q?: string; next?: string }> }) {
   const session = await auth();
   if (!session?.user?.id) {
     return (
@@ -36,8 +36,9 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
       </main>
     );
   }
-  const { q } = await searchParams;
+  const { q, next } = await searchParams;
   const query = (q ?? "").trim();
+  const boardHref = next?.startsWith("/") && !next.startsWith("//") ? next : "/ontology/board";
 
   const [runs, mappingCount, stagedOk, correctionCount, uploadsThisMonth] = await Promise.all([
     db.importRun.findMany({
@@ -67,7 +68,32 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-8">
-      <h1 className="text-xl font-bold">Upload — {active.organization.name}</h1>
+      <div>
+        <h1 className="text-xl font-bold">Connect your data — {active.organization.name}</h1>
+        <p className="mt-1 text-sm ds-text-2">
+          Upload a file, sync a connector, or load sample data — then watch it land on{" "}
+          <Link href={boardHref} className="underline ds-text">your board</Link>.
+        </p>
+      </div>
+      <ol className="flex flex-wrap gap-2 text-[13px]" aria-label="Setup progress">
+        {[
+          { label: "1 · Connect", done: checklist.uploaded, href: null },
+          { label: "2 · Map columns", done: checklist.mappingConfirmed, href: null },
+          { label: "3 · See the board", done: checklist.answerReady, href: boardHref },
+        ].map((s) => (
+          <li
+            key={s.label}
+            className="rounded-full border px-3 py-1"
+            style={{
+              borderColor: "var(--hairline)",
+              background: s.done ? "var(--success)" : "var(--panel)",
+              color: s.done ? "#fff" : "var(--fg-2)",
+            }}
+          >
+            {s.href && s.done ? <Link href={s.href} className="underline">{s.label} →</Link> : s.done ? `${s.label} ✓` : s.label}
+          </li>
+        ))}
+      </ol>
       <p className="text-sm ds-text-2" role="status">
         {uploadsThisMonth}/{FREE_LIMITS.uploadsPerMonth} free uploads used this month
         {uploadsThisMonth >= FREE_LIMITS.uploadsPerMonth ? (
@@ -94,6 +120,15 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
           </span>
         </details>
       </p>
+      <section className="rounded border p-4 text-sm" style={{ borderColor: "var(--hairline)" }}>
+        <h2 className="font-medium ds-text">Prefer a live connection?</h2>
+        <p className="mt-1 ds-text-2">
+          Connectors pull your systems on a schedule, so the board stays current without re-uploading.
+        </p>
+        <p className="mt-2">
+          <Link href="/sync" className="underline ds-text">Open connectors →</Link>
+        </p>
+      </section>
       <GraduateButton />
       {stuck.length > 0 && (
         <p className="rounded border p-3 text-sm ds-panel" style={{ borderColor: "var(--warn)" }}>

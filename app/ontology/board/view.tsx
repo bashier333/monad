@@ -140,7 +140,7 @@ export default function BoardView({
       <EmptyState
         title="Nothing on the board yet"
         body="Import a feed or seed a pack and every truck, lot, project, and route lands here as something you can click."
-        actionHref="/upload"
+        actionHref="/upload?next=/ontology/board"
         actionLabel="Upload your first feed"
       />
     );
@@ -224,7 +224,7 @@ export default function BoardView({
             <EmptyState
               title="No freight on the board"
               body="Upload a TMS export and lanes, trucks, and routes appear here."
-              actionHref="/upload"
+              actionHref="/upload?next=/ontology/board"
               actionLabel="Upload"
             />
           ))}
@@ -249,7 +249,7 @@ export default function BoardView({
             <EmptyState
               title="No studio work on the board"
               body="Import time and invoice exports and projects land here."
-              actionHref="/upload"
+              actionHref="/upload?next=/ontology/board"
               actionLabel="Upload"
             />
           ))}
