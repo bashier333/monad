@@ -26,11 +26,13 @@ export default async function OntologyPage() {
       </main>
     );
   }
+  // Every source degrades independently: a query failure renders empty
+  // sections, never a dead page.
   const [types, links, actions, counts] = await Promise.all([
-    db.ontoType.findMany({ where: { organizationId: g.orgId, deletedAt: null }, include: { properties: true }, orderBy: { key: "asc" } }),
-    db.ontoLink.findMany({ where: { organizationId: g.orgId }, orderBy: { key: "asc" } }),
-    db.ontoAction.findMany({ where: { organizationId: g.orgId, enabled: true }, orderBy: { key: "asc" } }),
-    db.ontoObject.groupBy({ by: ["typeKey"], where: { organizationId: g.orgId, deletedAt: null }, _count: { _all: true } }),
+    db.ontoType.findMany({ where: { organizationId: g.orgId, deletedAt: null }, include: { properties: true }, orderBy: { key: "asc" } }).catch(() => []),
+    db.ontoLink.findMany({ where: { organizationId: g.orgId }, orderBy: { key: "asc" } }).catch(() => []),
+    db.ontoAction.findMany({ where: { organizationId: g.orgId, enabled: true }, orderBy: { key: "asc" } }).catch(() => []),
+    db.ontoObject.groupBy({ by: ["typeKey"], where: { organizationId: g.orgId, deletedAt: null }, _count: { _all: true } }).catch(() => []),
   ]);
   const objectCount = new Map(counts.map((c) => [c.typeKey, c._count._all]));
   const boardTypes = types.map((t) => ({
