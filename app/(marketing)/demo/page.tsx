@@ -50,7 +50,7 @@ export default async function DemoPage() {
       <div className="mx-auto max-w-3xl space-y-4 p-4 md:p-8">
       <p className="rounded border p-3 text-sm ds-panel ds-text-2" style={{ borderColor: "var(--info)" }}>
         Sample week — real studio shape, fake numbers. No signup needed to peek.{" "}
-        <Link href="/api/auth/signin" className="underline">
+        <Link href="/signin" className="underline">
           Sign in
         </Link>{" "}
         to upload your own.
@@ -89,7 +89,7 @@ export default async function DemoPage() {
       </div>
       <p className="flex flex-wrap gap-2">
         <Link
-          href="/api/auth/signin"
+          href="/signin"
           className="ds-control inline-block rounded px-4 py-2 text-sm font-medium"
           style={{ background: "var(--accent)", color: "#ffffff" }}
         >

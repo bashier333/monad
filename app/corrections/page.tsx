@@ -19,7 +19,7 @@ export default async function CorrectionsPage({
     return (
       <main className="mx-auto max-w-2xl p-8">
         <p>
-          <Link href="/api/auth/signin" className="underline">
+          <Link href="/signin" className="underline">
             Sign in
           </Link>{" "}
           to review corrections.

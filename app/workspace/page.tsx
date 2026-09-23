@@ -38,7 +38,18 @@ const TOUR_STEPS = [
 async function gate() {
   const session = await auth();
   if (!session?.user?.id) return { gate: "signin" as const };
-  const active = await getActiveOrg(session.user.id);
+  let active = await getActiveOrg(session.user.id);
+  if (!active) {
+    // Belt and suspenders: the signIn event provisions, but sessions created
+    // before that (or a failed event) still need a workspace on first visit.
+    try {
+      const { ensurePersonalOrg } = await import("@/lib/core/provision");
+      await ensurePersonalOrg(session.user.id, session.user.email ?? null);
+      active = await getActiveOrg(session.user.id);
+    } catch {
+      return { gate: "setup-failed" as const };
+    }
+  }
   if (!active) return { gate: "noorg" as const };
   return { gate: "ok" as const, orgId: active.organization.id };
 }
@@ -47,13 +58,29 @@ async function gate() {
 export default async function WorkspacePage() {
   const g = await gate();
   if (g.gate !== "ok") {
+    if (g.gate === "signin") {
+      return (
+        <main className="mx-auto max-w-2xl p-8">
+          <p className="ds-text">
+            <Link href="/signin" className="underline">
+              Sign in
+            </Link>{" "}
+            to open the workspace.
+          </p>
+        </main>
+      );
+    }
     return (
-      <main className="mx-auto max-w-2xl p-8">
-        <p className="ds-text">
-          <Link href="/api/auth/signin" className="underline">
-            Sign in
-          </Link>{" "}
-          to open the workspace.
+      <main className="mx-auto max-w-2xl space-y-3 p-8">
+        <h1 className="text-xl font-semibold tracking-tight ds-text">Setting up your workspace…</h1>
+        <p className="text-sm ds-text-2">
+          Your sign-in worked, but your personal workspace is not ready yet. Reload this page — if it still
+          shows, contact support and mention “workspace provisioning”.
+        </p>
+        <p className="text-sm ds-text-2">
+          <Link href="/support" className="underline">
+            Contact support
+          </Link>
         </p>
       </main>
     );

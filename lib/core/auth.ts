@@ -35,7 +35,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (membership) {
           const { logAccess } = await import("@/lib/core/access");
           await logAccess(membership.organizationId, user.id, "auth:signin", "");
+          return;
         }
+        // First login: no organization yet. Provision a personal workspace
+        // so product pages (which gate on membership) render instead of
+        // bouncing the brand-new user back to "Sign in".
+        const { ensurePersonalOrg } = await import("@/lib/core/provision");
+        const orgId = await ensurePersonalOrg(user.id, user.email ?? null);
+        const { logAccess } = await import("@/lib/core/access");
+        await logAccess(orgId, user.id, "auth:signin", "");
       } catch {
         // login history must never break sign-in
       }

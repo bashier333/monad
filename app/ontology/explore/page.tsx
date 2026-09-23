@@ -8,7 +8,7 @@ export default async function ExplorePage() {
   if (!session?.user?.id) {
     return (
       <main className="mx-auto max-w-2xl p-8">
-        <Link href="/api/auth/signin" className="underline">
+        <Link href="/signin" className="underline">
           Sign in
         </Link>
       </main>

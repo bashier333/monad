@@ -20,7 +20,7 @@ export default async function VariantPage({
     return (
       <main className="mx-auto max-w-2xl p-8">
         <p>
-          <Link href="/api/auth/signin" className="underline">Sign in</Link> to see briefs.
+          <Link href="/signin" className="underline">Sign in</Link> to see briefs.
         </p>
       </main>
     );

@@ -24,7 +24,7 @@ export default async function BriefPage({
     return (
       <main className="mx-auto max-w-2xl p-8">
         <p>
-          <Link href="/api/auth/signin" className="underline">
+          <Link href="/signin" className="underline">
             Sign in
           </Link>{" "}
           to see briefs.

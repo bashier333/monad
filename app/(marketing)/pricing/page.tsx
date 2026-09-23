@@ -51,7 +51,7 @@ export default function PricingPage() {
               <PricingCta annualAvailable={annualAvailable} />
             ) : t.id === "analyst" ? (
               <Link
-                href="/api/auth/signin"
+                href="/signin"
                 className="ds-control mt-4 inline-block rounded border px-4 py-2 text-sm ds-text"
                 style={{ borderColor: "var(--hairline)" }}
               >
