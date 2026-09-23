@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "worker": "tsx scripts/worker.ts",
-    "build": "next build",
+    "build": "node scripts/db-migrate.cjs && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
