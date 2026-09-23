@@ -28,14 +28,16 @@ export default async function OpsPage() {
     );
   }
   const [policies, playbooks, alerts, webhooks] = await Promise.all([
-    db.ontoPolicy.findMany({ where: { organizationId: g.orgId }, orderBy: { priority: "asc" }, take: 100 }),
-    db.workflowPlaybook.findMany({
-      where: { orgId: g.orgId },
-      orderBy: { createdAt: "desc" },
-      include: { runs: { orderBy: { createdAt: "desc" }, take: 1 } },
-    }),
-    db.alertRule.findMany({ where: { orgId: g.orgId }, orderBy: { createdAt: "desc" } }),
-    db.ontoWebhook.findMany({ where: { organizationId: g.orgId }, orderBy: { actionKey: "asc" } }),
+    db.ontoPolicy.findMany({ where: { organizationId: g.orgId }, orderBy: { priority: "asc" }, take: 100 }).catch(() => []),
+    db.workflowPlaybook
+      .findMany({
+        where: { orgId: g.orgId },
+        orderBy: { createdAt: "desc" },
+        include: { runs: { orderBy: { createdAt: "desc" }, take: 1 } },
+      })
+      .catch(() => []),
+    db.alertRule.findMany({ where: { orgId: g.orgId }, orderBy: { createdAt: "desc" } }).catch(() => []),
+    db.ontoWebhook.findMany({ where: { organizationId: g.orgId }, orderBy: { actionKey: "asc" } }).catch(() => []),
   ]);
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">

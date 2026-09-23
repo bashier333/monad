@@ -23,10 +23,12 @@ export default async function OntologyTypePage({ params }: { params: Promise<{ k
     );
   }
   const { key } = await params;
-  const type = await db.ontoType.findUnique({
-    where: { organizationId_key: { organizationId: active.organization.id, key } },
-    include: { properties: { orderBy: { key: "asc" } } },
-  });
+  const type = await db.ontoType
+    .findUnique({
+      where: { organizationId_key: { organizationId: active.organization.id, key } },
+      include: { properties: { orderBy: { key: "asc" } } },
+    })
+    .catch(() => null);
   if (!type || type.deletedAt) {
     return (
       <main className="mx-auto max-w-2xl p-8">
@@ -37,16 +39,22 @@ export default async function OntologyTypePage({ params }: { params: Promise<{ k
     );
   }
   const [links, versions, count] = await Promise.all([
-    db.ontoLink.findMany({
-      where: { organizationId: active.organization.id, OR: [{ fromTypeKey: key }, { toTypeKey: key }] },
-      orderBy: { key: "asc" },
-    }),
-    db.ontoTypeVersion.findMany({
-      where: { organizationId: active.organization.id, typeId: type.id },
-      orderBy: { version: "desc" },
-      take: 20,
-    }),
-    db.ontoObject.count({ where: { organizationId: active.organization.id, typeKey: key, deletedAt: null } }),
+    db.ontoLink
+      .findMany({
+        where: { organizationId: active.organization.id, OR: [{ fromTypeKey: key }, { toTypeKey: key }] },
+        orderBy: { key: "asc" },
+      })
+      .catch(() => []),
+    db.ontoTypeVersion
+      .findMany({
+        where: { organizationId: active.organization.id, typeId: type.id },
+        orderBy: { version: "desc" },
+        take: 20,
+      })
+      .catch(() => []),
+    db.ontoObject
+      .count({ where: { organizationId: active.organization.id, typeKey: key, deletedAt: null } })
+      .catch(() => 0),
   ]);
   return (
     <main className="mx-auto max-w-4xl space-y-6 p-4 md:p-8">

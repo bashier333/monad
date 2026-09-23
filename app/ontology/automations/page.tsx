@@ -29,17 +29,21 @@ export default async function AutomationsPage() {
     );
   }
   const [approvals, runs, chain] = await Promise.all([
-    db.ontoApproval.findMany({
-      where: { organizationId: g.orgId, status: "pending", actionKey: { startsWith: "mfg_" } },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-    }),
-    db.ontoActionRun.findMany({
-      where: { organizationId: g.orgId, actionKey: { startsWith: "mfg_" } },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-    }),
-    verifyEventChain(g.orgId, 5000),
+    db.ontoApproval
+      .findMany({
+        where: { organizationId: g.orgId, status: "pending", actionKey: { startsWith: "mfg_" } },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      })
+      .catch(() => []),
+    db.ontoActionRun
+      .findMany({
+        where: { organizationId: g.orgId, actionKey: { startsWith: "mfg_" } },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      })
+      .catch(() => []),
+    verifyEventChain(g.orgId, 5000).catch(() => ({ ok: false, checked: 0, brokenAt: null as string | null })),
   ]);
 
   return (

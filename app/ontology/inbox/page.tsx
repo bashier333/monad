@@ -34,16 +34,20 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
     );
   }
   const [approvals, corrections] = await Promise.all([
-    db.ontoApproval.findMany({
-      where: { organizationId: g.orgId, status: "pending" },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    }),
-    db.correction.findMany({
-      where: { organizationId: g.orgId, status: "open" },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    }),
+    db.ontoApproval
+      .findMany({
+        where: { organizationId: g.orgId, status: "pending" },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      })
+      .catch(() => []),
+    db.correction
+      .findMany({
+        where: { organizationId: g.orgId, status: "open" },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      })
+      .catch(() => []),
   ]);
 
   return (

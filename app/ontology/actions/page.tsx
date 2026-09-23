@@ -25,12 +25,16 @@ export default async function ActionsPage() {
     );
   }
   const [actions, approvals] = await Promise.all([
-    db.ontoAction.findMany({ where: { organizationId: active.organization.id, enabled: true }, orderBy: { key: "asc" } }),
-    db.ontoApproval.findMany({
-      where: { organizationId: active.organization.id, status: "pending" },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    }),
+    db.ontoAction
+      .findMany({ where: { organizationId: active.organization.id, enabled: true }, orderBy: { key: "asc" } })
+      .catch(() => []),
+    db.ontoApproval
+      .findMany({
+        where: { organizationId: active.organization.id, status: "pending" },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      })
+      .catch(() => []),
   ]);
   return (
     <main className="mx-auto max-w-4xl space-y-6 p-4 md:p-8">

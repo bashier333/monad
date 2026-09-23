@@ -30,13 +30,15 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
     );
   }
   const [events, chain] = await Promise.all([
-    db.ontoEvent.findMany({
-      where: { organizationId: g.orgId, ...(objectFilter ? { objectId: objectFilter } : {}) },
-      orderBy: { createdAt: "desc" },
-      take: 200,
-      select: { id: true, kind: true, objectId: true, actorId: true, before: true, after: true, prevHash: true, hash: true, createdAt: true },
-    }),
-    verifyEventChain(g.orgId, 5000),
+    db.ontoEvent
+      .findMany({
+        where: { organizationId: g.orgId, ...(objectFilter ? { objectId: objectFilter } : {}) },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+        select: { id: true, kind: true, objectId: true, actorId: true, before: true, after: true, prevHash: true, hash: true, createdAt: true },
+      })
+      .catch(() => []),
+    verifyEventChain(g.orgId, 5000).catch(() => ({ ok: false, checked: 0, brokenAt: null as string | null })),
   ]);
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">

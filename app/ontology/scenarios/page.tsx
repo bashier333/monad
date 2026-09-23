@@ -26,11 +26,13 @@ export default async function ScenariosPage() {
       </main>
     );
   }
-  const branches = await db.ontoBranch.findMany({
-    where: { organizationId: g.orgId },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  });
+  const branches = await db.ontoBranch
+    .findMany({
+      where: { organizationId: g.orgId },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    })
+    .catch(() => []);
   const serial = branches.map((b) => ({
     name: b.name,
     status: b.status,

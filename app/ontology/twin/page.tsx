@@ -27,10 +27,22 @@ export default async function TwinPage() {
       </main>
     );
   }
+  // Every source degrades independently: a query failure renders a
+  // retry state, never a dead page.
   const [overview, graph] = await Promise.all([
-    twinOverview(g.orgId, { clearance: clearanceForRole(g.role) }),
-    twinGraph(g.orgId),
+    twinOverview(g.orgId, { clearance: clearanceForRole(g.role) }).catch(() => null),
+    twinGraph(g.orgId).catch(() => null),
   ]);
+  if (!overview || !graph) {
+    return (
+      <main className="mx-auto max-w-2xl space-y-3 p-8">
+        <h1 className="text-xl font-bold ds-text">Manufacturing digital twin</h1>
+        <p className="text-sm ds-text-2">
+          The twin data is temporarily unavailable. Reload to try again — your model is safe.
+        </p>
+      </main>
+    );
+  }
   const c = overview.counts;
   const hasModel = c.plants + c.warehouses + c.products + c.lots + c.shipments + c.customers > 0;
 
