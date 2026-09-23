@@ -42,6 +42,9 @@ export async function GET(req: Request) {
   return NextResponse.json({
     ok: database === "reachable",
     version: APP_VERSION,
+    // Build fingerprint: Vercel injects these at build time. Lets operators
+    // confirm which commit is actually serving traffic.
+    commit: (process.env.VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7) || null,
     time: new Date().toISOString(),
     requestId,
     config: {
