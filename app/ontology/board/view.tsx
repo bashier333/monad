@@ -118,6 +118,7 @@ export default function BoardView({
   freight,
   agency,
   pending,
+  hasRuns,
 }: {
   pack: "all" | "freight" | "manufacturing" | "agency";
   overview: TwinOverview | null;
@@ -125,20 +126,26 @@ export default function BoardView({
   freight: FreightBoard | null;
   agency: AgencyBoard | null;
   pending: number;
+  hasRuns: boolean;
 }) {
   const showFreight = pack === "all" || pack === "freight";
   const showMfg = pack === "all" || pack === "manufacturing";
   const showAgency = pack === "all" || pack === "agency";
   const allGraph = mergeGraphs([graph, freight?.graph ?? null, agency?.graph ?? null]);
+  const mapGraph = pack === "all" ? allGraph : showFreight && freight ? mergeGraphs([graph, freight.graph]) : (graph ?? allGraph);
   const hasAnything = overview !== null || freight !== null || agency !== null;
 
   if (!hasAnything) {
     return (
       <EmptyState
-        title="Nothing on the board yet"
-        body="Import a feed or seed a pack and every truck, lot, project, and route lands here as something you can click."
-        actionHref="/upload?next=/ontology/board"
-        actionLabel="Upload your first feed"
+        title={hasRuns ? "Your data is on its way" : "Nothing on the board yet"}
+        body={
+          hasRuns
+            ? "Your import is still processing or waiting for column mapping. Give it a minute, then reload."
+            : "Connect a file or sync a connector and every truck, lot, project, and route lands here as something you can click."
+        }
+        actionHref={hasRuns ? "/upload" : "/upload?next=/ontology/board"}
+        actionLabel={hasRuns ? "Check imports" : "Connect your company data"}
       />
     );
   }
@@ -185,7 +192,7 @@ export default function BoardView({
         </section>
       )}
 
-      {showMfg && pack !== "all" && graph && graph.nodes.some((n) => n.geopoint) && (
+      {mapGraph.nodes.some((n) => n.geopoint) && (
         <section aria-label="Map" className="ds-panel p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-semibold ds-text">Map</h2>
@@ -194,7 +201,7 @@ export default function BoardView({
             </Link>
           </div>
           <div className="mt-3">
-            <SiteMap graph={showFreight && freight ? mergeGraphs([graph, freight.graph]) : graph} />
+            <SiteMap graph={mapGraph} />
           </div>
         </section>
       )}

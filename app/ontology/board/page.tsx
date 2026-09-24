@@ -48,12 +48,13 @@ export default async function BoardPage({
 
   // Every source degrades independently: a pack with no data renders its
   // empty card, never a dead page.
-  const [overview, graph, freight, agency, pending] = await Promise.all([
+  const [overview, graph, freight, agency, pending, recentRuns] = await Promise.all([
     twinOverview(orgId).catch(() => null),
     twinGraph(orgId).catch(() => null),
     freightBoard(orgId, active.organization.weekStartsOn, anchor).catch(() => null),
     agencyBoard(orgId, active.organization.weekStartsOn, anchor).catch(() => null),
     db.ontoApproval.count({ where: { organizationId: orgId, status: "pending" } }).catch(() => 0),
+    db.importRun.count({ where: { organizationId: orgId } }).catch(() => 0),
   ]);
 
   return (
@@ -97,6 +98,7 @@ export default async function BoardPage({
         freight={freight}
         agency={agency}
         pending={pending}
+        hasRuns={recentRuns > 0}
       />
     </main>
   );
