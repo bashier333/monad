@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Confirm } from "@/components/primitives";
+import { Button } from "@/components/primitives";
+import { Confirm } from "@/components/Confirm";
 
 // Duplicate/overlap decision: conflict counts up front, no full-page
 // reload (router.refresh keeps scroll and context). Merge is one click;
