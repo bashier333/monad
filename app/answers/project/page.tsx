@@ -174,7 +174,7 @@ export default async function AgencyProjectPage({
           <ul className="mt-1 list-disc pl-5 ds-text">
             {drivers.map((d, i) => (
               <li key={i}>
-                {d.label} — ${d.amount.toFixed(2)}
+                {d.label} · ${d.amount.toFixed(2)}
               </li>
             ))}
           </ul>

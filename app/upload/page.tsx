@@ -2,6 +2,7 @@ import Link from "next/link";
 import FleetSizePicker from "@/components/FleetSizePicker";
 import OnboardingChecklist, { type ChecklistState } from "@/components/OnboardingChecklist";
 import { PageHeader } from "@/components/primitives";
+import HubNav, { HUBS } from "@/components/HubNav";
 import UploadForm from "@/components/UploadForm";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
@@ -69,6 +70,7 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
         title={`Connect your data for ${active.organization.name}`}
         sub="Upload a file or sync a connector, then watch it land on your board."
       />
+      <HubNav items={[...HUBS.connect]} />
       <ol className="flex flex-wrap gap-2 text-[13px]" aria-label="Setup progress">
         {[
           { label: "1 · Connect", done: checklist.uploaded, href: null },

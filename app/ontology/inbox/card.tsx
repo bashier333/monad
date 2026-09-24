@@ -71,7 +71,7 @@ export default function ApprovalCard({ approval }: { approval: ApprovalItem }) {
   if (state === "done") {
     return (
       <li className="p-3 text-sm ds-text-2" role="status">
-        {approval.actionKey} on {approval.objectId.slice(0, 8)}… — {done}.
+        {approval.actionKey} on {approval.objectId.slice(0, 8)}… · {done}.
       </li>
     );
   }

@@ -49,7 +49,7 @@ const AUTHENTICATED_PATHS = [
 export function middleware(req: Request) {
   const url = new URL(req.url);
   if (process.env.MAINTENANCE === "true" && !url.pathname.startsWith("/api/health") && !url.pathname.startsWith("/status")) {
-    return new NextResponse("Down for scheduled maintenance — back shortly. Status: /status.", {
+    return new NextResponse("Down for scheduled maintenance. Back shortly. Status: /status.", {
       status: 503,
       headers: { "Retry-After": "1800", "Content-Type": "text/plain" },
     });
@@ -90,7 +90,7 @@ export function middleware(req: Request) {
       const verdict = checkRate(`${r.prefix}:${ip}`, r.limit, r.windowMs);
       if (!verdict.ok) {
         console.warn(JSON.stringify({ ts: new Date().toISOString(), level: "warn", msg: "rate limited", prefix: r.prefix, ip }));
-        return NextResponse.json({ error: "rate limited — slow down" }, {
+        return NextResponse.json({ error: "rate limited. Slow down and try again." }, {
           status: 429,
           headers: { "Retry-After": String(Math.ceil(verdict.retryAfterMs / 1000)) },
         });

@@ -50,7 +50,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
       </p>
       <h1 className="text-xl font-bold ds-text">Audit trail</h1>
       <p className="text-sm ds-text-2">
-        Every change, who made it, and the before-and-after — each entry cryptographically links to the
+        Every change, who made it, and the before-and-after. Each entry cryptographically links to the
         previous one, so tampering anywhere breaks verification everywhere after it.
       </p>
       <AuditBoard

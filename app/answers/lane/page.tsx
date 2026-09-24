@@ -162,7 +162,7 @@ export default async function LanePage({
 
       {drivers.length > 0 && (
         <section className="rounded border p-4 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
-          <h2 className="font-medium ds-text">Why this lane made (or lost) money — top 3 cost drivers</h2>
+          <h2 className="font-medium ds-text">Why this lane made (or lost) money: top 3 cost drivers</h2>
           <ol className="mt-1 list-decimal pl-5 ds-text-2">
             {drivers.map((d, i) => (
               <li key={i}>

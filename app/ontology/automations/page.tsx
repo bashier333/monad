@@ -74,7 +74,7 @@ export default async function AutomationsPage() {
               <li key={a.id} className="p-3 text-sm">
                 <span className="font-medium ds-text">{a.actionKey}</span> <span className="ds-text-2">on {a.objectId}</span>{" "}
                 <span className="ds-text-2">
-                  needs {a.requiredCount} — requested {a.createdAt.toISOString().slice(0, 10)}
+                  needs {a.requiredCount} · requested {a.createdAt.toISOString().slice(0, 10)}
                 </span>
               </li>
             ))}
@@ -92,7 +92,7 @@ export default async function AutomationsPage() {
               <li key={r.id} className="p-3 text-sm">
                 <span className="font-medium ds-text">{r.actionKey}</span> <span className="ds-text-2">on {r.objectId}</span>{" "}
                 <span className="ds-text-2">
-                  {r.status} — {r.createdAt.toISOString().slice(0, 16).replace("T", " ")}
+                  {r.status} · {r.createdAt.toISOString().slice(0, 16).replace("T", " ")}
                 </span>
               </li>
             ))}

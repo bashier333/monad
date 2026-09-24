@@ -63,7 +63,7 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
     <div className="space-y-6">
       <p className="text-sm ds-text-2">
         Twin of meaning, not of machines: what each site holds, what is moving, who is exposed, and which
-        reorder covers it — with reasons, not just readings.
+        reorder covers it, with reasons, not just readings.
       </p>
 
       <div className="flex flex-wrap items-end gap-2">
@@ -98,7 +98,7 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
         </button>
       </div>
 
-      <section aria-label="Fulfillment risks">
+      <section aria-label="Fulfillment risks" id="delayed">
         <h2 className="font-medium ds-text">Fulfillment risks ({risks.length})</h2>
         {risks.length === 0 ? (
           <p className="mt-2 rounded border border-dashed p-4 text-sm ds-text-2" style={{ borderColor: "var(--hairline)" }}>No delayed shipments.</p>
@@ -111,7 +111,7 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
                       {r.shipmentKey}
                     </Link>{" "}
                     <span className="ds-text-2">
-                      exposes {r.qty} units — customers {r.customerLabels.length > 0 ? r.customerLabels.join(", ") : "none"}
+                      exposes {r.qty} units · customers {r.customerLabels.length > 0 ? r.customerLabels.join(", ") : "none"}
                       {r.plantLabels.length > 0 ? `, plants ${r.plantLabels.join(", ")}` : ""}
                     </span>
                   </span>
@@ -128,7 +128,7 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
         )}
       </section>
 
-      <section aria-label="Coverage shortfalls">
+      <section aria-label="Coverage shortfalls" id="coverage">
         <h2 className="font-medium ds-text">Coverage ({lots.length} lots)</h2>
         <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-6">
           {Object.entries(c).map(([k, v]) => (
@@ -147,7 +147,7 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
                 </Link>{" "}
                 <span className="ds-text-2">
                   {l.coverageDays === null ? "coverage unknown" : `${l.coverageDays} days`}
-                  {l.belowReorderPoint ? " — below reorder point" : ""}
+                  {l.belowReorderPoint ? " (below reorder point)" : ""}
                 </span>
               </span>
               {l.belowReorderPoint && (
@@ -179,9 +179,9 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
                   <span className="ds-text-2">
                     short {r.shortage}
                     {r.suggestedFromKey ? (
-                      <> — source {r.suggestedFromKey} ({r.available} surplus)</>
+                      <> · source {r.suggestedFromKey} ({r.available} surplus)</>
                     ) : (
-                      " — no surplus warehouse found"
+                      " · no surplus warehouse found"
                     )}
                   </span>
                 </span>
@@ -220,7 +220,7 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
                   <span className="font-medium ds-text">{n.label}</span>{" "}
                   <span className="ds-text-2">
                     {n.type}
-                    {n.region ? ` — ${n.region}` : ""}
+                    {n.region ? ` (${n.region})` : ""}
                   </span>
                   {out.length > 0 && (
                     <ul className="mt-1 space-y-1 pl-4 ds-text-2">
@@ -238,7 +238,7 @@ export default function TwinBoard({ overview, graph }: { overview: TwinOverview;
       </section>
 
       <p className="rounded p-3 text-xs ds-text-2 ds-panel">
-        Prototype decision aid. Coverage is computed from imported feeds — check Ops for feed freshness before
+        Prototype decision aid. Coverage is computed from imported feeds. Check Ops for feed freshness before
         acting. Suggestions require human approval; nothing here writes back on its own.
       </p>
     </div>

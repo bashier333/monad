@@ -1,4 +1,5 @@
 import Link from "next/link";
+import HubNav, { HUBS } from "@/components/HubNav";
 import DecideButtons from "@/components/DecideButtons";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
@@ -68,6 +69,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
         </div>
         <InboxRefresh />
       </div>
+      <HubNav items={[...HUBS.inbox]} />
       {g.role !== "OWNER" && (
         <p className="rounded border p-3 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
           <span className="font-medium ds-text">Your role: {g.role}.</span>{" "}

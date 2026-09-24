@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { resolveLLM } from "@/lib/core/agent/provider";
-import { NvidiaLLM, NVIDIA_BASE_URL, NVIDIA_DEFAULT_MODEL } from "@/lib/core/agent/nvidia";
+import { NvidiaLLM, NVIDIA_BASE_URL, NVIDIA_DEFAULT_MODEL, NVIDIA_FALLBACK_MODEL } from "@/lib/core/agent/nvidia";
 
-// Resolution order is the product contract: NVIDIA DeepSeek first for all
+// Resolution order is the product contract: NVIDIA Nemotron first for all
 // agent work, then Anthropic, then OpenAI. With no keys the resolver throws
 // instead of faking a provider: the agent refuses to run rather than invent
 // answers. Env is saved/restored around every case.
@@ -21,7 +21,7 @@ describe("agent provider resolution (MFG-1001)", () => {
     }
   });
 
-  it("prefers NVIDIA DeepSeek when its key is set", () => {
+  it("prefers NVIDIA Nemotron when its key is set", () => {
     process.env.NVIDIA_API_KEY = "test-key";
     const { llm, provider } = resolveLLM();
     expect(provider).toBe("nvidia");
@@ -49,6 +49,7 @@ describe("agent provider resolution (MFG-1001)", () => {
 
   it("pins the verified NVIDIA endpoint and default model", () => {
     expect(NVIDIA_BASE_URL).toBe("https://integrate.api.nvidia.com/v1");
-    expect(NVIDIA_DEFAULT_MODEL).toBe("deepseek-ai/deepseek-v4-flash-0731");
+    expect(NVIDIA_DEFAULT_MODEL).toBe("nvidia/nemotron-3-ultra-550b-a55b");
+    expect(NVIDIA_FALLBACK_MODEL).toBe("deepseek-ai/deepseek-v4-flash-0731");
   });
 });

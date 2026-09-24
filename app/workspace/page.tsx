@@ -6,6 +6,7 @@ import { getActiveOrg } from "@/lib/core/org";
 import { verifyEventChain } from "@/lib/core/ontology/facts";
 import { twinOverview } from "@/lib/packs/manufacturing/service";
 import { PageHeader, ProofStrip } from "@/components/primitives";
+import HubNav, { HUBS } from "@/components/HubNav";
 import Tour, { ReplayTourButton } from "@/components/Tour";
 
 const TOUR_STEPS = [
@@ -109,6 +110,7 @@ export default async function WorkspacePage() {
         sub="Health first, then the tools. New here? Take the tour."
         actions={<ReplayTourButton />}
       />
+      <HubNav items={[...HUBS.workspace]} />
 
       <form action="/ontology/explore" method="get" className="flex gap-2" data-tour="search">
         <label htmlFor="workspace-q" className="sr-only">
@@ -166,8 +168,8 @@ export default async function WorkspacePage() {
         <div className="mt-3">
         <ProofStrip
           items={[
-            { label: "Lots below reorder", value: overview ? String(overview.atRiskLots) : "—", href: "/ontology/twin" },
-            { label: "Delayed shipments", value: overview ? String(overview.delayedShipments) : "—", href: "/ontology/twin" },
+            { label: "Lots below reorder", value: overview ? String(overview.atRiskLots) : "—", href: "/ontology/twin#coverage" },
+            { label: "Delayed shipments", value: overview ? String(overview.delayedShipments) : "—", href: "/ontology/twin#delayed" },
             { label: "Pending approvals", value: String(pending), href: "/ontology/inbox" },
             {
               label: "Audit chain",

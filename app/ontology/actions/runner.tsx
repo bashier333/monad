@@ -194,7 +194,7 @@ export default function ActionRunner({ actions }: { actions: ActionDef[] }) {
     } catch {
       /* fall through to the error below */
     }
-    setError("Unknown object id — pick from the list above instead of pasting.");
+    setError("Unknown object id. Pick from the list above instead of pasting.");
     return false;
   }
 
@@ -259,7 +259,7 @@ export default function ActionRunner({ actions }: { actions: ActionDef[] }) {
       }
       const run = body.run as { id?: string } | undefined;
       if (body.replayed === true) {
-        const msg = `Already executed — showing the original receipt, no new effect. Run ${run?.id ?? "unknown"}.`;
+        const msg = `Already executed. Showing the original receipt, no new effect. Run ${run?.id ?? "unknown"}.`;
         setPhase({ state: "executed", message: msg });
         setResult(msg);
       } else {
@@ -311,7 +311,7 @@ export default function ActionRunner({ actions }: { actions: ActionDef[] }) {
         <select value={actionKey} onChange={(e) => setActionKey(e.target.value)} className="mt-1 block w-full rounded border px-3 py-2">
           {actions.map((a) => (
             <option key={a.key} value={a.key}>
-              {a.label} ({a.targetTypeKey}){a.approvalPolicy !== "none" ? ` — ${a.approvalPolicy} approval` : ""}
+              {a.label} ({a.targetTypeKey}){a.approvalPolicy !== "none" ? ` (${a.approvalPolicy} approval)` : ""}
             </option>
           ))}
         </select>
@@ -339,7 +339,7 @@ export default function ActionRunner({ actions }: { actions: ActionDef[] }) {
             <label key={f.name} className="block text-sm">
               {f.name}
               {f.required && <span className="text-red-600"> *</span>}
-              {f.hint && <span className="ds-text-2"> — {f.hint}</span>}
+              {f.hint && <span className="ds-text-2">({f.hint})</span>}
               <FieldInput field={f} value={inputs[f.name]} onChange={(v) => setInputs((p) => ({ ...p, [f.name]: v }))} />
             </label>
           ))}
@@ -388,7 +388,7 @@ export default function ActionRunner({ actions }: { actions: ActionDef[] }) {
           <p className="mt-1 ds-text-2">
             This writes back to the model{def?.approvalPolicy !== "none" ? ` under ${def?.approvalPolicy} approval` : ""}.{" "}
             {needsTypedConfirm
-              ? `Rerouting has a wide blast radius and no undo — type the target key (“${confirmTarget}”) to proceed.`
+              ? `Rerouting has a wide blast radius and no undo. Type the target key (“${confirmTarget}”) to proceed.`
               : "Review the preview above first."}
           </p>
           {needsTypedConfirm && (

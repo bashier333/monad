@@ -5,6 +5,7 @@ import InviteForm from "@/components/InviteForm";
 import OrgSettingsForm from "@/components/OrgSettingsForm";
 import OrgSwitcher from "@/components/OrgSwitcher";
 import ProviderKeyForm from "@/components/ProviderKeyForm";
+import HubNav, { HUBS } from "@/components/HubNav";
 import SessionsButton from "@/components/SessionsButton";
 import { PageHeader } from "@/components/primitives";
 import { auth } from "@/lib/core/auth";
@@ -46,13 +47,14 @@ export default async function SettingsPage() {
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
       <PageHeader title={`Settings for ${active.organization.name}`} />
+      <HubNav items={[...HUBS.settings]} />
       <section className="rounded border p-4">
         <h2 className="mb-2 font-medium">Organizations</h2>
         <OrgSwitcher currentId={active.organization.id} />
       </section>
       {isOwner ? (
         <>
-          <section className="rounded border p-4">
+          <section id="organization" className="rounded border p-4" style={{ scrollMarginTop: "16px" }}>
             <h2 className="mb-2 font-medium">Organization</h2>
             <OrgSettingsForm
               initial={{
@@ -68,26 +70,26 @@ export default async function SettingsPage() {
               }}
             />
           </section>
-          <section className="rounded border p-4">
+          <section id="sessions" className="rounded border p-4" style={{ scrollMarginTop: "16px" }}>
             <h2 className="mb-2 font-medium">Sessions</h2>
             <SessionsButton />
           </section>
-          <section className="rounded border p-4">
+          <section id="team" className="rounded border p-4" style={{ scrollMarginTop: "16px" }}>
             <h2 className="mb-2 font-medium">Team</h2>
             <InviteForm />
           </section>
-          <section className="rounded border p-4">
+          <section id="ai-key" className="rounded border p-4" style={{ scrollMarginTop: "16px" }}>
             <h2 className="mb-2 font-medium">AI provider key</h2>
             <p className="mb-3 text-sm ds-text-2">
               Optional. A workspace key is used for automations instead of the server key.
             </p>
             <ProviderKeyForm />
           </section>
-          <section className="rounded border p-4">
+          <section id="billing" className="rounded border p-4" style={{ scrollMarginTop: "16px" }}>
             <h2 className="mb-2 font-medium">Billing</h2>
             <BillingPanel />
           </section>
-          <section className="rounded border p-4">
+          <section id="data" className="rounded border p-4" style={{ scrollMarginTop: "16px" }}>
             <h2 className="mb-2 font-medium">Data</h2>
             <DangerZone slug={active.organization.slug} />
           </section>

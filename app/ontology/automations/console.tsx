@@ -354,7 +354,7 @@ export default function AgentConsole() {
           </p>
         ))}
       <p className="text-sm ds-text-2">
-        Ask in plain English — for example, “which shipments are late?” The model reads your live data,
+        Ask in plain English. For example, “which shipments are late?” The model reads your live data,
         shows each step below, and only proposes actions. Nothing runs until you confirm it. Answers
         typically take a minute or two while the model reasons; you can cancel anytime.
       </p>
@@ -461,7 +461,7 @@ export default function AgentConsole() {
                 )}
                 {wide && st.state !== "executed" && (
                   <p className="mt-2 text-xs ds-text-2">
-                    Wide blast radius, no undo — type the target key (“{wideTarget}”) to unlock Confirm.
+                    Wide blast radius, no undo. Type the target key (“{wideTarget}”) to unlock Confirm.
                     <input
                       value={wideText[i] ?? ""}
                       onChange={(e) => setWideText((w) => ({ ...w, [i]: e.target.value }))}
@@ -514,7 +514,7 @@ export default function AgentConsole() {
                 <button onClick={() => restore(h)} className="ds-state block w-full px-3 py-2 text-left">
                   <span className="font-medium ds-text">{h.question}</span>{" "}
                   <span className="ds-text-2">
-                    {h.proposals.length} proposal{h.proposals.length === 1 ? "" : "s"} · {h.seconds ?? "?"}s · {h.provider || "unknown"} — {h.at.slice(0, 16).replace("T", " ")}
+                    {h.proposals.length} proposal{h.proposals.length === 1 ? "" : "s"} · {h.seconds ?? "?"}s · {h.provider || "unknown"} · {h.at.slice(0, 16).replace("T", " ")}
                   </span>
                 </button>
               </li>

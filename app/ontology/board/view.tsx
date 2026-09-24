@@ -156,20 +156,18 @@ export default function BoardView({
         items={[
           ...(showFreight && freight
             ? [
-                { label: "Freight margin", value: money(freight.totals.margin), detail: `${freight.totals.loads} loads · week of ${freight.weekStart}`, href: "/answers" },
-                { label: "Freight revenue", value: money(freight.totals.revenue), href: "/answers" },
+                { label: "Freight margin", value: money(freight.totals.margin), detail: `${freight.totals.loads} loads · $${freight.totals.revenue.toFixed(0)} revenue · week of ${freight.weekStart}`, href: "/answers" },
               ]
             : []),
           ...(showMfg && overview
             ? [
-                { label: "Lots below reorder", value: String(overview.atRiskLots), href: "/ontology/twin" },
-                { label: "Delayed shipments", value: String(overview.delayedShipments), href: "/ontology/twin" },
+                { label: "Lots below reorder", value: String(overview.atRiskLots), href: "/ontology/twin#coverage" },
+                { label: "Delayed shipments", value: String(overview.delayedShipments), href: "/ontology/twin#delayed" },
               ]
             : []),
           ...(showAgency && agency
             ? [
-                { label: "Studio margin", value: money(agency.totals.margin), detail: `${agency.totals.revisions} revisions · week of ${agency.weekStart}`, href: "/answers/projects" },
-                { label: "Studio revenue", value: money(agency.totals.revenue), href: "/answers/projects" },
+                { label: "Studio margin", value: money(agency.totals.margin), detail: `${agency.totals.revisions} revisions · $${agency.totals.revenue.toFixed(0)} revenue · week of ${agency.weekStart}`, href: "/answers/projects" },
               ]
             : []),
           { label: "Pending approvals", value: String(pending), href: "/ontology/inbox" },
@@ -263,7 +261,7 @@ export default function BoardView({
               <section aria-label="At-risk lots" className="ds-panel p-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[15px] font-semibold ds-text">At-risk lots</h2>
-                  <Link href="/ontology/twin" className="text-[13px] font-medium" style={{ color: "var(--accent)" }}>
+                  <Link href="/ontology/twin#coverage" className="text-[13px] font-medium" style={{ color: "var(--accent)" }}>
                     Open twin
                   </Link>
                 </div>
@@ -274,7 +272,7 @@ export default function BoardView({
                     .map((c) => (
                       <li key={c.id}>
                         <Link
-                          href="/ontology/twin"
+                          href="/ontology/twin#coverage"
                           className="ds-state flex items-center justify-between gap-2 rounded-md px-2 py-1.5"
                           aria-label={`${c.key}, coverage ${c.coverageDays ?? "unknown"} days, below reorder point`}
                         >
@@ -291,7 +289,7 @@ export default function BoardView({
               <section aria-label="Delayed shipments" className="ds-panel p-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[15px] font-semibold ds-text">Delayed shipments</h2>
-                  <Link href="/ontology/twin" className="text-[13px] font-medium" style={{ color: "var(--accent)" }}>
+                  <Link href="/ontology/twin#delayed" className="text-[13px] font-medium" style={{ color: "var(--accent)" }}>
                     Open twin
                   </Link>
                 </div>
@@ -302,7 +300,7 @@ export default function BoardView({
                     .map((s) => (
                       <li key={s.id}>
                         <Link
-                          href="/ontology/twin"
+                          href="/ontology/twin#delayed"
                           className="ds-state flex items-center justify-between gap-2 rounded-md px-2 py-1.5"
                           aria-label={`${s.key}, delayed${s.eta ? `, ETA ${s.eta}` : ""}`}
                         >

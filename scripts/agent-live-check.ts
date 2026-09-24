@@ -1,9 +1,9 @@
-// Manual live end-to-end agent check against NVIDIA DeepSeek (NOT CI —
+// Manual live end-to-end agent check against NVIDIA Nemotron (NOT CI —
 // needs network + key + a seeded database, and takes several minutes because
 // the reasoning model thinks at length). Run:
-//   NVIDIA_API_KEY=... NVIDIA_MODEL=deepseek-ai/deepseek-v4-flash-0731 \
+//   NVIDIA_API_KEY=... NVIDIA_MODEL=nvidia/nemotron-3-ultra-550b-a55b \
 //   DATABASE_URL=postgresql://... ORG_ID=<org> npx tsx scripts/agent-live-check.ts
-// Proves the full loop on real infrastructure: context → DeepSeek decides →
+// Proves the full loop on real infrastructure: context → Nemotron decides →
 // tools execute → answer passes groundedness evals. The evals route runs on
 // the live provider too (see app/api/agent/evals/route.ts).
 import { runAgent } from "../lib/core/agent/runtime";

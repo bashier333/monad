@@ -50,7 +50,7 @@ export default async function ScenariosPage() {
       <h1 className="text-xl font-bold ds-text">Branch scenarios</h1>
       <p className="text-sm ds-text-2">
         Safe what-ifs. Stage changes on a branch, preview their impact, compare two futures side by side,
-        and merge only when satisfied — the live model stays untouched until then.
+        and merge only when satisfied. The live model stays untouched until then.
       </p>
       <ScenarioManager initial={serial} />
     </main>
