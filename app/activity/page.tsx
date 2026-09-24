@@ -32,7 +32,7 @@ export default async function ActivityPage() {
   });
   return (
     <main className="mx-auto max-w-4xl space-y-3 p-4 md:p-8">
-      <h1 className="text-xl font-bold">Activity — who changed what</h1>
+      <h1 className="text-xl font-bold">Activity: who changed what</h1>
       {events.length === 0 ? (
         <p className="text-sm text-gray-600">No activity yet.</p>
       ) : (

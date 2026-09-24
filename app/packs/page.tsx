@@ -1,5 +1,4 @@
 import Link from "next/link";
-import DemoSeedButton from "@/components/DemoSeedButton";
 import { packManifests } from "@/lib/packs/register";
 import { auth } from "@/lib/core/auth";
 import { getActiveOrg } from "@/lib/core/org";
@@ -28,8 +27,6 @@ export default async function PacksPage() {
   }
   const settings = (active.organization.settings ?? {}) as { enabledPacks?: string[] };
   const enabled = new Set(settings.enabledPacks ?? ["freight", "agency"]);
-
-  const seedPack = (id: string): string => (id === "agency" ? "agency-video" : "default");
   const answersHref = (id: string): string => (id === "agency" ? "/answers/projects" : "/answers");
 
   return (
@@ -61,7 +58,6 @@ export default async function PacksPage() {
             ) : (
               <span className="text-gray-500">Disabled in settings</span>
             )}
-            <DemoSeedButton pack={seedPack(m.id)} label={`Try the ${m.id} sample`} />
             <Link href="/settings" className="underline">
               Manage in settings
             </Link>

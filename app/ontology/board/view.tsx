@@ -188,7 +188,7 @@ export default function BoardView({
         </section>
       )}
 
-      {showMfg && graph && graph.nodes.some((n) => n.geopoint) && (
+      {showMfg && pack !== "all" && graph && graph.nodes.some((n) => n.geopoint) && (
         <section aria-label="Map" className="ds-panel p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-semibold ds-text">Map</h2>
@@ -218,7 +218,7 @@ export default function BoardView({
                   pct: l.marginPct,
                 }))}
               />
-              <CostMix title="Where freight money goes" entries={Object.entries(freight.costByKind)} />
+              {pack !== "all" && <CostMix title="Where freight money goes" entries={Object.entries(freight.costByKind)} />}
             </>
           ) : (
             <EmptyState
@@ -243,7 +243,7 @@ export default function BoardView({
                   pct: p.marginPct,
                 }))}
               />
-              <CostMix title="Where studio money goes" entries={Object.entries(agency.costByKind)} />
+              {pack !== "all" && <CostMix title="Where studio money goes" entries={Object.entries(agency.costByKind)} />}
             </>
           ) : (
             <EmptyState

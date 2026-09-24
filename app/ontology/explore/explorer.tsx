@@ -247,7 +247,7 @@ function ExplorerInner() {
             ))}
           </ul>
           {graph.edges.length > 100 && (
-            <p className="mt-1 text-xs ds-text-2">Showing 100 of {graph.edges.length} edges — narrow with direction or depth.</p>
+            <p className="mt-1 text-xs ds-text-2">Showing 100 of {graph.edges.length} edges. Narrow with direction or depth.</p>
           )}
           {picked && (
             <p className="mt-3">

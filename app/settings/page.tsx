@@ -43,7 +43,7 @@ export default async function SettingsPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
-      <h1 className="text-xl font-bold">Settings — {active.organization.name}</h1>
+      <h1 className="text-xl font-bold">Settings for {active.organization.name}</h1>
       <section className="rounded border p-4">
         <h2 className="mb-2 font-medium">Organizations</h2>
         <OrgSwitcher currentId={active.organization.id} />

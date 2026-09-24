@@ -52,7 +52,7 @@ export default async function AdminPage() {
 
   return (
     <main className="mx-auto max-w-4xl space-y-4 p-4 md:p-8">
-      <h1 className="text-xl font-bold">Admin — {active.organization.name}</h1>
+      <h1 className="text-xl font-bold">Admin for {active.organization.name}</h1>
       <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
         <div className="rounded border p-2">Users (all orgs): {users}</div>
         <div className="rounded border p-2">Uploads: {uploads._sum.qty ?? 0}</div>

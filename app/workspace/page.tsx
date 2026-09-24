@@ -7,13 +7,11 @@ import { verifyEventChain } from "@/lib/core/ontology/facts";
 import { twinOverview } from "@/lib/packs/manufacturing/service";
 import { ProofStrip } from "@/components/primitives";
 import Tour, { ReplayTourButton } from "@/components/Tour";
-import UpdateButton from "@/components/UpdateButton";
-import { pqlForOrg } from "@/lib/core/usage-snapshot";
 
 const TOUR_STEPS = [
   {
     title: "Welcome to your workspace",
-    body: "This one screen watches your whole operation. Four numbers tell you its health, nine tools do the work, and everything below proves it. Nothing here is a demo trick — every number comes from your data.",
+    body: "This one screen watches your whole operation. Four numbers tell you its health, nine tools do the work, and everything below proves it. Nothing here is a trick. Every number comes from your data.",
   },
   {
     target: '[data-tour="search"]',
@@ -23,7 +21,7 @@ const TOUR_STEPS = [
   {
     target: '[data-tour="proof"]',
     title: "Health at a glance",
-    body: "Lots below reorder, delayed shipments, waiting approvals, and whether the audit trail verifies. If a number surprises you, click through — every figure links to its evidence.",
+    body: "Lots below reorder, delayed shipments, waiting approvals, and whether the audit trail verifies. If a number surprises you, click through. Every figure links to its evidence.",
   },
   {
     title: "Everything lives in the sidebar",
@@ -74,7 +72,7 @@ export default async function WorkspacePage() {
       <main className="mx-auto max-w-2xl space-y-3 p-8">
         <h1 className="text-xl font-semibold tracking-tight ds-text">Setting up your workspace…</h1>
         <p className="text-sm ds-text-2">
-          Your sign-in worked, but your personal workspace is not ready yet. Reload this page — if it still
+          Your sign-in worked, but your personal workspace is not ready yet. Reload this page. If it still
           shows, contact support and mention “workspace provisioning”.
         </p>
         <p className="text-sm ds-text-2">
@@ -87,16 +85,9 @@ export default async function WorkspacePage() {
   }
   // Every source degrades independently: with the database unreachable the
   // page still renders sign-in state, navigation, and empty states.
-  const [overview, pending, runs, chain, feeds, members, objects, pql] = await Promise.all([
+  const [overview, pending, chain, feeds] = await Promise.all([
     twinOverview(g.orgId).catch(() => null),
     db.ontoApproval.count({ where: { organizationId: g.orgId, status: "pending" } }).catch(() => 0),
-    db.ontoActionRun
-      .findMany({
-        where: { organizationId: g.orgId },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      })
-      .catch(() => []),
     verifyEventChain(g.orgId, 5000).catch(() => ({ ok: false, checked: 0, brokenAt: null as string | null })),
     db.importRun
       .findMany({
@@ -106,25 +97,13 @@ export default async function WorkspacePage() {
         include: { file: { select: { filename: true } } },
       })
       .catch(() => []),
-    db.membership.count({ where: { organizationId: g.orgId } }).catch(() => 1),
-    db.ontoObject.count({ where: { organizationId: g.orgId, deletedAt: null } }).catch(() => 0),
-    pqlForOrg(g.orgId).catch(() => null),
   ]);
 
-  // Sample honesty: objects exist but no import run ever completed, so every
-  // number on this page comes from seeded fixtures — labeled as such, never
-  // presented as production truth.
-  const sample = overview !== null && feeds.filter((f) => f.status === "COMPLETED").length === 0;
-  const checklist = [
-    { label: "Explore the sample decision", done: objects > 0, href: "/ontology/twin" },
-    { label: "Import a real feed", done: feeds.some((f) => f.status === "COMPLETED"), href: "/upload" },
-    { label: "Confirm a first action", done: runs.length > 0, href: "/ontology/actions" },
-    { label: "Invite a reviewer", done: members > 1, href: "/settings" },
-  ];
+  const isFirstRun = feeds.length === 0;
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
-      <Tour steps={TOUR_STEPS} />
+      {isFirstRun && <Tour steps={TOUR_STEPS} />}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-xl font-semibold tracking-tight ds-text">Workspace</h1>
@@ -134,20 +113,6 @@ export default async function WorkspacePage() {
         </div>
         <ReplayTourButton />
       </div>
-
-      {pql && (
-        <p className="rounded p-3 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
-          <span className="font-medium ds-text">Adoption {pql.score}/100</span>
-          <span className="ds-text-2">. {pql.pql ? "Qualified: this workspace is driving decisions." : "Not yet qualified."} {pql.reasons.join(" ")} </span>
-        </p>
-      )}
-
-      {sample && (
-        <p role="status" className="rounded p-3 text-sm ds-panel" style={{ borderColor: "var(--warn)" }}>
-          <span className="font-medium" style={{ color: "var(--warn)" }}>SAMPLE DATA</span>
-          <span className="ds-text-2">. Every number below comes from seeded fixtures, not your operation. Import a real feed to replace it.</span>
-        </p>
-      )}
 
       <form action="/ontology/explore" method="get" className="flex gap-2" data-tour="search">
         <label htmlFor="workspace-q" className="sr-only">
@@ -225,18 +190,28 @@ export default async function WorkspacePage() {
       </section>
 
 
-
-
-
-
-      <div className="grid items-start gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-      <section aria-label="Pipeline" className="ds-panel p-4">
-        <h2 className="text-[15px] font-semibold ds-text">Feeds in → model → consumers</h2>
+      <section aria-label="Latest imports" className="ds-panel p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold ds-text">Latest imports</h2>
+          {feeds.length > 0 && (
+            <Link href="/upload" className="text-[13px] font-medium" style={{ color: "var(--accent)" }}>
+              Connect more
+            </Link>
+          )}
+        </div>
         {feeds.length === 0 ? (
-          <p className="mt-2 rounded border border-dashed p-4 text-sm ds-text-2" style={{ borderColor: "var(--hairline)" }}>
-            No feeds imported yet. The twin reads versioned objects, never raw files — import a feed to start the bridge.
-          </p>
+          <div className="mt-2 rounded border border-dashed p-4" style={{ borderColor: "var(--hairline)" }}>
+            <p className="text-sm ds-text-2">No data connected yet. Your board fills in as soon as your first file lands.</p>
+            <p className="mt-3">
+              <Link
+                href="/upload?next=/workspace"
+                className="inline-block rounded-md px-4 py-2 text-sm font-medium text-white"
+                style={{ background: "var(--accent)" }}
+              >
+                Connect your company data
+              </Link>
+            </p>
+          </div>
         ) : (
           <ul className="mt-2 divide-y rounded ds-panel text-sm" style={{ borderColor: "var(--hairline)" }}>
             {feeds.map((f) => (
@@ -252,61 +227,6 @@ export default async function WorkspacePage() {
           </ul>
         )}
       </section>
-
-      <section aria-label="Recent activity" className="ds-panel p-4">
-        <h2 className="text-[15px] font-semibold ds-text">Recent actions</h2>
-        {runs.length === 0 ? (
-          <p className="mt-2 rounded border border-dashed p-4 text-sm ds-text-2" style={{ borderColor: "var(--hairline)" }}>
-            Nothing executed yet. Propose an action from Automations or run one from Actions.
-          </p>
-        ) : (
-          <ul className="mt-2 divide-y rounded ds-panel" style={{ borderColor: "var(--hairline)" }}>
-            {runs.map((r) => (
-              <li key={r.id} className="p-3 text-sm">
-                <Link href="/ontology/actions" className="font-medium underline ds-text">
-                  {r.actionKey}
-                </Link>{" "}
-                <span className="ds-text-2">
-                  {r.status} - {r.createdAt.toISOString().slice(0, 16).replace("T", " ")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-        </div>
-        <div className="space-y-4">
-      <section aria-label="Activation" className="ds-panel p-4">
-        <h2 className="text-[15px] font-semibold ds-text">Getting started</h2>
-        <ul className="mt-2 divide-y text-sm" style={{ borderColor: "var(--hairline)" }}>
-          {checklist.map((c) => (
-            <li key={c.label} className="flex items-center justify-between gap-3 p-3 text-sm">
-              <span className="ds-text">
-                <span aria-hidden>{c.done ? "✓ " : "○ "}</span>
-                {c.label}
-                <span className="sr-only">{c.done ? " (done)" : " (not done)"}</span>
-              </span>
-              {!c.done && (
-                <Link href={c.href} className="underline ds-text-2">
-                  Do it
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-          <section aria-label="System status" className="ds-panel p-4">
-            <h2 className="text-[15px] font-semibold ds-text">System</h2>
-            <div className="mt-2">
-              <UpdateButton />
-            </div>
-            <p className="mt-2 text-[13px] ds-text-2">
-              <Link href="/help/ontology" className="underline">Read the guide</Link> or press Ctrl+K to jump anywhere.
-            </p>
-          </section>
-        </div>
-      </div>
 
     </main>
   );

@@ -56,7 +56,7 @@ export default async function PilotsPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-4 md:p-8">
-      <h1 className="text-xl font-bold">Pilot success — {active.organization.name}</h1>
+      <h1 className="text-xl font-bold">Pilot success for {active.organization.name}</h1>
       <p className="text-sm text-gray-600">
         Three criteria, written and tracked. Hit all three and this pilot converts.
       </p>
@@ -68,7 +68,7 @@ export default async function PilotsPage() {
       <Criterion
         done={!!checklist.meetingConfirmedAt}
         label="Answer used in a real Monday meeting"
-        detail={checklist.meetingConfirmedAt ? `Confirmed ${new Date(checklist.meetingConfirmedAt).toLocaleDateString()}` : "The retention hook — nothing else counts."}
+        detail={checklist.meetingConfirmedAt ? `Confirmed ${new Date(checklist.meetingConfirmedAt).toLocaleDateString()}` : "The retention hook. Nothing else counts."}
       />
       {!checklist.meetingConfirmedAt && <MeetingConfirm confirmedAt={null} />}
       <Criterion

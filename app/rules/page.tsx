@@ -78,7 +78,7 @@ export default async function RulesPage({
             <tr key={r.id} className="border-t">
               <td className="py-1">
                 {r.costKind} where {r.matchField} = “{r.matchValue}”{" "}
-                <span className="text-gray-500">— {r.reason}</span>
+                <span className="text-gray-500">({r.reason})</span>
                 {r.sourceCorrectionId && <span className="text-gray-500"> (from correction {r.sourceCorrectionId.slice(0, 8)})</span>}
               </td>
               <td>{r.toLoad ?? "EXCLUDED"}</td>

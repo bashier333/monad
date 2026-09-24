@@ -1,9 +1,5 @@
 import Link from "next/link";
-import DemoResetButton from "@/components/DemoResetButton";
-import DemoSeedButton from "@/components/DemoSeedButton";
-import DemoTour from "@/components/DemoTour";
 import FleetSizePicker from "@/components/FleetSizePicker";
-import GraduateButton from "@/components/GraduateButton";
 import OnboardingChecklist, { type ChecklistState } from "@/components/OnboardingChecklist";
 import UploadForm from "@/components/UploadForm";
 import { auth } from "@/lib/core/auth";
@@ -69,9 +65,9 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-8">
       <div>
-        <h1 className="text-xl font-bold">Connect your data — {active.organization.name}</h1>
+        <h1 className="text-xl font-bold">Connect your data for {active.organization.name}</h1>
         <p className="mt-1 text-sm ds-text-2">
-          Upload a file, sync a connector, or load sample data — then watch it land on{" "}
+          Upload a file or sync a connector, then watch it land on{" "}
           <Link href={boardHref} className="underline ds-text">your board</Link>.
         </p>
       </div>
@@ -105,21 +101,6 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
       <div id="upload-form">
         <UploadForm />
       </div>
-      <p className="flex flex-wrap items-center gap-2 text-sm ds-text-2">
-        No file handy?
-        <DemoSeedButton />
-        <details className="inline">
-          <summary className="cursor-pointer underline">More samples</summary>
-          <span className="inline-flex flex-wrap items-center gap-2">
-            <DemoSeedButton pack="reefer" label="Reefer sample" />
-            <DemoSeedButton pack="flatbed" label="Flatbed sample" />
-            <DemoSeedButton pack="dryvan" label="Dry-van sample" />
-            <DemoSeedButton pack="agency-video" label="Studio sample (video)" />
-            <DemoSeedButton pack="agency-design" label="Studio sample (design)" />
-            <DemoResetButton slug={active.organization.slug} />
-          </span>
-        </details>
-      </p>
       <section className="rounded border p-4 text-sm" style={{ borderColor: "var(--hairline)" }}>
         <h2 className="font-medium ds-text">Prefer a live connection?</h2>
         <p className="mt-1 ds-text-2">
@@ -129,7 +110,6 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
           <Link href="/sync" className="underline ds-text">Open connectors →</Link>
         </p>
       </section>
-      <GraduateButton />
       {stuck.length > 0 && (
         <p className="rounded border p-3 text-sm ds-panel" style={{ borderColor: "var(--warn)" }}>
           {stuck.length} run{stuck.length === 1 ? "" : "s"} stuck over 10 min. The stale-run sweep resets dead
@@ -155,8 +135,6 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
       <FleetSizePicker initial={teamSize} pack="agency" />
       <OnboardingChecklist state={checklist} />
       <OnboardingChecklist state={checklist} pack="agency" />
-      <DemoTour />
-      <DemoTour pack="agency" />
       <p className="text-sm ds-text-2">
         <Link href="/help" className="underline">How uploading works</Link>
       </p>
@@ -181,7 +159,7 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
         </div>
         {runs.length === 0 ? (
           <p className="mt-1 text-sm ds-text-2">
-            {query ? `No imports match “${query}”.` : "No imports yet — upload above or try the sample week."}
+            {query ? `No imports match “${query}”.` : "No imports yet. Upload a file above to start."}
           </p>
         ) : (
         <div className="overflow-x-auto rounded ds-panel" role="region" aria-label="Import history" tabIndex={0}>

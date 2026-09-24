@@ -71,7 +71,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
       {g.role !== "OWNER" && (
         <p className="rounded border p-3 text-sm ds-panel" style={{ borderColor: "var(--hairline)" }}>
           <span className="font-medium ds-text">Your role: {g.role}.</span>{" "}
-          <span className="ds-text-2">Only owners can approve or reject — decisions will fail until an owner acts.</span>
+          <span className="ds-text-2">Only owners can approve or reject. Decisions will fail until an owner acts.</span>
         </p>
       )}
       <div className="flex gap-1 text-sm" role="group" aria-label="Filter inbox">

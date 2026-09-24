@@ -47,7 +47,7 @@ export default async function ActionsPage() {
       <h1 className="text-xl font-bold ds-text">Actions console</h1>
       <p className="text-sm ds-text-2">
         Every change this system can make, in one place. Pick an action and a target, preview the exact
-        before-and-after, then run it — approvals included.
+        before-and-after, then run it, approvals included.
       </p>
       <Suspense fallback={<p className="text-sm ds-text-2">Loading runner…</p>}>
         <ActionRunner

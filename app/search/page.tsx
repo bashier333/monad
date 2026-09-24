@@ -97,7 +97,7 @@ export default function SearchPage() {
         ))}
       </ul>
       {ms !== null && hits.length === 0 && !err && (
-        <p className="text-sm text-gray-600">Nothing found — try a project name, lane, or invoice number.</p>
+        <p className="text-sm text-gray-600">Nothing found. Try a project name, lane, or invoice number.</p>
       )}
     </main>
   );

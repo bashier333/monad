@@ -4,25 +4,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  Activity,
-  Bot,
-  Compass,
-  Database,
-  FileText,
-  Flag,
-  FlaskConical,
-  GitBranch,
   Inbox,
   LayoutDashboard,
-  LifeBuoy,
   Map,
-  Network,
-  Package,
-  Play,
-  ScrollText,
   Search,
   Settings,
-  SlidersHorizontal,
   Upload,
   type LucideIcon,
 } from "lucide-react";
@@ -36,69 +22,16 @@ interface RailItem {
   badge?: boolean;
 }
 
-interface RailSection {
-  title: string;
-  items: RailItem[];
-}
-
-// One navigation for web and exe. Groups mirror how operators think:
-// Home for orientation, Flows for the weekly loop, Ontology for the model,
-// Manage for setup. Labels name contents, never vague umbrellas.
-const SECTIONS: RailSection[] = [
-  {
-    title: "Home",
-    items: [
-      { href: "/workspace", label: "Workspace", icon: LayoutDashboard },
-      { href: "/search", label: "Search", icon: Search },
-      { href: "/activity", label: "Activity", icon: Activity },
-    ],
-  },
-  {
-    title: "Flows",
-    items: [
-      { href: "/answers", label: "Answers", icon: Compass },
-      { href: "/upload", label: "Upload", icon: Upload },
-      { href: "/corrections", label: "Corrections", icon: Flag },
-      { href: "/rules", label: "Rules", icon: SlidersHorizontal },
-      { href: "/briefs", label: "Briefs", icon: FileText },
-    ],
-  },
-  {
-    title: "Ontology",
-    items: [
-      { href: "/ontology/board", label: "Board", icon: Map },
-      { href: "/ontology/twin", label: "Twin", icon: Network },
-      { href: "/ontology/explore", label: "Explore", icon: Compass },
-      { href: "/ontology", label: "Schema", icon: Database },
-      { href: "/ontology/actions", label: "Actions", icon: Play },
-      { href: "/ontology/inbox", label: "Inbox", icon: Inbox, badge: true },
-      { href: "/ontology/automations", label: "Automations", icon: Bot },
-      { href: "/ontology/scenarios", label: "Scenarios", icon: GitBranch },
-      { href: "/ontology/audit", label: "Audit", icon: ScrollText },
-      { href: "/ontology/ops", label: "Ops", icon: Settings },
-    ],
-  },
-  {
-    title: "Manage",
-    items: [
-      { href: "/packs", label: "Packs", icon: Package },
-      { href: "/pilots", label: "Pilots", icon: FlaskConical },
-      { href: "/settings", label: "Settings", icon: Settings },
-      { href: "/help", label: "Help", icon: LifeBuoy },
-    ],
-  },
+// Five items, no sections, no favorites: Workspace to land, Board to see the
+// company, Connect to feed it, Inbox to decide, Settings to run it.
+// Everything else lives behind search (Ctrl+K) and in-page links.
+const ITEMS: RailItem[] = [
+  { href: "/workspace", label: "Workspace", icon: LayoutDashboard },
+  { href: "/ontology/board", label: "Board", icon: Map },
+  { href: "/upload", label: "Connect", icon: Upload },
+  { href: "/ontology/inbox", label: "Inbox", icon: Inbox, badge: true },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
-
-const ALL_ITEMS = SECTIONS.flatMap((s) => s.items);
-
-function loadFavorites(): string[] {
-  try {
-    const raw = JSON.parse(localStorage.getItem("ontology-favorites") ?? "[]") as unknown;
-    return Array.isArray(raw) ? raw.filter((x): x is string => typeof x === "string") : [];
-  } catch {
-    return [];
-  }
-}
 
 function isActive(pathname: string, href: string): boolean {
   // Schema is a sibling, not a parent: /ontology/board must not light up
@@ -113,7 +46,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [pending, setPending] = useState(0);
-  const [favorites, setFavorites] = useState<string[]>([]);
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -122,7 +54,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     } catch {
       /* storage unavailable */
     }
-    setFavorites(loadFavorites());
   }, []);
 
   // Pending-approval badge refreshes on every navigation so deciding
@@ -151,20 +82,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     });
   }
 
-  function toggleFavorite(href: string) {
-    setFavorites((f) => {
-      const next = f.includes(href) ? f.filter((x) => x !== href) : [...f, href];
-      try {
-        localStorage.setItem("ontology-favorites", JSON.stringify(next));
-      } catch {
-        /* storage unavailable */
-      }
-      return next;
-    });
-  }
-
   const openPalette = () => window.dispatchEvent(new CustomEvent("monad:open-palette"));
-  const favItems = ALL_ITEMS.filter((i) => favorites.includes(i.href));
 
   const nav = (
     <nav aria-label="Primary" className="flex h-full flex-col gap-1 p-3 text-sm">
@@ -233,40 +151,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           />
         )}
       </form>
-      {favItems.length > 0 && !collapsed && (
-        <div className="mt-1">
-          <p className="px-2 py-1 text-[11px] font-medium uppercase tracking-[0.06em] ds-text-2">Favorites</p>
-          {favItems.map((i) => (
-            <RailLink key={i.href} item={i} active={isActive(pathname, i.href)} collapsed={false} pending={pending} onNavigate={() => setMenuOpen(false)} />
+      <div className="min-h-0 flex-1 overflow-y-auto pb-2" style={{ scrollbarGutter: "stable" }}>
+        <div className="mt-2">
+          {ITEMS.map((i) => (
+            <div key={i.href} className="min-w-0 flex-1">
+              <RailLink item={i} active={isActive(pathname, i.href)} collapsed={collapsed} pending={pending} onNavigate={() => setMenuOpen(false)} />
+            </div>
           ))}
         </div>
-      )}
-      <div className="min-h-0 flex-1 overflow-y-auto pb-2" style={{ scrollbarGutter: "stable" }}>
-        {SECTIONS.map((s) => (
-          <div key={s.title} className="mt-2">
-            {!collapsed && (
-              <p className="px-2 py-1 text-[11px] font-medium uppercase tracking-[0.06em] ds-text-2">{s.title}</p>
-            )}
-            {s.items.map((i) => (
-              <div key={i.href} className="flex items-center gap-0.5">
-                <div className="min-w-0 flex-1">
-                  <RailLink item={i} active={isActive(pathname, i.href)} collapsed={collapsed} pending={pending} onNavigate={() => setMenuOpen(false)} />
-                </div>
-                {!collapsed && (
-                  <button
-                    type="button"
-                    onClick={() => toggleFavorite(i.href)}
-                    aria-label={favorites.includes(i.href) ? `Remove ${i.label} from favorites` : `Add ${i.label} to favorites`}
-                    title={favorites.includes(i.href) ? "Remove favorite" : "Add favorite"}
-                    className="ds-state shrink-0 rounded px-1 text-xs ds-text-2"
-                  >
-                    {favorites.includes(i.href) ? "★" : "☆"}
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
       </div>
       <div className="flex items-center gap-1 border-t px-1 pt-2" style={{ borderColor: "var(--hairline)" }}>
         <DensityToggle />
