@@ -134,6 +134,12 @@ export default function AgentConsole() {
   const [answer, setAnswer] = useState("");
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [provider, setProvider] = useState("");
+  const [backend, setBackend] = useState<{ checked: boolean; configured: boolean; provider: string | null; hint: string }>({
+    checked: false,
+    configured: false,
+    provider: null,
+    hint: "",
+  });
   const [running, setRunning] = useState(false);
   const [proposalStates, setProposalStates] = useState<Record<number, ProposalState>>({});
   const [wideText, setWideText] = useState<Record<number, string>>({});
@@ -143,6 +149,18 @@ export default function AgentConsole() {
 
   useEffect(() => {
     setHistory(loadHistory());
+    fetch("/api/agent/run")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b: { configured?: boolean; provider?: string | null; hint?: string } | null) => {
+        if (!b) return;
+        setBackend({
+          checked: true,
+          configured: b.configured === true,
+          provider: typeof b.provider === "string" ? b.provider : null,
+          hint: typeof b.hint === "string" ? b.hint : "",
+        });
+      })
+      .catch(() => undefined);
   }, []);
 
   // Live elapsed timer while a run is in flight. DeepSeek reasons at length
@@ -193,7 +211,10 @@ export default function AgentConsole() {
         signal: controller.signal,
       });
       if (!res.ok || !res.body) {
-        push("error", `run failed: ${res.status}`);
+        // Surface the server's message (e.g. missing AI key), not just the
+        // status: "run failed: 503" tells nobody what to do.
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        push("error", body && typeof body.error === "string" ? `run failed: ${body.error}` : `run failed: ${res.status}`);
         return;
       }
       const reader = res.body.getReader();
@@ -319,6 +340,14 @@ export default function AgentConsole() {
   return (
     <section className="space-y-3 rounded border p-4">
       <h2 className="font-medium">Ask the model</h2>
+      {backend.checked &&
+        (backend.configured ? (
+          <p className="text-xs ds-text-2">AI backend ready{backend.provider ? ` (${backend.provider})` : ""}.</p>
+        ) : (
+          <p role="alert" className="rounded border p-2 text-xs" style={{ borderColor: "var(--warn)" }}>
+            AI is not connected yet{backend.hint ? `: ${backend.hint}` : ""}. Add the key to the server environment, then ask away.
+          </p>
+        ))}
       <p className="text-sm ds-text-2">
         Ask in plain English — for example, “which shipments are late?” The model reads your live data,
         shows each step below, and only proposes actions. Nothing runs until you confirm it. Answers

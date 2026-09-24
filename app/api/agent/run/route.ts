@@ -9,6 +9,24 @@ import type { AgentLLM } from "@/lib/core/agent/types";
 import { manufacturingAgentContext } from "@/lib/packs/agent";
 import { manufacturingToolExecutors } from "@/lib/packs/agent-tools";
 
+export async function GET() {
+  // Provider status for the console: shows which AI backend answers, or
+  // plainly that no key is set (with the exact variable name) instead of
+  // failing mysteriously on the first question.
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  try {
+    const { provider } = resolveLLM();
+    return NextResponse.json({ configured: true, provider });
+  } catch (e) {
+    return NextResponse.json({
+      configured: false,
+      provider: null,
+      hint: e instanceof Error ? e.message : "agent LLM not configured",
+    });
+  }
+}
+
 export async function POST(req: Request) {
   const session = await auth();
   const userId = session?.user?.id;

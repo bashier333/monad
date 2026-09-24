@@ -6,10 +6,7 @@ import { EmptyState, ProofStrip, Tag } from "@/components/primitives";
 import type { TwinGraph, TwinOverview } from "@/lib/packs/manufacturing/service";
 import type { AgencyBoard, FreightBoard } from "@/lib/packs/board";
 
-const NetworkGraph = dynamic(() => import("@/app/ontology/twin/network-graph"), {
-  ssr: false,
-  loading: () => <div className="ds-panel-2 h-[380px] animate-pulse rounded-[10px]" role="status" aria-label="Loading network" />,
-});
+import FlowBoard from "./flow";
 
 const SiteMap = dynamic(() => import("@/app/ontology/twin/site-map"), {
   ssr: false,
@@ -173,17 +170,17 @@ export default function BoardView({
       />
 
       {allGraph.nodes.length > 0 && (
-        <section aria-label="Network" className="ds-panel p-4">
+        <section aria-label="Workflow" className="ds-panel p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-semibold ds-text">
-              Network <span className="font-normal ds-text-2">· {allGraph.nodes.length} things, {allGraph.edges.length} links</span>
+              Workflow <span className="font-normal ds-text-2">· {allGraph.nodes.length} steps, {allGraph.edges.length} flows</span>
             </h2>
             <Link href="/ontology/explore" className="text-[13px] font-medium" style={{ color: "var(--accent)" }}>
-              Walk it
+              Explore all
             </Link>
           </div>
           <div className="mt-3">
-            <NetworkGraph graph={allGraph} />
+            <FlowBoard graph={allGraph} />
           </div>
         </section>
       )}
