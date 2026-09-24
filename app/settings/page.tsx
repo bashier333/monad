@@ -4,6 +4,7 @@ import DangerZone from "@/components/DangerZone";
 import InviteForm from "@/components/InviteForm";
 import OrgSettingsForm from "@/components/OrgSettingsForm";
 import OrgSwitcher from "@/components/OrgSwitcher";
+import ProviderKeyForm from "@/components/ProviderKeyForm";
 import SessionsButton from "@/components/SessionsButton";
 import { auth } from "@/lib/core/auth";
 import { getActiveOrg } from "@/lib/core/org";
@@ -73,6 +74,13 @@ export default async function SettingsPage() {
           <section className="rounded border p-4">
             <h2 className="mb-2 font-medium">Team</h2>
             <InviteForm />
+          </section>
+          <section className="rounded border p-4">
+            <h2 className="mb-2 font-medium">AI provider key</h2>
+            <p className="mb-3 text-sm ds-text-2">
+              Optional. A workspace key is used for automations instead of the server key.
+            </p>
+            <ProviderKeyForm />
           </section>
           <section className="rounded border p-4">
             <h2 className="mb-2 font-medium">Billing</h2>

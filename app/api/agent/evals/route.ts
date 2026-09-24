@@ -3,7 +3,7 @@ import { auth } from "@/lib/core/auth";
 import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { runAgent } from "@/lib/core/agent/runtime";
-import { resolveLLM } from "@/lib/core/agent/provider";
+import { resolveLLMForOrg } from "@/lib/core/agent/provider";
 import type { AgentLLM } from "@/lib/core/agent/types";
 import { evalAnswer } from "@/lib/core/agent/evals";
 import { manufacturingAgentContext } from "@/lib/packs/agent";
@@ -39,7 +39,7 @@ export async function GET() {
   let llm: AgentLLM;
   let provider: string;
   try {
-    ({ llm, provider } = resolveLLM());
+    ({ llm, provider } = await resolveLLMForOrg(orgId));
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "agent LLM not configured" },

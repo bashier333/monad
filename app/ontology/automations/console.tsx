@@ -134,10 +134,11 @@ export default function AgentConsole() {
   const [answer, setAnswer] = useState("");
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [provider, setProvider] = useState("");
-  const [backend, setBackend] = useState<{ checked: boolean; configured: boolean; provider: string | null; hint: string }>({
+  const [backend, setBackend] = useState<{ checked: boolean; configured: boolean; provider: string | null; source: string | null; hint: string }>({
     checked: false,
     configured: false,
     provider: null,
+    source: null,
     hint: "",
   });
   const [running, setRunning] = useState(false);
@@ -151,12 +152,13 @@ export default function AgentConsole() {
     setHistory(loadHistory());
     fetch("/api/agent/run")
       .then((r) => (r.ok ? r.json() : null))
-      .then((b: { configured?: boolean; provider?: string | null; hint?: string } | null) => {
+      .then((b: { configured?: boolean; provider?: string | null; source?: string | null; hint?: string } | null) => {
         if (!b) return;
         setBackend({
           checked: true,
           configured: b.configured === true,
           provider: typeof b.provider === "string" ? b.provider : null,
+          source: typeof b.source === "string" ? b.source : null,
           hint: typeof b.hint === "string" ? b.hint : "",
         });
       })
@@ -342,7 +344,7 @@ export default function AgentConsole() {
       <h2 className="font-medium">Ask the model</h2>
       {backend.checked &&
         (backend.configured ? (
-          <p className="text-xs ds-text-2">AI backend ready{backend.provider ? ` (${backend.provider})` : ""}.</p>
+          <p className="text-xs ds-text-2">AI backend ready{backend.provider ? ` (${backend.provider}${backend.source === "org" ? ", workspace key" : ""})` : ""}.</p>
         ) : (
           <p role="alert" className="rounded border p-2 text-xs" style={{ borderColor: "var(--warn)" }}>
             AI is not connected yet{backend.hint ? `: ${backend.hint}` : ""}. Add the key to the server environment, then ask away.

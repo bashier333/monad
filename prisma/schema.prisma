@@ -57,6 +57,7 @@ model Organization {
   boards Board[]
   boardVersions BoardVersion[]
   automations Automation[]
+  providerKeys ProviderKey[]
 }
 
 model OntoBranch {
@@ -735,6 +736,23 @@ model ApiKey {
   createdAt  DateTime  @default(now())
 
   @@index([orgId])
+}
+
+// Bring-your-own AI provider keys, one per organization per provider.
+// The raw key is AES-256-GCM encrypted (see lib/core/agent/org-keys) — the
+// database never holds a usable secret, only ciphertext plus a last-4 hint.
+model ProviderKey {
+  id             String       @id @default(cuid())
+  organizationId String
+  provider       String
+  encKey         String
+  keyHint        String       @default("")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+  @@index([organizationId])
 }
 
 model AlertRule {

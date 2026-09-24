@@ -4,7 +4,7 @@ import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireJson } from "@/lib/core/json-guard";
 import { runAgent } from "@/lib/core/agent/runtime";
-import { resolveLLM } from "@/lib/core/agent/provider";
+import { resolveLLM, resolveLLMForOrg } from "@/lib/core/agent/provider";
 import type { AgentLLM } from "@/lib/core/agent/types";
 import { manufacturingAgentContext } from "@/lib/packs/agent";
 import { manufacturingToolExecutors } from "@/lib/packs/agent-tools";
@@ -15,9 +15,14 @@ export async function GET() {
   // failing mysteriously on the first question.
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const active = await getActiveOrg(session.user.id);
   try {
-    const { provider } = resolveLLM();
-    return NextResponse.json({ configured: true, provider });
+    if (!active) {
+      const { provider } = resolveLLM();
+      return NextResponse.json({ configured: true, provider, source: "env" });
+    }
+    const { provider: resolvedProvider, source } = await resolveLLMForOrg(active.organization.id);
+    return NextResponse.json({ configured: true, provider: resolvedProvider, source });
   } catch (e) {
     return NextResponse.json({
       configured: false,
@@ -44,7 +49,7 @@ export async function POST(req: Request) {
   let llm: AgentLLM;
   let provider: string;
   try {
-    ({ llm, provider } = resolveLLM());
+    ({ llm, provider } = await resolveLLMForOrg(orgId));
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "agent LLM not configured" },
