@@ -6,6 +6,7 @@ export default function VariantForm({ week, pack = "freight" }: { week: string; 
   const options = pack === "agency" ? ["client", "producer", "day", "month"] : ["driver", "truck", "broker", "customer", "day", "month"];
   const [by, setBy] = useState(options[0]);
   const [key, setKey] = useState("");
+  const [hint, setHint] = useState(false);
 
   return (
     <form
@@ -13,6 +14,8 @@ export default function VariantForm({ week, pack = "freight" }: { week: string; 
         e.preventDefault();
         if (key.trim()) {
           window.location.href = `/briefs/variant?pack=${pack}&by=${by}&key=${encodeURIComponent(key.trim())}&week=${week}`;
+        } else {
+          setHint(true);
         }
       }}
       className="flex flex-wrap items-end gap-2 rounded border p-3 text-sm"
@@ -27,6 +30,11 @@ export default function VariantForm({ week, pack = "freight" }: { week: string; 
       <button type="submit" className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
         View
       </button>
+      {hint && (
+        <span role="status" className="text-sm ds-text-2">
+          Type a name, a date, or “all”.
+        </span>
+      )}
     </form>
   );
 }

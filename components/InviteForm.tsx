@@ -31,11 +31,19 @@ export default function InviteForm() {
   }
 
   async function revoke(email: string) {
-    await fetch("/api/org/invites", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
+    if (!window.confirm(`Remove ${email} from this workspace?`)) return;
+    setResult("");
+    try {
+      const res = await fetch("/api/org/invites", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setResult(res.ok ? `Removed ${email}.` : (body.error ?? `Could not remove ${email}.`));
+    } catch {
+      setResult(`Could not remove ${email}.`);
+    }
     await refresh();
   }
 

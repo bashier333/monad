@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
+import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 
 // Shared design vocabulary for the ontology workspace. Every component here
 // consumes the warm-ink tokens (var(--ground/panel/hairline/fg/accent)) so
@@ -14,12 +15,14 @@ export function EmptyState({
   actionHref,
   actionLabel,
   variant = "empty",
+  secondary,
 }: {
   title: string;
   body: string;
   actionHref: string;
   actionLabel: string;
   variant?: "empty" | "error" | "loading";
+  secondary?: { href: string; label: string };
 }) {
   if (variant === "loading") {
     return (
@@ -37,6 +40,14 @@ export function EmptyState({
         <Link href={actionHref} className="underline ds-text">
           {actionLabel}
         </Link>
+        {secondary ? (
+          <>
+            {" · "}
+            <Link href={secondary.href} className="underline ds-text-2">
+              {secondary.label}
+            </Link>
+          </>
+        ) : null}
       </p>
     </div>
   );
@@ -182,6 +193,183 @@ export function PhaseTimeline({
       </ol>
       {note ? <p className="mt-1 text-xs ds-text-2">{note}</p> : null}
     </div>
+  );
+}
+
+// Button: the single button. Variants carry their own colors (never rely on
+// opacity alone for disabled); callers swap the label while busy
+// ("Saving…") and pass disabled. 6px control radius per the shape lock.
+const BUTTON_VARIANTS = {
+  primary: "text-white",
+  ghost: "ds-text",
+  danger: "text-white",
+  subtle: "ds-text-2",
+} as const;export function Button({
+  variant = "primary",
+  busy = false,
+  disabled,
+  className,
+  style,
+  ref,
+  ...rest
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: keyof typeof BUTTON_VARIANTS;
+  busy?: boolean;
+  ref?: Ref<HTMLButtonElement>;
+}) {
+  const borders =
+    variant === "primary" || variant === "danger"
+      ? undefined
+      : ("1px solid var(--hairline)" as const);
+  const background =
+    variant === "primary"
+      ? "var(--accent)"
+      : variant === "danger"
+        ? "var(--danger)"
+        : "transparent";
+  return (
+    <button
+      ref={ref}
+      disabled={disabled || busy}
+      className={`ds-state inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-70 ${BUTTON_VARIANTS[variant]} ${className ?? ""}`}
+      style={{ border: borders, background, ...style }}
+      {...rest}
+    />
+  );
+}
+
+// Field: label + control + hint/error in one contract. The error renders as
+// an alert; hints stay quiet.
+export function Field({
+  label,
+  hint,
+  error,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  error?: string | null;
+  children: ReactNode;
+}) {
+  return (
+    <label className="block text-sm font-medium ds-text">
+      {label}
+      <span className="mt-1 block font-normal">{children}</span>
+      {hint && !error ? <span className="mt-1 block text-[13px] font-normal ds-text-2">{hint}</span> : null}
+      {error ? (
+        <span role="alert" className="mt-1 block text-[13px] font-normal" style={{ color: "var(--danger)" }}>
+          {error}
+        </span>
+      ) : null}
+    </label>
+  );
+}
+
+// PageHeader: the single page title pattern. Title names the screen,
+// subcopy says what it is for in one line, actions hold at most two controls.
+export function PageHeader({ title, sub, actions }: { title: string; sub?: string; actions?: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-2">
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight ds-text">{title}</h1>
+        {sub ? <p className="mt-1 text-sm ds-text-2">{sub}</p> : null}
+      </div>
+      {actions}
+    </div>
+  );
+}
+
+// GateFallback: the single signed-out state. Every gated page renders this
+// and nothing else when there is no session.
+export function GateFallback({ body, actionLabel = "Sign in" }: { body: string; actionLabel?: string }) {
+  return (
+    <main className="mx-auto max-w-2xl p-8">
+      <p className="ds-text">
+        <Link href="/signin" className="underline">
+          {actionLabel}
+        </Link>{" "}
+        {body}
+      </p>
+    </main>
+  );
+}
+
+// Confirm: modal for destructive or irreversible actions. Cancel is focused
+// by default (safe choice first); Esc closes. Never use for reversible,
+// re-creatable things — a plain Button suffices there.
+export function Confirm({
+  open,
+  title,
+  body,
+  confirmLabel = "Confirm",
+  busy = false,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  body: string;
+  confirmLabel?: string;
+  busy?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    cancelRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onCancel]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)" }} onClick={onCancel}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="ds-overlay w-full max-w-sm space-y-3 p-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="font-semibold ds-text">{title}</p>
+        <p className="text-sm ds-text-2">{body}</p>
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" onClick={onCancel} ref={cancelRef}>
+            Cancel
+          </Button>
+          <Button variant="danger" busy={busy} disabled={busy} onClick={onConfirm}>
+            {busy ? "Working…" : confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Section: the single card pattern (title row + body). Elevation, not
+// borders, draws the boundary; hairline stays for same-level adjacency.
+export function Section({
+  title,
+  action,
+  children,
+  label,
+}: {
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+  label?: string;
+}) {
+  return (
+    <section aria-label={label ?? title} className="ds-panel p-4">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-[15px] font-semibold ds-text">{title}</h2>
+        {action}
+      </div>
+      <div className="mt-3">{children}</div>
+    </section>
   );
 }
 

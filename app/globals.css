@@ -5,9 +5,11 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ---------------------------------------------------------------------------
-   Design tokens: enterprise-clean console. Light is the default; dark follows
-   the same hierarchy. One blue accent everywhere. Shape lock: cards 10px,
-   controls 6px. Status is never color-only.
+   Design tokens: refined dark ops console. Dark is the only theme (the .dark
+   class is server-rendered unconditionally); light :root values below are a
+   pre-hydration fallback, never a supported theme. Surfaces step lighter
+   with elevation (lighter = closer). One blue accent everywhere. Shape lock:
+   cards 10px, controls 6px. Status is never color-only.
 --------------------------------------------------------------------------- */
 
 :root {
@@ -18,6 +20,7 @@
   --ground: #ffffff;
   --panel: #ffffff;
   --panel-2: #f4f4f5;
+  --overlay: #ffffff;
   --hairline: #e4e4e7;
   --fg: #09090b;
   --fg-2: #52525b;
@@ -30,24 +33,29 @@
 }
 
 .dark {
-  --ground: #000000;
-  --panel: #0a0a0a;
-  --panel-2: #141414;
-  --hairline: #262626;
-  --fg: #fafafa;
-  --fg-2: #a1a1aa;
-  --accent: #1570ef;
+  --ground: #0b0d10;
+  --panel: #121519;
+  --panel-2: #1a1f26;
+  --overlay: #222932;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --fg: #e8eaed;
+  --fg-2: #a8b0ba;
+  --accent: #2e7cf6;
 
   --info: #53b1fd;
-  --success: #47cd89;
-  --warn: #fec84b;
-  --danger: #f97066;
+  --success: #3fb97f;
+  --warn: #e8a13c;
+  --danger: #f0665f;
 }
 
 body {
   font-family: var(--font-sans), system-ui, sans-serif;
   background: var(--ground);
   color: var(--fg);
+  /* Dark-tuned reading: light text optically spreads, so body gets a touch
+     more air and spacing than the light-mode defaults. */
+  letter-spacing: 0.015em;
+  line-height: 1.65;
 }
 
 .font-serif {
@@ -69,6 +77,13 @@ body {
 
 .ds-panel-2 {
   background: var(--panel-2);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+}
+
+/* Top elevation: modals, popovers, palette, toasts. */
+.ds-overlay {
+  background: var(--overlay);
   border: 1px solid var(--hairline);
   border-radius: 10px;
 }

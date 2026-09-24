@@ -46,7 +46,7 @@ const ENTRIES: Entry[] = [
   { id: "go-search", title: "Go: search", layer: "System", keywords: ["search", "find"], href: "/search", desktop: false },
   { id: "go-packs", title: "Go: packs", layer: "System", keywords: ["packs", "market"], href: "/packs", desktop: false },
   { id: "go-activity", title: "Go: activity", layer: "System", keywords: ["activity", "audit", "log"], href: "/activity", desktop: false },
-  { id: "go-settings", title: "Go: settings", layer: "System", keywords: ["settings", "billing"], href: "/settings", desktop: false },
+  { id: "go-settings", title: "Go: settings", layer: "System", keywords: ["settings", "billing"], href: "/settings", desktop: true },
   { id: "go-help", title: "Go: help", layer: "System", keywords: ["help", "docs"], href: "/help", desktop: false },
 ];
 

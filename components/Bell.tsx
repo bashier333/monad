@@ -47,13 +47,14 @@ export default function Bell() {
 
   async function markAll() {
     try {
-      await fetch("/api/notifications", {
+      const res = await fetch("/api/notifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ all: true }),
       });
+      if (!res.ok) return;
     } catch {
-      /* optimistic: still clear locally */
+      return;
     }
     setItems((xs) => xs.map((x) => ({ ...x, readAt: new Date().toISOString() })));
     setUnread(0);

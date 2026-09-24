@@ -18,6 +18,7 @@ export default function RuleForm({ week, pack = "freight" }: { week: string; pac
   const sourceCorrectionId = sp.get("fromCorrection") ?? "";
   const [preview, setPreview] = useState("");
   const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
 
   async function doPreview() {
     setMsg("");
@@ -36,14 +37,22 @@ export default function RuleForm({ week, pack = "freight" }: { week: string; pac
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (busy) return;
+    setBusy(true);
     setMsg("");
-    const res = await fetch("/api/rules", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ costKind, matchField, matchValue, toLoad, reason, pack, sourceCorrectionId: sourceCorrectionId || undefined }),
-    });
-    if (res.ok) window.location.reload();
-    else setMsg("save failed");
+    try {
+      const res = await fetch("/api/rules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ costKind, matchField, matchValue, toLoad, reason, pack, sourceCorrectionId: sourceCorrectionId || undefined }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (res.ok) window.location.reload();
+      else setMsg(body.error ?? "Save failed. Try again.");
+    } catch {
+      setMsg("Save failed. Try again.");
+    }
+    setBusy(false);
   }
 
   return (
@@ -68,12 +77,16 @@ export default function RuleForm({ week, pack = "freight" }: { week: string; pac
         <button type="button" onClick={doPreview} className="rounded border px-3 py-1">
           Preview on this week
         </button>
-        <button type="submit" className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
-          Save rule
+        <button type="submit" disabled={busy} className="rounded-md font-medium px-3 py-1 text-white disabled:opacity-50" style={{ background: "var(--accent)" }}>
+          {busy ? "Saving…" : "Save rule"}
         </button>
       </div>
-      {preview && <p className="text-gray-700">{preview}</p>}
-      {msg && <p className="text-red-600">{msg}</p>}
+      {preview && <p className="ds-text-2">{preview}</p>}
+      {msg && (
+        <p role="alert" className="text-sm" style={{ color: "var(--danger)" }}>
+          {msg}
+        </p>
+      )}
     </form>
   );
 }

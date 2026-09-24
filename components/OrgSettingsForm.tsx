@@ -28,25 +28,34 @@ export default function OrgSettingsForm({
   const [locale, setLocale] = useState(initial.locale);
   const [predictOptOut, setPredictOptOut] = useState(initial.predictOptOut);
   const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch("/api/org/settings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        weekStartsOn: Number(weekStartsOn),
-        timezone,
-        anomalyThresholdPts: Number(threshold),
-        anomalyEmail,
-        agencyWeekStartsOn: Number(agencyWeekStartsOn),
-        agencyAnomalyThresholdPts: Number(agencyThreshold),
-        agencyAnomalyEmail,
-        locale,
-        predictOptOut,
-      }),
-    });
-    setMsg(res.ok ? "Saved." : "Save failed — check values (week 0–6, threshold 1–50).");
+    if (busy) return;
+    setBusy(true);
+    setMsg("");
+    try {
+      const res = await fetch("/api/org/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weekStartsOn: Number(weekStartsOn),
+          timezone,
+          anomalyThresholdPts: Number(threshold),
+          anomalyEmail,
+          agencyWeekStartsOn: Number(agencyWeekStartsOn),
+          agencyAnomalyThresholdPts: Number(agencyThreshold),
+          agencyAnomalyEmail,
+          locale,
+          predictOptOut,
+        }),
+      });
+      setMsg(res.ok ? "Saved." : "Save failed. Check values (week 0-6, threshold 1-50).");
+    } catch {
+      setMsg("Save failed. Check your connection and try again.");
+    }
+    setBusy(false);
   }
 
   return (
@@ -101,8 +110,8 @@ export default function OrgSettingsForm({
         <input type="checkbox" checked={predictOptOut} onChange={(e) => setPredictOptOut(e.target.checked)} />
         Turn off forecasts
       </label>
-      <button type="submit" className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
-        Save
+      <button type="submit" disabled={busy} className="rounded-md font-medium px-3 py-1 text-white disabled:opacity-50" style={{ background: "var(--accent)" }}>
+        {busy ? "Saving…" : "Save"}
       </button>
       <LocaleSuggest setWeek={setWeekStartsOn} setTz={setTimezone} />
       {msg && <span>{msg}</span>}

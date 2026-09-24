@@ -11,6 +11,7 @@ interface Status {
 export default function ImportProgress({ runId, week }: { runId: string; week: string }) {
   const [s, setS] = useState<Status | null>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const t0 = Date.now();
@@ -25,6 +26,8 @@ export default function ImportProgress({ runId, week }: { runId: string; week: s
         setElapsed(Math.round((Date.now() - t0) / 1000));
         if (body.run.status === "PENDING" || body.run.status === "PROCESSING") {
           setTimeout(tick, 2000);
+        } else if (body.run.status !== "COMPLETED") {
+          setFailed(true);
         }
       } catch {
         /* retry next tick */
@@ -36,13 +39,27 @@ export default function ImportProgress({ runId, week }: { runId: string; week: s
     };
   }, [runId]);
 
+  if (!s && !failed) return null;
+  if (failed || (s && s.status !== "PENDING" && s.status !== "PROCESSING" && s.status !== "COMPLETED")) {
+    return (
+      <div className="rounded border p-3 text-sm" role="alert" style={{ borderColor: "var(--danger)" }}>
+        <p className="ds-text">
+          This import failed{ s ? ` (${s.status})` : ""}. Your file is untouched.
+        </p>
+        <p className="mt-1">
+          <a href={`/imports/${runId}`} className="underline">
+            Open the run to see why →
+          </a>
+        </p>
+      </div>
+    );
+  }
   if (!s) return null;
-  if (s.status !== "PENDING" && s.status !== "PROCESSING" && s.status !== "COMPLETED") return null;
   const eta = s.progress > 5 && s.progress < 100 ? ` (~${Math.max(1, Math.round((elapsed * (100 - s.progress)) / s.progress))}s left)` : "";
   return (
     <div className="rounded border p-3 text-sm" role="status">
       <p>
-        {s.status} — {s.progress}%{eta}
+        {s.status} · {s.progress}%{eta}
       </p>
       <div className="mt-1 h-2 rounded-full" style={{ background: "var(--panel-2)" }}>
         <div className="h-2 rounded-full" style={{ width: `${Math.min(100, s.progress)}%`, background: "var(--accent)" }} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import type { ProviderFlags } from "@/lib/core/auth-providers";
 
 function GitHubMark() {
@@ -35,6 +35,28 @@ export default function SignInForm({
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [clientError, setClientError] = useState<string | null>(null);
+  const [mailSent, setMailSent] = useState(false);
+  async function sendMagicLink(e: FormEvent) {
+    e.preventDefault();
+    if (!email.includes("@")) return;
+    setBusy("email");
+    setClientError(null);
+    setMailSent(false);
+    try {
+      const res = (await signIn("resend", { email, callbackUrl, redirect: false })) as unknown as
+        | { error?: string; url?: string | null }
+        | undefined;
+      if (res?.error) {
+        setClientError(ERRORS[res.error] ?? `Could not send the magic link (${res.error}).`);
+      } else {
+        setMailSent(true);
+      }
+    } catch {
+      setClientError("Could not send the magic link. Check your connection and try again.");
+    } finally {
+      setBusy(null);
+    }
+  }
   const nothing = !flags.github && !flags.google && !flags.email;
 
   async function startOAuth(provider: "github" | "google") {
@@ -110,10 +132,7 @@ export default function SignInForm({
           className="space-y-2 rounded-md border p-3"
           style={{ borderColor: "var(--hairline)" }}
           onSubmit={(e) => {
-            e.preventDefault();
-            if (!email.includes("@")) return;
-            setBusy("email");
-            void signIn("resend", { email, callbackUrl }).finally(() => setBusy(null));
+            void sendMagicLink(e);
           }}
         >
           <label htmlFor="signin-email" className="text-sm font-medium ds-text">
@@ -138,6 +157,11 @@ export default function SignInForm({
           >
             {busy === "email" ? "Sending…" : "Email me a link"}
           </button>
+          {mailSent && (
+            <p role="status" className="text-sm ds-text-2">
+              Link sent. Check your inbox, then click it to sign in.
+            </p>
+          )}
         </form>
       ) : null}
     </div>

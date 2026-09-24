@@ -23,6 +23,7 @@ export default function BillingPanel() {
   const [s, setS] = useState<Status | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [reason, setReason] = useState("too-expensive");
 
@@ -36,12 +37,19 @@ export default function BillingPanel() {
   }, []);
 
   async function post(path: string) {
+    if (busy) return;
+    setBusy(true);
     setMsg("");
-    const res = await fetch(path, { method: "POST" });
-    const body = (await res.json()) as { url?: string; error?: string };
-    if (res.ok && body.url) window.location.href = body.url;
-    else if (res.ok) window.location.reload();
-    else setMsg(body.error ?? "failed");
+    try {
+      const res = await fetch(path, { method: "POST" });
+      const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (res.ok && body.url) window.location.href = body.url;
+      else if (res.ok) window.location.reload();
+      else setMsg(body.error ?? "That did not go through. Try again.");
+    } catch {
+      setMsg("That did not go through. Try again.");
+    }
+    setBusy(false);
   }
 
   if (!s) return <p className="text-sm">Loading billing…</p>;
@@ -50,32 +58,32 @@ export default function BillingPanel() {
     <div className="space-y-2 text-sm">
       <p>
         Plan: <strong>{s.tier}</strong> ({s.status})
-        {s.readOnly && <span className="text-red-600"> — read-only until payment is updated. Data is safe.</span>}
+        {s.readOnly && <span className="ds-text-2"> (read-only until payment is updated. Data is safe.)</span>}
         {s.status === "past_due" && !s.readOnly && (
-          <span> — payment failed; <button onClick={() => post("/api/billing/portal")} className="underline">retry now</button> to avoid read-only.</span>
+          <span> (payment failed; <button onClick={() => post("/api/billing/portal")} disabled={busy} className="underline disabled:opacity-50">retry now</button> to avoid read-only.)</span>
         )}
       </p>
       {s.status === "canceled" && (
         <p className="rounded border p-2 ds-panel" style={{ borderColor: "var(--warn)" }}>
-          Subscription canceled — your data is kept for 90 days.{" "}
+          Subscription canceled. Your data is kept for 90 days.{" "}
           <a href="/api/org/data" className="underline">
             Export everything now
           </a>
           . Changed your mind? Resubscribe below; nothing was touched.
         </p>
       )}
-      <p className="text-gray-600">
+      <p className="ds-text-2">
         Free tier: {s.limits.uploadsPerMonth} uploads/month ({s.usage.uploadsThisMonth} used), {s.limits.historyDays}-day
         history.
       </p>
       <div className="flex gap-2">
         {s.tier === "free" ? (
-          <button onClick={() => post("/api/billing/checkout")} className="rounded-md font-medium px-3 py-1 text-white" style={{ background: "var(--accent)" }}>
-            Upgrade to Team
+          <button onClick={() => post("/api/billing/checkout")} disabled={busy} className="rounded-md font-medium px-3 py-1 text-white disabled:opacity-50" style={{ background: "var(--accent)" }}>
+            {busy ? "Working…" : "Upgrade to Team"}
           </button>
         ) : (
-          <button onClick={() => post("/api/billing/portal")} className="rounded border px-3 py-1">
-            Manage billing
+          <button onClick={() => post("/api/billing/portal")} disabled={busy} className="rounded border px-3 py-1 disabled:opacity-50">
+            {busy ? "Working…" : "Manage billing"}
           </button>
         )}
       </div>
@@ -86,7 +94,7 @@ export default function BillingPanel() {
           <ul>
             {invoices.map((inv) => (
               <li key={inv.id}>
-                {inv.date} — ${inv.amount.toFixed(2)} {inv.currency.toUpperCase()} ({inv.status})
+                {inv.date} · ${inv.amount.toFixed(2)} {inv.currency.toUpperCase()} ({inv.status})
                 {inv.pdf && (
                   <>
                     {" "}
@@ -119,7 +127,9 @@ export default function BillingPanel() {
             });
             if (res.ok) {
               setLeaving(false);
-              setMsg("Noted — you can cancel in Manage billing. Data stays 90 days with export.");
+              setMsg("Noted. You can cancel in Manage billing. Data stays 90 days with export.");
+            } else {
+              setMsg("Could not save that. Try again.");
             }
           }}
           className="flex gap-2"

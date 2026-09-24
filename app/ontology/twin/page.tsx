@@ -38,7 +38,7 @@ export default async function TwinPage() {
       <main className="mx-auto max-w-2xl space-y-3 p-8">
         <h1 className="text-xl font-bold ds-text">Manufacturing digital twin</h1>
         <p className="text-sm ds-text-2">
-          The twin data is temporarily unavailable. Reload to try again — your model is safe.
+          The twin data is temporarily unavailable. Reload to try again. Your model is safe.
         </p>
       </main>
     );
@@ -58,7 +58,7 @@ export default async function TwinPage() {
         <div>
           <h1 className="text-xl font-bold ds-text">Manufacturing digital twin</h1>
           <p className="mt-1 text-sm ds-text-2">
-            What each site holds, what is moving, and who is exposed — read the three decision lists top to
+            What each site holds, what is moving, and who is exposed. Read the three decision lists top to
             bottom when something needs attention.
           </p>
         </div>

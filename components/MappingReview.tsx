@@ -32,6 +32,7 @@ function confidenceTone(c: number | undefined): { label: string; color: string }
 export default function MappingReview({ runId, headers, initialMapping, confidence, sourceType, samples, landingHref = "/ontology/board" }: Props) {
   const [mapping, setMapping] = useState<Record<string, number | null>>({ ...initialMapping });
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const router = useRouter();
   const agency = isAgencySource(sourceType);
@@ -54,18 +55,30 @@ export default function MappingReview({ runId, headers, initialMapping, confiden
 
   async function save(thenGoToAnswers: boolean) {
     setSaving(true);
-    const res = await fetch(`/api/imports/${runId}/mapping`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mapping }),
-    });
-    setSaving(false);
-    setSaved(res.ok);
-    if (res.ok && thenGoToAnswers) {
-      trackFunnel("mapping_confirmed", { runId });
-      // Re-trigger the answer for the run week and land on the board:
-      // mapping is the last step before the company becomes visible.
-      router.push(landingHref);
+    setSaveError(null);
+    try {
+      const res = await fetch(`/api/imports/${runId}/mapping`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mapping }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setSaved(res.ok);
+      if (!res.ok) {
+        setSaveError(body.error ?? "Mapping did not save. Check the highlighted columns and try again.");
+        return;
+      }
+      if (thenGoToAnswers) {
+        trackFunnel("mapping_confirmed", { runId });
+        // Re-trigger the answer for the run week and land on the board:
+        // mapping is the last step before the company becomes visible.
+        router.push(landingHref);
+      }
+    } catch {
+      setSaved(false);
+      setSaveError("Mapping did not save. Check your connection and try again.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -156,6 +169,11 @@ export default function MappingReview({ runId, headers, initialMapping, confiden
           Save mapping only
         </button>
         {saved && <span className="text-sm ds-text-2">Saved.</span>}
+        {saveError && (
+          <span role="alert" className="text-sm" style={{ color: "var(--danger)" }}>
+            {saveError}
+          </span>
+        )}
       </div>
       {samples.length > 0 && (
         <div className="mt-4">

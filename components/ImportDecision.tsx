@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button, Confirm } from "@/components/primitives";
 
 // Duplicate/overlap decision: conflict counts up front, no full-page
-// reload (router.refresh keeps scroll and context).
+// reload (router.refresh keeps scroll and context). Merge is one click;
+// replace and skip destroy rows, so they confirm first.
 export default function ImportDecision({
   runId,
   note,
@@ -17,6 +19,7 @@ export default function ImportDecision({
   const router = useRouter();
   const [state, setState] = useState<"idle" | "working" | "failed" | "done">("idle");
   const [choice, setChoice] = useState("");
+  const [confirming, setConfirming] = useState<"replace" | "skip" | null>(null);
 
   async function decide(decision: string) {
     setState("working");
@@ -47,35 +50,36 @@ export default function ImportDecision({
         )}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <button
-          onClick={() => void decide("merge")}
-          disabled={state === "working"}
-          className="ds-control rounded px-3 py-1 text-sm font-medium disabled:opacity-50"
-          style={{ background: "var(--accent)", color: "#ffffff" }}
-        >
-          Merge as new
-        </button>
-        <button
-          onClick={() => void decide("replace")}
-          disabled={state === "working"}
-          className="ds-control rounded border px-3 py-1 text-sm ds-text disabled:opacity-50"
-          style={{ borderColor: "var(--hairline)" }}
-        >
+        <Button onClick={() => void decide("merge")} busy={state === "working"} disabled={state === "working"}>
+          {state === "working" ? "Working…" : "Merge as new"}
+        </Button>
+        <Button variant="ghost" onClick={() => setConfirming("replace")} disabled={state === "working"}>
           Replace overlapped
-        </button>
-        <button
-          onClick={() => void decide("skip")}
-          disabled={state === "working"}
-          className="ds-control rounded border px-3 py-1 text-sm ds-text disabled:opacity-50"
-          style={{ borderColor: "var(--hairline)" }}
-        >
+        </Button>
+        <Button variant="ghost" onClick={() => setConfirming("skip")} disabled={state === "working"}>
           Skip import
-        </button>
+        </Button>
       </div>
+      <Confirm
+        open={confirming !== null}
+        title={confirming === "replace" ? "Replace overlapped rows?" : "Skip this import?"}
+        body={
+          confirming === "replace"
+            ? "Overlapped rows are dropped and replaced by this file. This cannot be undone."
+            : "This file is discarded. Nothing is imported. This cannot be undone."
+        }
+        confirmLabel={confirming === "replace" ? "Replace" : "Skip"}
+        busy={state === "working"}
+        onCancel={() => setConfirming(null)}
+        onConfirm={() => {
+          if (confirming) void decide(confirming);
+          setConfirming(null);
+        }}
+      />
       {state === "working" && <p className="mt-2 text-sm ds-text-2">Working…</p>}
       {state === "failed" && (
         <p role="alert" className="mt-2 text-sm" style={{ color: "var(--danger)" }}>
-          Decision failed — try again.
+          Decision failed. Try again.
         </p>
       )}
       {state === "done" && <p className="mt-2 text-sm ds-text-2">Decided: {choice}. Page updated.</p>}

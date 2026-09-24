@@ -36,9 +36,12 @@ export default function ApprovalCard({ approval }: { approval: ApprovalItem }) {
   const quorum = Math.min(yesVotes, approval.requiredCount);
   const inputs = approval.inputs ?? {};
 
+  const [failReason, setFailReason] = useState<string | null>(null);
+
   async function decide(approve: boolean) {
     if (state === "working" || state === "done") return;
     setState("working");
+    setFailReason(null);
     try {
       const res = await fetch("/api/ontology/approvals", {
         method: "PATCH",
@@ -49,10 +52,16 @@ export default function ApprovalCard({ approval }: { approval: ApprovalItem }) {
         const body = (await res.json()) as { approval?: { status?: string } };
         setDone(String(body.approval?.status ?? (approve ? "approved" : "rejected")));
         setState("done");
+      } else if (res.status === 403) {
+        setFailReason("OWNER role required.");
+        setState("failed");
       } else {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setFailReason(body.error ?? "Request failed. Try again.");
         setState("failed");
       }
     } catch {
+      setFailReason("Request failed. Check your connection and try again.");
       setState("failed");
     }
   }
@@ -134,7 +143,7 @@ export default function ApprovalCard({ approval }: { approval: ApprovalItem }) {
         {state === "working" && <span className="text-xs ds-text-2">…</span>}
         {state === "failed" && (
           <span role="alert" className="text-xs" style={{ color: "var(--danger)" }}>
-            failed — OWNER role required
+            {failReason ?? "Request failed. Try again."}
           </span>
         )}
       </span>
