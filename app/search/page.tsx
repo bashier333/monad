@@ -74,7 +74,7 @@ export default function SearchPage() {
         </button>
       </form>
       {recent.length > 0 && (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm ds-text-2">
           Recent:{" "}
           {recent.map((r) => (
             <button key={r} className="mr-2 underline" onClick={() => { setQ(r); void run(r, kind); }}>
@@ -83,21 +83,21 @@ export default function SearchPage() {
           ))}
         </p>
       )}
-      {err && <p className="text-sm text-red-600">{err}</p>}
-      {ms !== null && <p className="text-xs text-gray-500">{hits.length} hits in {ms}ms</p>}
+      {err && <p role="alert" className="text-sm" style={{ color: "var(--danger)" }}>{err}</p>}
+      {ms !== null && <p className="text-xs ds-text-2">{hits.length} hits in {ms}ms</p>}
       <ul className="space-y-2 text-sm">
         {hits.map((h) => (
           <li key={`${h.kind}-${h.id}`} className="rounded border p-3">
-            <span className="mr-2 rounded bg-gray-100 px-1 font-mono text-xs">{h.kind}</span>
+            <span className="mr-2 rounded ds-panel-2 px-1 font-mono text-xs">{h.kind}</span>
             <a href={h.href} className="font-medium underline">
               {h.title}
             </a>
-            <p className="mt-1 text-gray-600">{h.snippet}</p>
+            <p className="mt-1 ds-text-2">{h.snippet}</p>
           </li>
         ))}
       </ul>
       {ms !== null && hits.length === 0 && !err && (
-        <p className="text-sm text-gray-600">Nothing found. Try a project name, lane, or invoice number.</p>
+        <p className="text-sm ds-text-2">Nothing found. Try a project name, lane, or invoice number.</p>
       )}
     </main>
   );

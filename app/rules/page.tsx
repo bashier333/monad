@@ -47,7 +47,7 @@ export default async function RulesPage({
   return (
     <main className="mx-auto max-w-4xl space-y-4 p-4 md:p-8">
       <h1 className="text-xl font-bold">Standing rules</h1>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm ds-text-2">
         Rules re-apply your corrections to every future week automatically. Disabling a rule re-runs
         affected answers immediately.
       </p>
@@ -66,7 +66,7 @@ export default async function RulesPage({
       <div className="overflow-x-auto">
       <table className="w-full min-w-[560px] text-sm">
         <thead>
-          <tr className="text-left text-gray-500">
+          <tr className="text-left ds-text-2">
             <th className="py-1">Rule</th>
             <th>Moves to</th>
             <th>Active</th>
@@ -78,8 +78,8 @@ export default async function RulesPage({
             <tr key={r.id} className="border-t">
               <td className="py-1">
                 {r.costKind} where {r.matchField} = “{r.matchValue}”{" "}
-                <span className="text-gray-500">({r.reason})</span>
-                {r.sourceCorrectionId && <span className="text-gray-500"> (from correction {r.sourceCorrectionId.slice(0, 8)})</span>}
+                <span className="ds-text-2">({r.reason})</span>
+                {r.sourceCorrectionId && <span className="ds-text-2"> (from correction {r.sourceCorrectionId.slice(0, 8)})</span>}
               </td>
               <td>{r.toLoad ?? "EXCLUDED"}</td>
               <td>{r.active ? "yes" : "no"}</td>
@@ -93,9 +93,9 @@ export default async function RulesPage({
         </tbody>
       </table>
       </div>
-      {rules.length === 0 && <p className="text-sm text-gray-600">No rules yet.</p>}
-      {lineage > 0 && <p className="text-xs text-gray-500">{lineage} rules trace back to corrections.</p>}
-      {!isOwner && <p className="text-xs text-gray-500">Only owners can manage rules.</p>}
+      {rules.length === 0 && <p className="text-sm ds-text-2">No rules yet.</p>}
+      {lineage > 0 && <p className="text-xs ds-text-2">{lineage} rules trace back to corrections.</p>}
+      {!isOwner && <p className="text-xs ds-text-2">Only owners can manage rules.</p>}
       <AliasManager />
     </main>
   );

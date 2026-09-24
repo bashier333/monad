@@ -95,7 +95,7 @@ export default async function SettingsPage() {
           </section>
         </>
       ) : (
-        <p className="text-sm text-gray-600">Only owners can change settings. Ask an owner to invite or update.</p>
+        <p className="text-sm ds-text-2">Only owners can change settings. Ask an owner to invite or update.</p>
       )}
     </main>
   );

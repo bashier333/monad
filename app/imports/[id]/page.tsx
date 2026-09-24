@@ -75,7 +75,7 @@ export default async function ImportPage({ params }: { params: Promise<{ id: str
         <div className="rounded border p-2">OK rows: {run.okRows}</div>
         <div className="rounded border p-2">Quarantined: {run.quarantinedRows}</div>
       </div>
-      {run.failureReason && <p className="text-sm text-red-600">Failed: {run.failureReason}</p>}
+      {run.failureReason && <p role="alert" className="text-sm" style={{ color: "var(--danger)" }}>Failed: {run.failureReason}</p>}
 
       {run.status === "NEEDS_REVIEW" && <ImportDecision runId={run.id} note={run.decisionNote} conflictCount={conflicts.length} />}
 
@@ -94,7 +94,7 @@ export default async function ImportPage({ params }: { params: Promise<{ id: str
           <div className="overflow-x-auto">
           <table className="mt-2 w-full min-w-[560px] text-sm">
             <thead>
-                <tr className="text-left text-gray-500">
+                <tr className="text-left ds-text-2">
                   <th className="py-1">Record</th>
                 <th>Field</th>
                 <th>This file</th>
@@ -123,7 +123,7 @@ export default async function ImportPage({ params }: { params: Promise<{ id: str
             <a href={`/api/imports/${run.id}/errors`} className="underline">
               Download all errors as CSV
             </a>{" "}
-            — fix offline, re-upload.
+            · fix offline, re-upload.
           </p>
           <div className="overflow-x-auto">
           <table className="mt-2 w-full min-w-[560px] text-sm">

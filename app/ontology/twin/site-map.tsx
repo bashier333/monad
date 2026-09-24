@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { colorForType, toMapPoints } from "@/lib/packs/manufacturing/graph-view";
 import type { TwinGraph } from "@/lib/packs/manufacturing/service";
@@ -17,6 +17,7 @@ function escapeHtml(s: string): string {
 export default function SiteMap({ graph }: { graph: TwinGraph }) {
   const ref = useRef<HTMLDivElement>(null);
   const { points, skipped } = useMemo(() => toMapPoints(graph.nodes), [graph.nodes]);
+  const [failed, setFailed] = useState(false);
   const routes = useMemo(() => {
     const coords = new Map(points.map((p) => [p.id, p]));
     const out: Array<{ from: { lat: number; lng: number }; to: { lat: number; lng: number }; label: string }> = [];
@@ -52,6 +53,7 @@ export default function SiteMap({ graph }: { graph: TwinGraph }) {
           attributionControl: { compact: true },
         });
       } catch {
+        if (!cancelled) setFailed(true);
         return;
       }
       map.addControl(new maplibre.NavigationControl({ showCompass: true }), "top-right");
@@ -159,12 +161,47 @@ export default function SiteMap({ graph }: { graph: TwinGraph }) {
     );
   }
 
+  const kinds = Array.from(new Set(points.map((p) => p.type))).sort();
+  if (failed) {
+    return (
+      <div className="rounded ds-panel p-4">
+        <p className="text-sm font-medium ds-text">Operations map</p>
+        <p className="mt-1 text-sm ds-text-2">3D view is unavailable in this browser. All {points.length} sites:</p>
+        <ul className="mt-2 space-y-1 text-sm">
+          {points.map((p) => (
+            <li key={p.id} className="ds-text">
+              {p.label} <span className="ds-text-2">({p.type}{p.status ? `, ${p.status}` : ""})</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
   return (
     <div className="rounded ds-panel p-3">
-      <p className="mb-2 text-sm font-medium ds-text">
-        Operations map ({points.length} sites{routes.length > 0 ? `, ${routes.length} live routes` : ""})
-      </p>
-      <div ref={ref} className="z-0 h-[380px] w-full overflow-hidden rounded" />
+      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <p className="text-sm font-medium ds-text">
+          Operations map ({points.length} sites{routes.length > 0 ? `, ${routes.length} live routes` : ""})
+        </p>
+        <span className="flex flex-wrap gap-x-2 gap-y-1" aria-label="Legend">
+          {kinds.map((k) => (
+            <span key={k} className="inline-flex items-center gap-1 text-xs ds-text-2">
+              <span aria-hidden className="inline-block h-2 w-2 rounded-full" style={{ background: colorForType(k) }} />
+              {k}
+            </span>
+          ))}
+        </span>
+      </div>
+      <div ref={ref} className="z-0 h-[380px] w-full overflow-hidden rounded" role="img" aria-label={`3D map of ${points.length} sites`} />
+      <noscript>
+        <ul className="mt-2 space-y-1 text-sm">
+          {points.map((p) => (
+            <li key={p.id} className="ds-text">
+              {p.label} <span className="ds-text-2">({p.type}{p.status ? `, ${p.status}` : ""})</span>
+            </li>
+          ))}
+        </ul>
+      </noscript>
       {skipped > 0 && (
         <p className="mt-1 text-xs ds-text-2">{skipped} objects have no coordinates and are not plotted.</p>
       )}

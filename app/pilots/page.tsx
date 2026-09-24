@@ -14,7 +14,7 @@ function Criterion({ done, label, detail }: { done: boolean; label: string; deta
       <p className="font-medium">
         {done ? "✓ " : "○ "} {label}
       </p>
-      <p className="text-gray-600">{detail}</p>
+      <p className="ds-text-2">{detail}</p>
     </div>
   );
 }
@@ -57,7 +57,7 @@ export default async function PilotsPage() {
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-4 md:p-8">
       <h1 className="text-xl font-bold">Pilot success for {active.organization.name}</h1>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm ds-text-2">
         Three criteria, written and tracked. Hit all three and this pilot converts.
       </p>
       <Criterion
