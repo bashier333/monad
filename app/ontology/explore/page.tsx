@@ -35,7 +35,7 @@ export default async function ExplorePage() {
         Find anything, then follow its relationships outward. Depth controls how many hops you see; every
         object can jump straight into an action.
       </p>
-      <Explorer />
+      <Explorer canManage={active.membership.role === "OWNER"} />
     </main>
   );
 }

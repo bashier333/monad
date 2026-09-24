@@ -134,13 +134,15 @@ export default function AgentConsole() {
   const [answer, setAnswer] = useState("");
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [provider, setProvider] = useState("");
-  const [backend, setBackend] = useState<{ checked: boolean; configured: boolean; provider: string | null; source: string | null; hint: string }>({
+  const [backend, setBackend] = useState<{ checked: boolean; configured: boolean; provider: string | null; source: string | null; available: Array<{ provider: string; source: string }>; hint: string }>({
     checked: false,
     configured: false,
     provider: null,
     source: null,
+    available: [],
     hint: "",
   });
+  const [wantedProvider, setWantedProvider] = useState("auto");
   const [running, setRunning] = useState(false);
   const [proposalStates, setProposalStates] = useState<Record<number, ProposalState>>({});
   const [wideText, setWideText] = useState<Record<number, string>>({});
@@ -152,13 +154,14 @@ export default function AgentConsole() {
     setHistory(loadHistory());
     fetch("/api/agent/run")
       .then((r) => (r.ok ? r.json() : null))
-      .then((b: { configured?: boolean; provider?: string | null; source?: string | null; hint?: string } | null) => {
+      .then((b: { configured?: boolean; provider?: string | null; source?: string | null; available?: Array<{ provider: string; source: string }>; hint?: string } | null) => {
         if (!b) return;
         setBackend({
           checked: true,
           configured: b.configured === true,
           provider: typeof b.provider === "string" ? b.provider : null,
           source: typeof b.source === "string" ? b.source : null,
+          available: Array.isArray(b.available) ? b.available : [],
           hint: typeof b.hint === "string" ? b.hint : "",
         });
       })
@@ -209,7 +212,7 @@ export default function AgentConsole() {
       const res = await fetch("/api/agent/run", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, ...(wantedProvider !== "auto" ? { provider: wantedProvider } : {}) }),
         signal: controller.signal,
       });
       if (!res.ok || !res.body) {
@@ -362,6 +365,23 @@ export default function AgentConsole() {
           placeholder="which orders are at risk of missing SLA?"
           className="w-full rounded border px-3 py-2 text-sm"
         />
+        {backend.available.length > 1 && (
+          <select
+            value={wantedProvider}
+            onChange={(e) => setWantedProvider(e.target.value)}
+            aria-label="AI provider"
+            className="rounded border px-2 py-2 text-sm ds-text"
+            style={{ borderColor: "var(--hairline)", background: "var(--ground)" }}
+          >
+            <option value="auto">Auto</option>
+            {backend.available.map((a) => (
+              <option key={a.provider} value={a.provider}>
+                {a.provider}
+                {a.source === "org" ? " (key)" : ""}
+              </option>
+            ))}
+          </select>
+        )}
         <button
           type="submit"
           disabled={running}

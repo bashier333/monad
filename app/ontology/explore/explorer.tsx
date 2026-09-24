@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import EdgeLinker from "@/components/EdgeLinker";
 import { useRouter, useSearchParams } from "next/navigation";
 import ObjectPicker, { type PickedObject } from "@/components/ObjectPicker";
 
@@ -33,7 +34,7 @@ async function labelsFor(ids: string[]): Promise<Map<string, { key: string; type
 
 type Direction = "out" | "in" | "both";
 
-function ExplorerInner() {
+function ExplorerInner({ canManage }: { canManage: boolean }) {
   const params = useSearchParams();
   const router = useRouter();
   const [picked, setPicked] = useState<PickedObject | null>(null);
@@ -299,6 +300,9 @@ function ExplorerInner() {
               Audit
             </Link>
           </p>
+          {canManage && labels.get(drawerId)?.typeKey && (
+            <EdgeLinker fromId={drawerId} fromTypeKey={labels.get(drawerId)!.typeKey} />
+          )}
         </div>
       )}
     </div>
@@ -323,10 +327,10 @@ function FacetChip({ active, label, onClick }: { active: boolean; label: string;
   );
 }
 
-export default function Explorer() {
+export default function Explorer({ canManage = false }: { canManage?: boolean }) {
   return (
     <Suspense fallback={<p className="text-sm ds-text-2">Loading explorer…</p>}>
-      <ExplorerInner />
+      <ExplorerInner canManage={canManage} />
     </Suspense>
   );
 }

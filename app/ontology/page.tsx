@@ -3,6 +3,7 @@ import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
 import ModelBoardLoader from "@/app/ontology/model-board-loader";
+import TypeBuilder from "@/components/TypeBuilder";
 
 async function gate() {
   const session = await auth();
@@ -67,6 +68,7 @@ export default async function OntologyPage() {
           <Link href="/ontology/ops" className="underline">Ops</Link>
         </p>
       </div>
+      {g.isOwner && <TypeBuilder />}
       <section aria-label="Guides" className="ds-panel p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-[15px] font-semibold ds-text">Guides</h2>

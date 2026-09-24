@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
+import ObjectCreator from "@/components/ObjectCreator";
 
 export default async function OntologyTypePage({ params }: { params: Promise<{ key: string }> }) {
   const session = await auth();
@@ -23,6 +24,7 @@ export default async function OntologyTypePage({ params }: { params: Promise<{ k
     );
   }
   const { key } = await params;
+  const isOwner = active.membership.role === "OWNER";
   const type = await db.ontoType
     .findUnique({
       where: { organizationId_key: { organizationId: active.organization.id, key } },
@@ -70,6 +72,18 @@ export default async function OntologyTypePage({ params }: { params: Promise<{ k
         </h1>
         {type.description && <p className="mt-1 text-sm ds-text-2">{type.description}</p>}
       </div>
+      {isOwner && (
+        <ObjectCreator
+          typeKey={type.key}
+          properties={type.properties.map((p) => ({
+            key: p.key,
+            label: p.label,
+            kind: p.kind,
+            required: p.required,
+            config: (p.config as { options?: string[] } | null) ?? null,
+          }))}
+        />
+      )}
       <section>
         <h2 className="font-medium ds-text">Properties ({type.properties.length})</h2>
         <table className="ds-table mt-2 w-full text-sm">

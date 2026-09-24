@@ -4,7 +4,8 @@ import { logAccess } from "@/lib/core/access";
 import { getActiveOrg } from "@/lib/core/org";
 import { requireJson } from "@/lib/core/json-guard";
 import { runAgent } from "@/lib/core/agent/runtime";
-import { resolveLLM, resolveLLMForOrg } from "@/lib/core/agent/provider";
+import { availableProviders, resolveLLM, resolveLLMForOrg } from "@/lib/core/agent/provider";
+import { isOrgKeyProvider } from "@/lib/core/agent/org-keys";
 import type { AgentLLM } from "@/lib/core/agent/types";
 import { manufacturingAgentContext } from "@/lib/packs/agent";
 import { manufacturingToolExecutors } from "@/lib/packs/agent-tools";
@@ -22,7 +23,8 @@ export async function GET() {
       return NextResponse.json({ configured: true, provider, source: "env" });
     }
     const { provider: resolvedProvider, source } = await resolveLLMForOrg(active.organization.id);
-    return NextResponse.json({ configured: true, provider: resolvedProvider, source });
+    const available = await availableProviders(active.organization.id);
+    return NextResponse.json({ configured: true, provider: resolvedProvider, source, available });
   } catch (e) {
     return NextResponse.json({
       configured: false,
@@ -40,16 +42,17 @@ export async function POST(req: Request) {
   if (!active) return NextResponse.json({ error: "no organization" }, { status: 400 });
   const guarded = requireJson(req);
   if (!guarded.ok) return guarded.response;
-  const body = (await req.json()) as { question?: string; typeKeys?: string[]; maxSteps?: number };
+  const body = (await req.json()) as { question?: string; typeKeys?: string[]; maxSteps?: number; provider?: string };
   const question = String(body.question ?? "").slice(0, 2000).trim();
   if (!question) return NextResponse.json({ error: "question is required" }, { status: 400 });
+  const preferred = isOrgKeyProvider(body.provider) ? body.provider : undefined;
   const typeKeys = Array.isArray(body.typeKeys) ? body.typeKeys.filter((t) => typeof t === "string").slice(0, 20) : undefined;
   const orgId = active.organization.id;
   const ctx = await manufacturingAgentContext(orgId, typeKeys, { actorRole: active.membership.role });
   let llm: AgentLLM;
   let provider: string;
   try {
-    ({ llm, provider } = await resolveLLMForOrg(orgId));
+    ({ llm, provider } = await resolveLLMForOrg(orgId, preferred));
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "agent LLM not configured" },
