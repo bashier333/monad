@@ -40,7 +40,7 @@ export default async function RolesPage() {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] text-sm" aria-label="Permission matrix">
           <thead>
-            <tr className="text-left text-gray-500">
+            <tr className="text-left ds-text-2">
               <th className="py-1" scope="col">Capability</th>
               <th scope="col">Owner</th>
               <th scope="col">Dispatcher</th>

@@ -102,7 +102,7 @@ export interface FlowEdge {
 
 export const FLOW_NODE_W = 150;
 export const FLOW_NODE_H = 44;
-const FLOW_GAP_X = 90;
+export const FLOW_GAP_X = 90;
 const FLOW_GAP_Y = 14;
 const FLOW_PAD = 16;
 

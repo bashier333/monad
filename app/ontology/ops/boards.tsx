@@ -199,7 +199,7 @@ export default function OpsBoards({
               Simulate
             </button>
           </div>
-          {simResult && <p className={`text-sm font-medium ${simResult === "ALLOWED" ? "text-green-700" : "text-red-700"}`}>{simResult}</p>}
+          {simResult && <p className="text-sm font-medium" style={simResult === "ALLOWED" ? { color: "var(--success)" } : { color: "var(--danger)" }}>{simResult}</p>}
         </div>
       </section>
 

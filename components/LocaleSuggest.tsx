@@ -22,7 +22,7 @@ export default function LocaleSuggest({ setWeek, setTz }: { setWeek: (v: string)
       <button onClick={suggest} className="underline">
         Use my locale
       </button>
-      {msg && <span className="ml-2 text-gray-600">{msg}</span>}
+      {msg && <span className="ml-2 ds-text-2">{msg}</span>}
     </span>
   );
 }

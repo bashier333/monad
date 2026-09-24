@@ -70,7 +70,7 @@ export default async function VariantPage({
         <Link href="/briefs" className="underline">← All briefs</Link>
       </p>
       <h1 className="text-xl font-bold">
-        {by}: {key} <span className="text-sm font-normal text-gray-500">({c.weekStart})</span>
+        {by}: {key} <span className="text-sm font-normal ds-text-2">({c.weekStart})</span>
       </h1>
       <p className="rounded border p-4">{c.paragraph}</p>
       <div className="grid grid-cols-3 gap-2 text-sm">

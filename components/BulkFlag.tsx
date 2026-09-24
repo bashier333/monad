@@ -85,7 +85,7 @@ export default function BulkFlag({ loads }: { loads: Array<{ loadKey: string; ki
           Flag all lines
         </button>
       </div>
-      {msg && <p className="mt-1 text-gray-700">{msg}</p>}
+      {msg && <p className="mt-1 ds-text">{msg}</p>}
     </div>
   );
 }

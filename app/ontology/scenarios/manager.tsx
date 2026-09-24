@@ -227,7 +227,7 @@ export default function ScenarioManager({ initial }: { initial: Branch[] }) {
           placeholder="new branch name (e.g. peak-season)"
           className="w-full rounded border px-3 py-2 text-sm"
         />
-        <button onClick={() => void create()} disabled={!name.trim()} className="whitespace-nowrap rounded px-4 py-2 text-sm text-[#141413] disabled:opacity-50"
+        <button onClick={() => void create()} disabled={!name.trim()} className="whitespace-nowrap rounded px-4 py-2 text-sm text-white disabled:opacity-50"
             style={{ background: "var(--accent)" }}>
           Create
         </button>
@@ -293,7 +293,7 @@ export default function ScenarioManager({ initial }: { initial: Branch[] }) {
             <button onClick={() => void previewImpact()} className="rounded border px-3 py-2 text-sm">
               Preview impact
             </button>
-            <button onClick={() => void merge()} disabled={branch.status !== "open"} className="rounded px-3 py-2 text-sm text-[#141413] disabled:opacity-50"
+            <button onClick={() => void merge()} disabled={branch.status !== "open"} className="rounded px-3 py-2 text-sm text-white disabled:opacity-50"
               style={{ background: "var(--accent)" }}>
               Merge to live
             </button>

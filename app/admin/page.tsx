@@ -94,7 +94,7 @@ export default async function AdminPage() {
           Correction queue
         </Link>
       </div>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs ds-text-2">
         Reviewed every Monday. Charts graduate to a real dashboard after 3 pilots.
       </p>
       {pilots.length > 0 && (
@@ -102,7 +102,7 @@ export default async function AdminPage() {
           <h2 className="font-medium">Cross-pilot comparison</h2>
           <table className="mt-1 w-full">
             <thead>
-              <tr className="text-left text-gray-500">
+              <tr className="text-left ds-text-2">
                 <th>Org</th>
                 <th>Answer</th>
                 <th>Meeting</th>

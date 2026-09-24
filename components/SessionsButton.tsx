@@ -36,7 +36,7 @@ export default function SessionsButton() {
       <button onClick={() => void logoutAll()} disabled={busy} className="rounded border px-2 py-1 disabled:opacity-50">
         {busy ? "…" : "Sign out everywhere"}
       </button>
-      {msg && <span className="ml-2 text-gray-600">{msg}</span>}
+      {msg && <span className="ml-2 ds-text-2">{msg}</span>}
     </span>
   );
 }

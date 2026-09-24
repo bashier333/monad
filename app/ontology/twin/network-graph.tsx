@@ -58,10 +58,10 @@ export default function NetworkGraph({ graph }: { graph: TwinGraph }) {
     const cs = getComputedStyle(document.documentElement);
     const v = (name: string, fallback: string) => cs.getPropertyValue(name).trim() || fallback;
     return {
-      ground: v("--ground", "#f6f7f9"),
-      hairline: v("--hairline", "#e4e7ec"),
-      fg: v("--fg", "#101828"),
-      dim: v("--fg-2", "#667085"),
+      ground: v("--ground", "#0b0d10"),
+      hairline: v("--hairline", "#232a33"),
+      fg: v("--fg", "#e8eaed"),
+      dim: v("--fg-2", "#a8b0ba"),
     };
   }
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import FleetSizePicker from "@/components/FleetSizePicker";
 import OnboardingChecklist, { type ChecklistState } from "@/components/OnboardingChecklist";
+import { PageHeader } from "@/components/primitives";
 import UploadForm from "@/components/UploadForm";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
@@ -64,13 +65,10 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-8">
-      <div>
-        <h1 className="text-xl font-bold">Connect your data for {active.organization.name}</h1>
-        <p className="mt-1 text-sm ds-text-2">
-          Upload a file or sync a connector, then watch it land on{" "}
-          <Link href={boardHref} className="underline ds-text">your board</Link>.
-        </p>
-      </div>
+      <PageHeader
+        title={`Connect your data for ${active.organization.name}`}
+        sub="Upload a file or sync a connector, then watch it land on your board."
+      />
       <ol className="flex flex-wrap gap-2 text-[13px]" aria-label="Setup progress">
         {[
           { label: "1 · Connect", done: checklist.uploaded, href: null },
@@ -94,7 +92,7 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
         {uploadsThisMonth}/{FREE_LIMITS.uploadsPerMonth} free uploads used this month
         {uploadsThisMonth >= FREE_LIMITS.uploadsPerMonth ? (
           <>
-            {" — "}<Link href="/pricing" className="underline">Upgrade to Team for unlimited</Link>
+            {". "}<Link href="/pricing" className="underline">Upgrade to Team for unlimited</Link>
           </>
         ) : null}
       </p>
@@ -113,7 +111,7 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
       {stuck.length > 0 && (
         <p className="rounded border p-3 text-sm ds-panel" style={{ borderColor: "var(--warn)" }}>
           {stuck.length} run{stuck.length === 1 ? "" : "s"} stuck over 10 min. The stale-run sweep resets dead
-          runs automatically — or{" "}
+          runs automatically. You can also{" "}
           <a href="#upload-form" className="underline">re-upload the file</a>, or{" "}
           <Link href="/help" className="underline">read the import runbook</Link>.
         </p>

@@ -4,12 +4,31 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { layoutFlow, traceConnections, type GraphLink } from "@/lib/packs/manufacturing/graph-view";
 import type { TwinGraph } from "@/lib/packs/manufacturing/service";
-import { FLOW_NODE_H, FLOW_NODE_W } from "@/lib/packs/manufacturing/graph-view";
+import { FLOW_GAP_X, FLOW_NODE_H, FLOW_NODE_W } from "@/lib/packs/manufacturing/graph-view";
 
 // The company as a left-to-right workflow: suppliers make, plants build,
 // warehouses hold, customers receive. Stages come from the edges themselves,
 // so any data renders with no configuration. Click a step to trace its full
 // lineage through the funnel; the side card opens the object itself.
+const HEADER_H = 26;
+
+// Stage headers name each funnel column after the dominant node type in it
+// ("Suppliers", "Plants"), so the workflow reads without a legend.
+function stageLabel(types: string[], stage: number): string {
+  const counts = new Map<string, number>();
+  for (const t of types) counts.set(t, (counts.get(t) ?? 0) + 1);
+  let top = "";
+  let topCount = 0;
+  for (const [t, c] of counts) {
+    if (c > topCount) {
+      top = t;
+      topCount = c;
+    }
+  }
+  if (!top) return `Stage ${stage + 1}`;
+  return top.charAt(0).toUpperCase() + `${top.slice(1)}s`;
+}
+
 export default function FlowBoard({ graph }: { graph: TwinGraph }) {
   const router = useRouter();
   const laid = useMemo(() => layoutFlow(graph.nodes, graph.edges), [graph]);
@@ -25,6 +44,7 @@ export default function FlowBoard({ graph }: { graph: TwinGraph }) {
     if (!selected || !trace) return null;
     return new Set([selected.id, ...trace.upstream, ...trace.downstream]);
   }, [selected, trace]);
+  const stages = useMemo(() => Array.from(new Set(laid.nodes.map((n) => n.stage))).sort((a, b) => a - b), [laid]);
 
   if (laid.nodes.length === 0) {
     return (
@@ -41,7 +61,25 @@ export default function FlowBoard({ graph }: { graph: TwinGraph }) {
         Company workflow ({laid.nodes.length} steps, {laid.edges.length} flows)
       </p>
       <div className="overflow-x-auto" role="img" aria-label={`Workflow of ${laid.nodes.length} steps in order`}>
-        <svg width={laid.width} height={laid.height} className="block min-w-full">
+        <svg width={laid.width} height={laid.height + HEADER_H} className="block min-w-full">
+          {stages.map((s) => (
+            <text
+              key={s}
+              x={16 + s * (FLOW_NODE_W + FLOW_GAP_X) + FLOW_NODE_W / 2}
+              y={16}
+              textAnchor="middle"
+              fontSize={11}
+              fontWeight={600}
+              fill="var(--fg-2)"
+              style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
+            >
+              {stageLabel(
+                laid.nodes.filter((n) => n.stage === s).map((n) => n.type),
+                s
+              )}
+            </text>
+          ))}
+          <g transform={`translate(0, ${HEADER_H})`}>
           {laid.edges.map((e, i) => {
             const on = !lit || (lit.has(e.source) && lit.has(e.target));
             return (
@@ -87,6 +125,7 @@ export default function FlowBoard({ graph }: { graph: TwinGraph }) {
               </g>
             );
           })}
+          </g>
         </svg>
       </div>
       {selected && trace ? (

@@ -45,7 +45,7 @@ export default function FleetSizePicker({ initial, pack = "freight" }: { initial
         ))}
       </select>{" "}
       {size === "owner-op" || size === "small" ? (
-        <span className="text-gray-600">Tip: the sample week is shaped like you — try it first.</span>
+        <span className="ds-text-2">Tip: pick the size closest to your operation. It tunes thresholds and starter rules.</span>
       ) : null}
       {msg && <span className="ml-1">{msg}</span>}
     </span>

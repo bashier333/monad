@@ -29,7 +29,7 @@ export default function HelpSearch({ children }: { children: React.ReactNode }) 
         </div>
       ))}
       {GUIDES.every((g) => !g.title.toLowerCase().includes(query)) && (
-        <p className="text-sm text-gray-600">No guides match “{q}”.</p>
+        <p className="text-sm ds-text-2">No guides match “{q}”.</p>
       )}
     </div>
   );

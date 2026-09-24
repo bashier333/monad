@@ -5,7 +5,7 @@ import { db } from "@/lib/core/db";
 import { getActiveOrg } from "@/lib/core/org";
 import { verifyEventChain } from "@/lib/core/ontology/facts";
 import { twinOverview } from "@/lib/packs/manufacturing/service";
-import { ProofStrip } from "@/components/primitives";
+import { PageHeader, ProofStrip } from "@/components/primitives";
 import Tour, { ReplayTourButton } from "@/components/Tour";
 
 const TOUR_STEPS = [
@@ -104,15 +104,11 @@ export default async function WorkspacePage() {
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
       {isFirstRun && <Tour steps={TOUR_STEPS} />}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight ds-text">Workspace</h1>
-          <p className="mt-1 text-sm ds-text-2">
-            Health first, then the tools. New here? Take the tour.
-          </p>
-        </div>
-        <ReplayTourButton />
-      </div>
+      <PageHeader
+        title="Workspace"
+        sub="Health first, then the tools. New here? Take the tour."
+        actions={<ReplayTourButton />}
+      />
 
       <form action="/ontology/explore" method="get" className="flex gap-2" data-tour="search">
         <label htmlFor="workspace-q" className="sr-only">

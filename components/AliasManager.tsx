@@ -57,7 +57,7 @@ export default function AliasManager() {
             {a.alias} → {a.canonical}
           </li>
         ))}
-        {aliases.length === 0 && <li className="text-gray-500">No custom aliases yet.</li>}
+        {aliases.length === 0 && <li className="ds-text-2">No custom aliases yet.</li>}
       </ul>
       <form onSubmit={save} className="mt-2 flex flex-wrap gap-2">
         <input value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="alias, e.g. Big D" className="rounded border p-1" />

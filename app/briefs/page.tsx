@@ -65,7 +65,7 @@ export default async function BriefsPage({
       </p>
       <VariantForm week={new Date().toISOString().slice(0, 10)} pack={pack} />
       {briefs.length === 0 ? (
-        <p className="text-sm text-gray-600">No briefs yet. Generate the first one above.</p>
+        <p className="text-sm ds-text-2">No briefs yet. Generate the first one above.</p>
       ) : (
         <ul className="space-y-2 text-sm">
           {briefs.map((b) => (

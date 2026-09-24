@@ -6,6 +6,7 @@ import OrgSettingsForm from "@/components/OrgSettingsForm";
 import OrgSwitcher from "@/components/OrgSwitcher";
 import ProviderKeyForm from "@/components/ProviderKeyForm";
 import SessionsButton from "@/components/SessionsButton";
+import { PageHeader } from "@/components/primitives";
 import { auth } from "@/lib/core/auth";
 import { getActiveOrg } from "@/lib/core/org";
 
@@ -44,7 +45,7 @@ export default async function SettingsPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
-      <h1 className="text-xl font-bold">Settings for {active.organization.name}</h1>
+      <PageHeader title={`Settings for ${active.organization.name}`} />
       <section className="rounded border p-4">
         <h2 className="mb-2 font-medium">Organizations</h2>
         <OrgSwitcher currentId={active.organization.id} />

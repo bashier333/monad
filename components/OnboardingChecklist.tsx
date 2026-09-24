@@ -38,7 +38,7 @@ export default function OnboardingChecklist({
       </h2>
       <ol className="mt-1 list-decimal pl-5">
         {STEPS.map((s) => (
-          <li key={s.key} className={state[s.key] ? "text-green-700 line-through" : ""}>
+          <li key={s.key} className={state[s.key] ? "line-through ds-text-2" : ""}>
             {state[s.key] ? s.label : <Link href={s.href} className="underline">{s.label}</Link>}
           </li>
         ))}

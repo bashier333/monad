@@ -32,31 +32,31 @@ export default async function PacksPage() {
   return (
     <main className="mx-auto max-w-4xl space-y-4 p-4 md:p-8">
       <h1 className="text-xl font-bold">Pack directory</h1>
-      <p className="text-sm text-gray-600">
-        Install a pack to get its answers. Data stays namespaced — disabling a pack hides its
+      <p className="text-sm ds-text-2">
+        Install a pack to get its answers. Data stays namespaced. Disabling a pack hides its
         answers but keeps its rows (see deletion process in pack docs).
       </p>
       {packManifests().map((m) => (
         <section key={m.id} className="rounded border p-4 text-sm">
           <h2 className="font-medium">
-            {m.name} <span className="text-gray-500">v{m.version}</span>
+            {m.name} <span className="ds-text-2">v{m.version}</span>
           </h2>
-          <p className="mt-1 text-gray-700">
+          <p className="mt-1 ds-text">
             Entities: {m.entities.join(", ")} · Sources: {m.sources.join(", ")}
           </p>
-          <p className="mt-1 text-gray-700">
+          <p className="mt-1 ds-text">
             Vocabulary: {m.vocabulary.group}s, {m.vocabulary.records}, weekly {m.vocabulary.money}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             {enabled.has(m.id) ? (
               <>
-                <span className="text-green-700">Installed</span>
+                <span className="font-medium" style={{ color: "var(--success)" }}>Installed</span>
                 <Link href={answersHref(m.id)} className="underline">
                   Open answers
                 </Link>
               </>
             ) : (
-              <span className="text-gray-500">Disabled in settings</span>
+              <span className="ds-text-2">Disabled in settings</span>
             )}
             <Link href="/settings" className="underline">
               Manage in settings

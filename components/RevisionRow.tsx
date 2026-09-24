@@ -24,7 +24,7 @@ export default function RevisionRow({ load, history }: { load: AgencyLoadMargin;
         <td>{load.task || "—"}</td>
         <td className="text-right">{load.hours}</td>
         <td className="text-right">${load.totalCost.toFixed(2)}</td>
-        <td className={`text-right font-medium ${load.margin < 0 ? "text-red-600" : "text-green-700"}`}>
+        <td className="text-right font-medium" style={load.margin < 0 ? { color: "var(--danger)" } : { color: "var(--success)" }}>
           ${load.margin.toFixed(2)}
         </td>
         <td>
@@ -35,10 +35,10 @@ export default function RevisionRow({ load, history }: { load: AgencyLoadMargin;
       </tr>
       {open &&
         load.costs.map((c, i) => (
-          <tr key={i} className="border-t bg-gray-50 text-xs">
+          <tr key={i} className="border-t text-xs">
             <td />
             <td colSpan={3}>
-              {c.label} <span className="text-gray-500">({c.ruleId})</span>
+              {c.label} <span className="ds-text-2">({c.ruleId})</span>
             </td>
             <td colSpan={2} className="text-right">
               ${c.amount.toFixed(2)}

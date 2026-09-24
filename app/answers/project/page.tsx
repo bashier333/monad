@@ -171,7 +171,7 @@ export default async function AgencyProjectPage({
       {drivers.length > 0 && (
         <section className="rounded border p-4 text-sm">
           <h2 className="font-medium">Top rework drivers</h2>
-          <ul className="mt-1 list-disc pl-5 text-gray-700">
+          <ul className="mt-1 list-disc pl-5 ds-text">
             {drivers.map((d, i) => (
               <li key={i}>
                 {d.label} — ${d.amount.toFixed(2)}
@@ -186,7 +186,7 @@ export default async function AgencyProjectPage({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
-            <tr className="text-left text-gray-500">
+                <tr className="text-left ds-text-2">
               <th className="py-1">Record</th>
               <th>Date</th>
               <th>Person</th>
@@ -217,7 +217,7 @@ export default async function AgencyProjectPage({
 
       <section className="rounded border p-4 text-sm">
         <h2 className="font-medium">Recent imports touching this project</h2>
-        <ul className="mt-1 list-disc pl-5 text-gray-700">
+        <ul className="mt-1 list-disc pl-5 ds-text">
           {runs.map((r) => (
             <li key={r.id}>
               <Link href={`/imports/${r.id}`} className="underline">
@@ -232,7 +232,7 @@ export default async function AgencyProjectPage({
 
       <section className="rounded border p-4 text-sm">
         <h2 className="font-medium">Recent agency imports</h2>
-        <ul className="mt-1 list-disc pl-5 text-gray-700">
+        <ul className="mt-1 list-disc pl-5 ds-text">
           {recentAgencyRuns.map((r) => (
             <li key={r.id}>
               <Link href={`/imports/${r.id}`} className="underline">

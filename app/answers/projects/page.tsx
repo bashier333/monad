@@ -69,27 +69,23 @@ export default async function AgencyAnswersPage({
         <h1 className="text-xl font-bold">Project margins</h1>
         <WeekPicker current={answer.meta.weekStart} />
       </div>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm ds-text-2">
         <Link href="/help#agency" className="underline">How to read this</Link> ·{" "}
         <PackSwitchLink href="/answers" label="Fleet answers →" />
       </p>
       <NlBox week={answer.meta.weekStart} pack="agency" />
       {sp.topic && TOPIC_LABEL[sp.topic] && (
-        <p className="text-sm text-gray-600">{TOPIC_LABEL[sp.topic]}</p>
+        <p className="text-sm ds-text-2">{TOPIC_LABEL[sp.topic]}</p>
       )}
 
       {projects.length === 0 ? (
         <div className="rounded border p-6 text-center">
           <p className="font-medium">No projects this week.</p>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm ds-text-2">
             <Link href="/upload" className="underline">
               Upload an export
             </Link>{" "}
-            or load the studio sample week from{" "}
-            <Link href="/upload" className="underline">
-              Upload
-            </Link>{" "}
-            — most teams see their first answer in under a day.
+            to see project margins here. Most teams see their first answer in under a day.
           </p>
         </div>
       ) : (
@@ -106,7 +102,7 @@ export default async function AgencyAnswersPage({
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm" aria-label="Project margins, worst first">
               <thead>
-                <tr className="text-left text-gray-500">
+                <tr className="text-left ds-text-2">
                   <th className="py-1">Project</th>
                   <th>Client</th>
                   <th className="text-right">Rounds</th>
@@ -131,7 +127,7 @@ export default async function AgencyAnswersPage({
                     <td className="text-right">{p.revisions}</td>
                     <td className="text-right">${p.revenue.toFixed(2)}</td>
                     <td className="text-right">${p.cost.toFixed(2)}</td>
-                    <td className={`text-right font-medium ${p.margin < 0 ? "text-red-600" : "text-green-700"}`}>
+                    <td className="text-right font-medium" style={p.margin < 0 ? { color: "var(--danger)" } : { color: "var(--success)" }}>
                       ${p.margin.toFixed(2)}
                     </td>
                     <td className="text-right">{p.marginPct === null ? "—" : `${p.marginPct}%`}</td>
@@ -146,10 +142,10 @@ export default async function AgencyAnswersPage({
       {answer.unmatchedRevenue.length > 0 && (
         <section className="rounded border p-4 text-sm">
           <h2 className="font-medium">Invoices without projects ({answer.unmatchedRevenue.length})</h2>
-          <ul className="mt-1 list-disc pl-5 text-gray-700">
+          <ul className="mt-1 list-disc pl-5 ds-text">
             {answer.unmatchedRevenue.map((u) => (
               <li key={u.project}>
-                {u.project} — ${u.amount.toFixed(2)} (usually a client-name variant; add an alias)
+                {u.project} · ${u.amount.toFixed(2)} (usually a client-name variant; add an alias)
               </li>
             ))}
           </ul>
@@ -159,10 +155,10 @@ export default async function AgencyAnswersPage({
       {answer.joinConflicts.length > 0 && (
         <section className="rounded border p-4 text-sm">
           <h2 className="font-medium">Conflicting hours ({answer.joinConflicts.length})</h2>
-          <ul className="mt-1 list-disc pl-5 text-gray-700">
+          <ul className="mt-1 list-disc pl-5 ds-text">
             {answer.joinConflicts.slice(0, 20).map((c, i) => (
               <li key={i}>
-                {c.project} · {c.person} · {c.date} — {c.hoursA}h vs {c.hoursB}h (kept both, nothing overwritten)
+                {c.project} · {c.person} · {c.date} · {c.hoursA}h vs {c.hoursB}h (kept both, nothing overwritten)
               </li>
             ))}
           </ul>
@@ -171,14 +167,14 @@ export default async function AgencyAnswersPage({
 
       <section className="rounded border p-4 text-sm">
         <h2 className="font-medium">How this answer was built</h2>
-        <ul className="mt-1 list-disc pl-5 text-gray-700">
+        <ul className="mt-1 list-disc pl-5 ds-text">
           {answer.appliedRules.map((r) => (
             <li key={r.id}>
-              <span className="font-mono">{r.id}</span> — {r.sentence}
+                <span className="font-mono">{r.id}</span> · {r.sentence}
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-gray-500">
+        <p className="mt-2 ds-text-2">
           Week {answer.meta.weekStart} → {answer.meta.weekEnd} · data as of{" "}
           {answer.meta.dataAsOf ? new Date(answer.meta.dataAsOf).toLocaleString() : "—"} · engine{" "}
           {answer.meta.engineVersion}

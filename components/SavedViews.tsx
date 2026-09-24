@@ -73,7 +73,7 @@ export default function SavedViews({ currentHref }: { currentHref: string }) {
           <a href={v.href} className="underline">
             {v.name}
           </a>
-          <button onClick={() => remove(v.name)} aria-label={`Remove ${v.name}`} className="text-gray-500">
+          <button onClick={() => remove(v.name)} aria-label={`Remove ${v.name}`} className="ds-text-2">
             ×
           </button>
         </span>

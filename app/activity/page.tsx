@@ -34,12 +34,12 @@ export default async function ActivityPage() {
     <main className="mx-auto max-w-4xl space-y-3 p-4 md:p-8">
       <h1 className="text-xl font-bold">Activity: who changed what</h1>
       {events.length === 0 ? (
-        <p className="text-sm text-gray-600">No activity yet.</p>
+        <p className="text-sm ds-text-2">No activity yet.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] text-sm" aria-label="Organization activity">
             <thead>
-              <tr className="text-left text-gray-500">
+              <tr className="text-left ds-text-2">
                 <th className="py-1" scope="col">When</th>
                 <th scope="col">Action</th>
                 <th scope="col">Target</th>

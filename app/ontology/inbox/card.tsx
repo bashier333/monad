@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Confirm } from "@/components/Confirm";
 
 export interface ApprovalItem {
   id: string;
@@ -37,6 +38,7 @@ export default function ApprovalCard({ approval }: { approval: ApprovalItem }) {
   const inputs = approval.inputs ?? {};
 
   const [failReason, setFailReason] = useState<string | null>(null);
+  const [confirmReject, setConfirmReject] = useState(false);
 
   async function decide(approve: boolean) {
     if (state === "working" || state === "done") return;
@@ -85,7 +87,7 @@ export default function ApprovalCard({ approval }: { approval: ApprovalItem }) {
         const typing = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT");
         if (typing) return;
         if (e.key === "a" || e.key === "A") void decide(true);
-        if (e.key === "r" || e.key === "R") void decide(false);
+        if (e.key === "r" || e.key === "R") setConfirmReject(true);
       }}
     >
       <p>
@@ -132,7 +134,7 @@ export default function ApprovalCard({ approval }: { approval: ApprovalItem }) {
         </button>
         <button
           type="button"
-          onClick={() => void decide(false)}
+          onClick={() => setConfirmReject(true)}
           disabled={state === "working"}
           title="Reject (R)"
           className="ds-control rounded border px-2 py-1 text-xs ds-text disabled:opacity-50"
@@ -140,6 +142,18 @@ export default function ApprovalCard({ approval }: { approval: ApprovalItem }) {
         >
           Reject (R)
         </button>
+        <Confirm
+          open={confirmReject}
+          title="Reject this approval?"
+          body="The requester is told it was rejected. Rejections cannot be undone from here."
+          confirmLabel="Reject"
+          busy={state === "working"}
+          onCancel={() => setConfirmReject(false)}
+          onConfirm={() => {
+            setConfirmReject(false);
+            void decide(false);
+          }}
+        />
         {state === "working" && <span className="text-xs ds-text-2">…</span>}
         {state === "failed" && (
           <span role="alert" className="text-xs" style={{ color: "var(--danger)" }}>

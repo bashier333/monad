@@ -49,7 +49,7 @@ export default function InviteForm() {
 
   return (
     <div className="space-y-2 text-sm">
-      <p className="text-gray-600">Viewer reads answers. Dispatcher uploads, maps, and flags. Only owners approve, manage rules, and bill.</p>
+      <p className="ds-text-2">Viewer reads answers. Dispatcher uploads, maps, and flags. Only owners approve, manage rules, and bill.</p>
       <ul>
         {members.map((m) => (
           <li key={m.email ?? "?"}>
@@ -70,7 +70,7 @@ export default function InviteForm() {
           Invite
         </button>
       </form>
-      {result && <p className="break-all text-gray-700">{result}</p>}
+      {result && <p className="break-all ds-text">{result}</p>}
     </div>
   );
 }

@@ -87,7 +87,7 @@ export default function BillingPanel() {
           </button>
         )}
       </div>
-      {msg && <p className="text-red-600">{msg}</p>}
+      {msg && <p role="alert" className="text-sm" style={{ color: "var(--danger)" }}>{msg}</p>}
       {invoices.length > 0 && (
         <div>
           <p className="font-medium">Receipts</p>
@@ -107,12 +107,12 @@ export default function BillingPanel() {
         </div>
       )}
       {s.tier !== "free" && !leaving && (
-        <button onClick={() => setLeaving(true)} className="text-gray-500 underline">
+          <button onClick={() => setLeaving(true)} className="ds-text-2 underline">
           Thinking of leaving?
         </button>
       )}
       {s.tier !== "free" && (
-        <button onClick={() => post("/api/billing/pause")} className="text-gray-500 underline">
+          <button onClick={() => post("/api/billing/pause")} className="ds-text-2 underline">
           Pause instead (keeps everything, stops billing)
         </button>
       )}

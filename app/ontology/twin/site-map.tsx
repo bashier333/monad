@@ -39,6 +39,9 @@ export default function SiteMap({ graph }: { graph: TwinGraph }) {
       const maplibre = await import("maplibre-gl");
       if (cancelled || !ref.current) return;
       const dark = document.documentElement.classList.contains("dark");
+      const cs = getComputedStyle(document.documentElement);
+      const routeColor =
+        cs.getPropertyValue(dark ? "--info" : "--accent").trim() || (dark ? "#53b1fd" : "#2e7cf6");
       try {
         map = new maplibre.Map({
           container: ref.current,
@@ -87,7 +90,7 @@ export default function SiteMap({ graph }: { graph: TwinGraph }) {
             id: "lanes",
             type: "line",
             source: "lanes",
-            paint: { "line-color": dark ? "#8ecae6" : "#1d4ed8", "line-width": 2, "line-opacity": 0.65 },
+            paint: { "line-color": routeColor, "line-width": 2, "line-opacity": 0.65 },
           });
           const bounds = new maplibre.LngLatBounds();
           for (const p of points) bounds.extend([p.lng, p.lat]);
@@ -105,7 +108,7 @@ export default function SiteMap({ graph }: { graph: TwinGraph }) {
           el2.style.height = "8px";
           el2.style.borderRadius = "50%";
           el2.style.background = "#fff";
-          el2.style.border = "2px solid var(--accent, #1570ef)";
+          el2.style.border = "2px solid var(--accent, #2e7cf6)";
           const marker = new maplibre.Marker({ element: el2 }).setLngLat([r.from.lng, r.from.lat]);
           if (map) marker.addTo(map);
           movers.push({

@@ -82,7 +82,7 @@ export default function OrgSwitcher({ currentId }: { currentId: string }) {
           Create
         </button>
       </div>
-      {msg && <p className="text-red-600">{msg}</p>}
+      {msg && <p role="alert" className="text-sm" style={{ color: "var(--danger)" }}>{msg}</p>}
     </div>
   );
 }

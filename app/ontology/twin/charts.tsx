@@ -15,17 +15,17 @@ interface ChartTheme {
 
 function readTheme(): ChartTheme {
   if (typeof document === "undefined") {
-    return { danger: "#d92d20", success: "#12805c", hairline: "#e4e7ec", tick: "#475467", panel: "#ffffff", fg: "#101828" };
+    return { danger: "#f0665f", success: "#3fb97f", hairline: "#232a33", tick: "#a8b0ba", panel: "#121519", fg: "#e8eaed" };
   }
   const cs = getComputedStyle(document.documentElement);
   const v = (name: string, fallback: string) => cs.getPropertyValue(name).trim() || fallback;
   return {
-    danger: v("--danger", "#d92d20"),
-    success: v("--success", "#12805c"),
-    hairline: v("--hairline", "#e4e7ec"),
-    tick: v("--fg-2", "#475467"),
-    panel: v("--panel", "#ffffff"),
-    fg: v("--fg", "#101828"),
+    danger: v("--danger", "#f0665f"),
+    success: v("--success", "#3fb97f"),
+    hairline: v("--hairline", "#232a33"),
+    tick: v("--fg-2", "#a8b0ba"),
+    panel: v("--panel", "#121519"),
+    fg: v("--fg", "#e8eaed"),
   };
 }
 
