@@ -6,7 +6,8 @@ import { getActiveOrg } from "@/lib/core/org";
 import { verifyEventChain } from "@/lib/core/ontology/facts";
 import { twinOverview } from "@/lib/packs/manufacturing/service";
 import { PageHeader, ProofStrip } from "@/components/primitives";
-import HubNav, { HUBS } from "@/components/HubNav";
+import HubNav from "@/components/HubNav";
+import { HUBS } from "@/components/hub-nav";
 import Tour, { ReplayTourButton } from "@/components/Tour";
 
 const TOUR_STEPS = [

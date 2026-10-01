@@ -6,7 +6,8 @@ import { twinOverview, twinGraph } from "@/lib/packs/manufacturing/service";
 import { agencyBoard, freightBoard } from "@/lib/packs/board";
 import { db } from "@/lib/core/db";
 import { EmptyState } from "@/components/primitives";
-import HubNav, { HUBS } from "@/components/HubNav";
+import HubNav from "@/components/HubNav";
+import { HUBS } from "@/components/hub-nav";
 import BoardView from "./view";
 
 export const metadata = { title: "Operations board - Monad" };

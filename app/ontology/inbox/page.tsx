@@ -1,5 +1,6 @@
 import Link from "next/link";
-import HubNav, { HUBS } from "@/components/HubNav";
+import HubNav from "@/components/HubNav";
+import { HUBS } from "@/components/hub-nav";
 import DecideButtons from "@/components/DecideButtons";
 import { auth } from "@/lib/core/auth";
 import { db } from "@/lib/core/db";
